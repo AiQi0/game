@@ -1,0 +1,413 @@
+游戏实体与功能台账
+更新时间：2026-06-16
+
+维护规则
+1. 本文件是项目内实体、按键、功能、脚本职责的总台账。
+2. 后续任何新增、删除或修改游戏实体、建筑、环境实体、NPC、按键、UI、脚本职责、判定规则，都必须同步更新本文件。
+3. 若代码和本文件不一致，以实际代码为准修正文档；完成改动前不得遗漏对应记录。
+
+
+项目入口
+项目文件：project.godot
+主场景：scenes/Main.tscn
+运行场景：res://scenes/Main.tscn
+Godot 版本：4.6.x
+默认分辨率：1920 x 1080
+
+
+场景实体
+
+实体名：Main
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+功能：主场景根节点，承载地面、玩家、市政厅、空气墙、建筑容器、NPC 容器、建造管理器、NPC 管理器和昼夜管理器。
+
+实体名：DayNightManager
+节点类型：Node
+所在文件：scenes/Main.tscn
+脚本文件：scripts/DayNightManager.gd
+功能：管理昼夜循环、天空背景、太阳和月亮。白天 300 秒，夜晚 300 秒。
+
+实体名：Ground
+节点类型：StaticBody2D
+所在文件：scenes/Main.tscn
+子节点：GroundVisual、GroundCollision
+功能：横版地面。宽度 9600，高度 48，中心位置 Vector2(4800, 496)。
+碰撞：有，玩家可以站在上面。
+
+实体名：AirWalls
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+子节点：LeftAirWall、RightAirWall
+功能：地图两端的空气墙容器。
+
+实体名：LeftAirWall
+节点类型：StaticBody2D
+所在文件：scenes/Main.tscn
+位置：Vector2(-48, 0)
+碰撞尺寸：96 x 1000
+功能：阻止玩家越过地图左端；其占地也会阻止建造。
+
+实体名：RightAirWall
+节点类型：StaticBody2D
+所在文件：scenes/Main.tscn
+位置：Vector2(9648, 0)
+碰撞尺寸：96 x 1000
+功能：阻止玩家越过地图右端；其占地也会阻止建造。
+
+实体名：Player
+节点类型：CharacterBody2D
+所在文件：scenes/Main.tscn
+脚本文件：scripts/Player.gd
+子节点：PlayerVisual、PlayerCollision、Camera2D
+初始位置：Vector2(4800, 472)
+功能：玩家角色，支持左右移动、重力、朝向记录；会被空气墙阻挡。
+碰撞：有，尺寸 32 x 64。
+
+实体名：Camera2D
+节点类型：Camera2D
+所在文件：scenes/Main.tscn
+父节点：Player
+功能：跟随玩家显示横版场景。
+
+实体名：CityHall
+中文名：市政厅
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+位置：Vector2(4800, 472)
+渲染层：z_index = -1，在地面后面。
+功能：初始视觉建筑，作为已有实体参与建造重叠判定；村民会在市政厅面前游荡。
+碰撞：无物理碰撞体。
+占地判定尺寸：400 x 334，由 scripts/BuildManager.gd 的 CITY_HALL_SIZE 定义。
+拆除：不可拆除。按 Q 不会把市政厅标记为拆除目标。
+
+实体名：Buildings
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+功能：运行时放置新建筑和随机树的容器；玩家建造的建筑会作为村民工作岗位。
+
+实体名：NPCs
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+功能：运行时放置流浪汉和村民的容器。
+
+实体名：BuildManager
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+脚本文件：scripts/BuildManager.gd
+功能：管理建造选择、底部 UI、建造预览、重叠判定、放置建筑、随机生成树、拆除确认和取消；把空气墙占地加入不可建造区域；记录建筑工作岗位、岗位预订和岗位占用。
+
+实体名：NPCManager
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+脚本文件：scripts/NPCManager.gd
+功能：每 300 秒进行一次流浪汉生成判定；30% 概率生成 2-4 个流浪汉；处理玩家按 E 和流浪汉交互；把村民分配到最近的空建筑工作。
+
+
+运行时实体
+
+实体名：SkyLayer
+创建文件：scripts/DayNightManager.gd
+节点类型：CanvasLayer
+层级：layer = -100
+功能：远处天空层，承载天空背景、太阳和月亮。
+
+实体名：SkyBackground
+创建文件：scripts/DayNightManager.gd
+节点类型：ColorRect
+功能：天空背景色。白天为浅蓝，夜晚为深蓝。
+
+实体名：Sun
+中文名：太阳
+创建文件：scripts/DayNightManager.gd
+节点类型：Polygon2D
+功能：白天显示，按 DayNightRules.celestial_arc_position 的圆弧轨迹在远处天空移动。
+
+实体名：Moon
+中文名：月亮
+创建文件：scripts/DayNightManager.gd
+节点类型：Polygon2D
+功能：夜晚显示，按 DayNightRules.celestial_arc_position 的圆弧轨迹在远处天空移动。
+
+实体名：BuildPreview
+创建文件：scripts/BuildManager.gd
+视觉来源：scripts/BuildingVisualFactory.gd
+功能：玩家面前的建造虚影。
+绿色：可建造。
+红色：与已有实体或空气墙占地重叠，无法建造。
+碰撞：无物理碰撞体。
+
+实体名：BuildUI
+创建文件：scripts/BuildManager.gd
+节点类型：CanvasLayer
+子节点：BuildBarBackground、BuildBar、BuildStatus
+功能：底部建造 UI，显示可选建筑、当前选择和状态提示。
+
+实体名：BuildBar
+创建文件：scripts/BuildManager.gd
+节点类型：HBoxContainer
+功能：显示 1-4 号建筑槽位。
+
+实体名：BuildStatus
+创建文件：scripts/BuildManager.gd
+节点类型：Label
+功能：显示当前操作提示，例如建造、无法建造、拆除、取消。
+
+实体名：Tree_01 到 Tree_18
+中文名：树
+创建文件：scripts/BuildManager.gd
+视觉来源：scripts/TreeFactory.gd
+容器：Buildings
+生成规则：启动时由 BuildRules.random_tree_positions 随机分布在地面上。
+随机种子：20260616，由 scripts/BuildManager.gd 的 TREE_RANDOM_SEED 定义。
+数量：18，由 scripts/BuildManager.gd 的 TREE_COUNT 定义。
+占地判定尺寸：64 x 120，由 scripts/BuildManager.gd 的 TREE_SIZE 定义。
+功能：环境实体，占用矩形范围参与建造重叠判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。角色站在树占地范围内按 Q 标记红色拆除虚影，再按 Q 拆除；按 E 或离开范围取消。
+
+实体名：Homeless_XX
+中文名：流浪汉
+创建文件：scripts/NPCManager.gd
+视觉来源：scripts/NPCFactory.gd
+行为脚本：scripts/NPC.gd
+容器：NPCs
+生成规则：每 300 秒判定一次；30% 概率生成；每次生成 2-4 个；位置在地图 x=0 到 x=9600 的任意地面点。
+功能：生成后围绕出生点附近游荡。
+交互：玩家靠近后按 E，流浪汉变为村民。
+碰撞：无物理碰撞体。
+
+实体名：Villager_XX
+中文名：村民
+创建文件：scripts/NPCManager.gd
+视觉来源：scripts/NPCFactory.gd
+行为脚本：scripts/NPC.gd
+容器：NPCs
+生成方式：由流浪汉按 E 交互转换而来。
+功能：优先前往最近的非市政厅建筑门前工作；每个建筑最多容纳 1 名村民；没有空建筑时在市政厅面前附近游荡。
+入职流程：村民先显示在地图上并走到目标建筑门前；到达后模型隐藏，表示进入建筑工作。
+碰撞：无物理碰撞体。
+
+
+可建造建筑
+
+建筑 ID：blacksmith
+中文名：铁匠铺
+选择按键：键盘左上数字 1，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：180 x 140
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每栋铁匠铺最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+建筑 ID：wall
+中文名：城墙
+选择按键：键盘左上数字 2，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：120 x 100
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每段城墙最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+建筑 ID：farm
+中文名：农田
+选择按键：键盘左上数字 3，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：220 x 60
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每块农田最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+建筑 ID：tavern
+中文名：酒馆
+选择按键：键盘左上数字 4，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：190 x 150
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每间酒馆最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+
+脚本职责
+
+文件：scripts/Player.gd
+负责实体：Player
+功能：处理左右移动、重力、move_and_slide、记录朝向 facing_direction。
+公开方法：get_facing_direction()
+
+文件：scripts/BuildManager.gd
+负责实体：BuildManager、BuildUI、BuildPreview、运行时建筑、随机树、空气墙占地
+功能：处理输入、选中/取消选中、建造预览、建造放置、占地记录、随机树生成、可拆/不可拆标记、拆除确认、拆除取消、工作岗位记录、岗位预订、岗位占用、拆除后清理对应占地。
+公开方法：
+get_work_sites：返回所有可工作建筑岗位，排除市政厅、树和空气墙。
+claim_work_site：为指定岗位预订 worker_id；已预订或已占用岗位不能再次预订；预订阶段不会点亮窗户。
+occupy_work_site：村民到达建筑门前后，把预订岗位标记为实际占用并点亮窗户。
+拆除规则：拆除实体时只移除该实体自身的占地，不会误删空气墙占地；拆除后同位置可再次建造。若建筑内已有村民，则在被拆建筑位置释放该村民；若村民还在路上，则取消其岗位预订。
+关键常量：
+GROUND_MIN_X = 0.0
+GROUND_MAX_X = 9600.0
+GROUND_TOP_Y = 472.0
+AIR_WALL_WIDTH = 96.0
+AIR_WALL_HEIGHT = 1000.0
+CITY_HALL_SIZE = Vector2(400, 334)
+TREE_SIZE = Vector2(64, 120)
+TREE_COUNT = 18
+TREE_RANDOM_SEED = 20260616
+VALID_PREVIEW_COLOR = 绿色建造虚影
+INVALID_PREVIEW_COLOR = 红色不可建造虚影
+DEMOLITION_PREVIEW_COLOR = 红色拆除确认虚影
+
+文件：scripts/DayNightManager.gd
+负责实体：DayNightManager、SkyLayer、SkyBackground、Sun、Moon
+功能：累计昼夜时间；白天显示太阳和浅蓝天空，夜晚显示月亮和深蓝天空；太阳和月亮沿远处天空圆弧轨迹移动。
+
+文件：scripts/DayNightRules.gd
+负责功能：昼夜循环和天体轨迹规则
+功能：
+phase_for_time：根据累计秒数返回 day 或 night。
+phase_progress：返回当前白天或夜晚阶段内的 0-1 进度。
+celestial_arc_position：根据阶段进度和视口尺寸计算太阳/月亮的圆弧位置。
+
+文件：scripts/NPCManager.gd
+负责实体：NPCManager、Homeless_XX、Villager_XX
+功能：累计时间，每 300 秒执行刷新判定；按 30% 概率生成 2-4 个流浪汉；处理 E 交互，把流浪汉转换为村民，并分配到最近的空建筑工作；持续检查村民是否到达建筑门前，到达后让其进入建筑。
+公开方法：
+release_worker_from_demolished_building：拆除已有村民在内的建筑时，把村民显示在被拆建筑位置。
+cancel_worker_assignment_from_demolished_building：拆除村民尚未到达的预订建筑时，取消该村民岗位并让其回到市政厅前游荡。
+
+文件：scripts/NPC.gd
+负责实体：Homeless_XX、Villager_XX
+功能：NPC 游荡行为；流浪汉围绕出生点游荡；interact 后变为村民；travel_to_workplace 后走到建筑门前；enter_building 后隐藏模型并停止游荡；exit_building 后重新显示并回到市政厅面前游荡；无岗位时围绕市政厅面前游荡。
+
+文件：scripts/NPCRules.gd
+负责功能：NPC 生成规则
+功能：
+spawn_interval_seconds：返回 300 秒。
+should_spawn_from_roll：roll 小于 0.3 时生成。
+spawn_count_from_seed：返回 2-4 个生成数量。
+spawn_positions_from_seed：生成地图内地面位置。
+nearest_available_work_site_index：在可工作且未占用的建筑岗位中选择距离村民最近的岗位，跳过市政厅、树和已占用建筑。
+
+文件：scripts/NPCFactory.gd
+负责实体：Homeless_XX、Villager_XX
+功能：用 Node2D 和 Polygon2D 生成 NPC 外观并绑定 NPC.gd。
+约束：不得创建 CollisionObject2D、CollisionShape2D、CollisionPolygon2D。
+
+文件：scripts/BuildingCatalog.gd
+负责实体：铁匠铺、城墙、农田、酒馆
+功能：集中定义建筑 ID、显示名、选择按键、尺寸和颜色。
+
+文件：scripts/BuildingVisualFactory.gd
+负责实体：所有可建造建筑的视觉节点
+功能：用 Node2D 和 Polygon2D 生成建筑外观；为每种建筑生成 Window 开头的窗户节点；set_occupied(false) 让窗户暗色，set_occupied(true) 让窗户亮色。
+约束：不得创建 CollisionObject2D、CollisionShape2D、CollisionPolygon2D。
+
+文件：scripts/TreeFactory.gd
+负责实体：Tree_01 到 Tree_18
+功能：用 Node2D 和 Polygon2D 生成树外观。
+约束：不得创建 CollisionObject2D、CollisionShape2D、CollisionPolygon2D。
+
+文件：scripts/BuildRules.gd
+负责功能：纯规则函数
+功能：
+selected_index_from_key：把键盘左上数字 1-4 映射到建筑槽位。
+selected_index_after_request：重复选择当前槽位时取消选中。
+build_position_for_player：根据玩家位置和朝向计算面前建造位置。
+footprint_for_position：根据底部中心点和尺寸计算占地矩形。
+has_overlap：判定建造占地是否与已有实体或空气墙重叠。
+footprint_index_containing_point：根据玩家位置查找占地目标。
+demolishable_entity_index_containing_point：根据玩家位置查找可拆实体，跳过市政厅等不可拆实体。
+random_tree_positions：按随机种子生成不与已有占地重叠的树位置。
+air_wall_footprints：生成地图两端空气墙占地，用于阻止空气墙内建造。当前空气墙宽度为 96。
+
+
+按键表
+
+按键：A 或 Left Arrow
+功能：玩家向左移动，并把朝向设为左；会被 LeftAirWall 阻挡。
+实现文件：scripts/Player.gd
+
+按键：D 或 Right Arrow
+功能：玩家向右移动，并把朝向设为右；会被 RightAirWall 阻挡。
+实现文件：scripts/Player.gd
+
+按键：键盘左上数字 1
+功能：选择或取消选择铁匠铺。小键盘 1 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：键盘左上数字 2
+功能：选择或取消选择城墙。小键盘 2 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：键盘左上数字 3
+功能：选择或取消选择农田。小键盘 3 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：键盘左上数字 4
+功能：选择或取消选择酒馆。小键盘 4 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：E
+功能：建造当前选中的建筑；若处于拆除确认状态，则取消拆除；若附近有流浪汉，则与流浪汉交互并转为村民，随后村民选择最近空建筑工作。
+实现文件：scripts/BuildManager.gd、scripts/NPCManager.gd
+
+按键：Q
+功能：拆除操作。第一次按 Q 在玩家所在可拆实体范围内标记红色拆除虚影，第二次按 Q 拆除该实体。
+可拆目标：玩家建造的建筑、随机生成的树。
+不可拆目标：市政厅、空气墙、流浪汉、村民。
+取消条件：按 E 或玩家离开该实体占地范围。
+补充规则：拆除玩家建筑后会释放该建筑占地，同位置可重新建造；若建筑内有村民，则该村民会出现在被拆建筑位置。
+实现文件：scripts/BuildManager.gd
+
+
+测试文件
+
+文件：tests/BuildRulesTest.gd
+覆盖内容：建筑目录、数字键映射、重复选择取消、建造位置、占地矩形、重叠判定、拆除目标查找、市政厅不可拆、随机树位置生成、空气墙占地阻止建造。
+
+文件：tests/NPCRulesTest.gd
+覆盖内容：五分钟刷新间隔、30% 生成概率、2-4 个生成数量、地图内生成位置、最近空建筑岗位选择。
+
+文件：tests/NPCFactoryTest.gd
+覆盖内容：流浪汉视觉节点、无碰撞约束、E 交互后转换为村民、村民设置工作地点、村民走向岗位、进入建筑隐藏、退出建筑显示。
+
+文件：tests/BuildManagerWorkSiteTest.gd
+覆盖内容：只有玩家建造的建筑会成为工作岗位；市政厅和树不是岗位；每个岗位只能被 1 名村民预订或占用；预订阶段窗户保持暗色；占用阶段窗户亮起。
+
+文件：tests/VillagerWorkArrivalTest.gd
+覆盖内容：村民接到岗位后保持可见并走向建筑门前；到达后进入建筑、隐藏模型，并点亮建筑窗户。
+
+文件：tests/DemolishClearsFootprintTest.gd
+覆盖内容：拆除建筑时只移除被拆实体自身占地，空气墙占地保留；拆除后原位置不再阻止建造。
+
+文件：tests/DayNightRulesTest.gd
+覆盖内容：五分钟白天、五分钟夜晚、昼夜循环回绕、太阳/月亮圆弧轨迹关键位置。
+
+文件：tests/BuildingVisualFactoryTest.gd
+覆盖内容：每种建筑能生成视觉节点，并且不包含任何碰撞节点；每种建筑有窗户节点，窗户可在空置暗色和占用亮色之间切换。
+
+文件：tests/TreeFactoryTest.gd
+覆盖内容：树能生成视觉节点，并且不包含任何碰撞节点。
+
+
+后续更新检查清单
+1. 新增或改名节点：更新“场景实体”或“运行时实体”。
+2. 新增或修改建筑：更新“可建造建筑”和“按键表”。
+3. 新增或修改环境实体：更新“运行时实体”“脚本职责”和“测试文件”。
+4. 新增或修改 NPC：更新“运行时实体”“脚本职责”“按键表”和“测试文件”。
+5. 新增或修改按键：更新“按键表”和相关脚本职责。
+6. 新增或修改脚本：更新“脚本职责”。
+7. 新增或修改判定规则：更新“脚本职责”和“测试文件”。
+8. 新增测试：更新“测试文件”。
