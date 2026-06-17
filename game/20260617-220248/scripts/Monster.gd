@@ -1,0 +1,147 @@
+extends Node2D
+
+const MAX_HEALTH := 3
+
+var health := MAX_HEALTH
+var side := "left"
+var direction := 1
+var state := "advance"
+var charge_elapsed := 0.0
+var attack_target: Node2D
+var carried_tool := ""
+var stolen_gold := 0
+
+
+func setup(spawn_side: String, spawn_position: Vector2) -> void:
+	side = spawn_side
+	direction = 1 if side == "left" else -1
+	global_position = spawn_position
+	_create_visual()
+
+
+func take_damage(amount: int) -> bool:
+	health -= amount
+	modulate = Color(1.0, 0.45, 0.45, 1)
+	if health <= 0:
+		queue_free()
+		return true
+
+	return false
+
+
+func begin_return(tool_id := "", gold_amount := 0) -> void:
+	carried_tool = tool_id
+	stolen_gold = gold_amount
+	state = "returning"
+	attack_target = null
+	charge_elapsed = 0.0
+	_update_loot_visual()
+
+
+func _create_visual() -> void:
+	if get_child_count() > 0:
+		return
+
+	var body := Polygon2D.new()
+	body.name = "MonsterBody"
+	body.color = Color(0.25, 0.08, 0.12, 1)
+	body.polygon = PackedVector2Array([
+		Vector2(-16, -54),
+		Vector2(16, -54),
+		Vector2(20, 0),
+		Vector2(-20, 0),
+	])
+	add_child(body)
+
+	var eye := Polygon2D.new()
+	eye.name = "MonsterEye"
+	eye.color = Color(1.0, 0.1, 0.08, 1)
+	eye.polygon = PackedVector2Array([
+		Vector2(-8, -42),
+		Vector2(8, -42),
+		Vector2(8, -34),
+		Vector2(-8, -34),
+	])
+	add_child(eye)
+
+
+func _update_loot_visual() -> void:
+	var old_loot := get_node_or_null("LootVisual")
+	if old_loot != null:
+		if old_loot.is_inside_tree():
+			old_loot.queue_free()
+		else:
+			old_loot.free()
+
+	if carried_tool == "" and stolen_gold <= 0:
+		return
+
+	var loot := Polygon2D.new()
+	loot.name = "LootVisual"
+	loot.position = Vector2(0, -76)
+	if carried_tool != "":
+		loot.color = _tool_color(carried_tool)
+		loot.polygon = _tool_loot_polygon(carried_tool)
+	else:
+		loot.color = Color(1.0, 0.82, 0.22, 1)
+		loot.polygon = PackedVector2Array([
+			Vector2(-10, -10),
+			Vector2(10, -10),
+			Vector2(10, 10),
+			Vector2(-10, 10),
+		])
+	add_child(loot)
+
+
+func _tool_color(tool_id: String) -> Color:
+	match tool_id:
+		"sword":
+			return Color(0.74, 0.78, 0.82, 1)
+		"axe":
+			return Color(0.62, 0.56, 0.48, 1)
+		"sickle":
+			return Color(0.72, 0.8, 0.72, 1)
+		"bow":
+			return Color(0.86, 0.62, 0.22, 1)
+		_:
+			return Color.WHITE
+
+
+func _tool_loot_polygon(tool_id: String) -> PackedVector2Array:
+	match tool_id:
+		"axe":
+			return PackedVector2Array([
+				Vector2(-4, -18),
+				Vector2(4, -18),
+				Vector2(4, 14),
+				Vector2(-4, 14),
+				Vector2(4, -14),
+				Vector2(18, -8),
+				Vector2(4, -2),
+			])
+		"sickle":
+			return PackedVector2Array([
+				Vector2(-4, -14),
+				Vector2(4, -14),
+				Vector2(4, 14),
+				Vector2(-4, 14),
+				Vector2(4, -14),
+				Vector2(18, -8),
+				Vector2(12, -2),
+			])
+		"bow":
+			return PackedVector2Array([
+				Vector2(-12, -18),
+				Vector2(2, -14),
+				Vector2(10, 0),
+				Vector2(2, 14),
+				Vector2(-12, 18),
+				Vector2(-6, 0),
+			])
+		_:
+			return PackedVector2Array([
+				Vector2(-4, -20),
+				Vector2(4, -20),
+				Vector2(4, 14),
+				Vector2(-4, 14),
+			])

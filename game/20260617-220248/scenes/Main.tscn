@@ -1,0 +1,123 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/Player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/BuildManager.gd" id="2_build_manager"]
+[ext_resource type="Script" path="res://scripts/NPCManager.gd" id="3_npc_manager"]
+[ext_resource type="Script" path="res://scripts/DayNightManager.gd" id="4_day_night_manager"]
+[ext_resource type="Script" path="res://scripts/MonsterManager.gd" id="5_monster_manager"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(9600, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
+size = Vector2(32, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_air_wall"]
+size = Vector2(96, 1000)
+
+[node name="Main" type="Node2D"]
+
+[node name="DayNightManager" type="Node" parent="."]
+script = ExtResource("4_day_night_manager")
+
+[node name="Buildings" type="Node2D" parent="."]
+z_index = -1
+
+[node name="NPCs" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Monsters" type="Node2D" parent="."]
+z_index = 2
+
+[node name="Projectiles" type="Node2D" parent="."]
+z_index = 3
+
+[node name="AirWalls" type="Node2D" parent="."]
+
+[node name="LeftAirWall" type="StaticBody2D" parent="AirWalls"]
+position = Vector2(-48, 0)
+
+[node name="LeftAirWallCollision" type="CollisionShape2D" parent="AirWalls/LeftAirWall"]
+shape = SubResource("RectangleShape2D_air_wall")
+
+[node name="RightAirWall" type="StaticBody2D" parent="AirWalls"]
+position = Vector2(9648, 0)
+
+[node name="RightAirWallCollision" type="CollisionShape2D" parent="AirWalls/RightAirWall"]
+shape = SubResource("RectangleShape2D_air_wall")
+
+[node name="CityHall" type="Node2D" parent="."]
+position = Vector2(4800, 472)
+z_index = -1
+
+[node name="BuildingBody" type="Polygon2D" parent="CityHall"]
+color = Color(0.78, 0.78, 0.72, 1)
+polygon = PackedVector2Array(-170, -170, 170, -170, 170, 0, -170, 0)
+
+[node name="Roof" type="Polygon2D" parent="CityHall"]
+color = Color(0.52, 0.24, 0.18, 1)
+polygon = PackedVector2Array(-200, -170, 0, -270, 200, -170)
+
+[node name="Dome" type="Polygon2D" parent="CityHall"]
+color = Color(0.64, 0.68, 0.72, 1)
+polygon = PackedVector2Array(-54, -270, -36, -314, 0, -334, 36, -314, 54, -270)
+
+[node name="LeftColumn" type="Polygon2D" parent="CityHall"]
+color = Color(0.92, 0.9, 0.82, 1)
+polygon = PackedVector2Array(-118, -150, -86, -150, -86, 0, -118, 0)
+
+[node name="CenterColumn" type="Polygon2D" parent="CityHall"]
+color = Color(0.92, 0.9, 0.82, 1)
+polygon = PackedVector2Array(-16, -150, 16, -150, 16, 0, -16, 0)
+
+[node name="RightColumn" type="Polygon2D" parent="CityHall"]
+color = Color(0.92, 0.9, 0.82, 1)
+polygon = PackedVector2Array(86, -150, 118, -150, 118, 0, 86, 0)
+
+[node name="Door" type="Polygon2D" parent="CityHall"]
+color = Color(0.22, 0.15, 0.12, 1)
+polygon = PackedVector2Array(-34, -74, 34, -74, 34, 0, -34, 0)
+
+[node name="LeftWindow" type="Polygon2D" parent="CityHall"]
+color = Color(0.35, 0.62, 0.8, 1)
+polygon = PackedVector2Array(-145, -124, -122, -124, -122, -92, -145, -92)
+
+[node name="RightWindow" type="Polygon2D" parent="CityHall"]
+color = Color(0.35, 0.62, 0.8, 1)
+polygon = PackedVector2Array(122, -124, 145, -124, 145, -92, 122, -92)
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(4800, 496)
+
+[node name="GroundVisual" type="Polygon2D" parent="Ground"]
+color = Color(0.25, 0.62, 0.34, 1)
+polygon = PackedVector2Array(-4800, -24, 4800, -24, 4800, 24, -4800, 24)
+
+[node name="GroundCollision" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(4800, 472)
+script = ExtResource("1_player")
+
+[node name="PlayerVisual" type="Polygon2D" parent="Player"]
+color = Color(0.95, 0.36, 0.22, 1)
+polygon = PackedVector2Array(-16, -64, 16, -64, 16, 0, -16, 0)
+
+[node name="PlayerCollision" type="CollisionShape2D" parent="Player"]
+position = Vector2(0, -32)
+shape = SubResource("RectangleShape2D_player")
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2(0, -32)
+enabled = true
+zoom = Vector2(1.35, 1.35)
+
+[node name="NPCManager" type="Node2D" parent="."]
+script = ExtResource("3_npc_manager")
+
+[node name="BuildManager" type="Node2D" parent="."]
+script = ExtResource("2_build_manager")
+
+[node name="MonsterManager" type="Node2D" parent="."]
+script = ExtResource("5_monster_manager")
