@@ -1,0 +1,869 @@
+游戏实体与功能台账
+更新时间：2026-06-16
+
+维护规则
+1. 本文件是项目内实体、按键、功能、脚本职责的总台账。
+2. 后续任何新增、删除或修改游戏实体、建筑、环境实体、NPC、按键、UI、脚本职责、判定规则，都必须同步更新本文件。
+3. 若代码和本文件不一致，以实际代码为准修正文档；完成改动前不得遗漏对应记录。
+
+
+项目入口
+项目文件：project.godot
+主场景：scenes/Main.tscn
+运行场景：res://scenes/Main.tscn
+Godot 版本：4.6.x
+默认分辨率：1920 x 1080
+
+
+场景实体
+
+实体名：Main
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+功能：主场景根节点，承载地面、玩家、市政厅、空气墙、建筑容器、NPC 容器、建造管理器、NPC 管理器和昼夜管理器。
+
+实体名：DayNightManager
+节点类型：Node
+所在文件：scenes/Main.tscn
+脚本文件：scripts/DayNightManager.gd
+功能：管理昼夜循环、天空背景、太阳和月亮。白天 300 秒，夜晚 300 秒。
+
+实体名：Ground
+节点类型：StaticBody2D
+所在文件：scenes/Main.tscn
+子节点：GroundVisual、GroundCollision
+功能：横版地面。宽度 9600，高度 48，中心位置 Vector2(4800, 496)。
+碰撞：有，玩家可以站在上面。
+
+实体名：AirWalls
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+子节点：LeftAirWall、RightAirWall
+功能：地图两端的空气墙容器。
+
+实体名：LeftAirWall
+节点类型：StaticBody2D
+所在文件：scenes/Main.tscn
+位置：Vector2(-48, 0)
+碰撞尺寸：96 x 1000
+功能：阻止玩家越过地图左端；其占地也会阻止建造。
+
+实体名：RightAirWall
+节点类型：StaticBody2D
+所在文件：scenes/Main.tscn
+位置：Vector2(9648, 0)
+碰撞尺寸：96 x 1000
+功能：阻止玩家越过地图右端；其占地也会阻止建造。
+
+实体名：Player
+节点类型：CharacterBody2D
+所在文件：scenes/Main.tscn
+脚本文件：scripts/Player.gd
+子节点：PlayerVisual、PlayerCollision、Camera2D
+初始位置：Vector2(4800, 472)
+功能：玩家角色，支持左右移动、重力、朝向记录；会被空气墙阻挡。
+碰撞：有，尺寸 32 x 64。
+
+实体名：Camera2D
+节点类型：Camera2D
+所在文件：scenes/Main.tscn
+父节点：Player
+功能：跟随玩家显示横版场景。
+
+实体名：CityHall
+中文名：市政厅
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+位置：Vector2(4800, 472)
+渲染层：z_index = -1，在地面后面。
+功能：初始视觉建筑，作为已有实体参与建造重叠判定；村民会在市政厅面前游荡。
+碰撞：无物理碰撞体。
+占地判定尺寸：400 x 334，由 scripts/BuildManager.gd 的 CITY_HALL_SIZE 定义。
+拆除：不可拆除。按 Q 不会把市政厅标记为拆除目标。
+
+实体名：Buildings
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+功能：运行时放置新建筑和随机树的容器；玩家建造的建筑会作为村民工作岗位。
+
+实体名：NPCs
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+功能：运行时放置流浪汉和村民的容器。
+
+实体名：BuildManager
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+脚本文件：scripts/BuildManager.gd
+功能：管理建造选择、底部 UI、建造预览、重叠判定、放置建筑、随机生成树、拆除确认和取消；把空气墙占地加入不可建造区域；记录建筑工作岗位、岗位预订和岗位占用。
+
+实体名：NPCManager
+节点类型：Node2D
+所在文件：scenes/Main.tscn
+脚本文件：scripts/NPCManager.gd
+功能：每 300 秒进行一次流浪汉生成判定；30% 概率生成 2-4 个流浪汉；处理玩家按 E 和流浪汉交互；把村民分配到最近的空建筑工作。
+
+
+运行时实体
+
+实体名：SkyLayer
+创建文件：scripts/DayNightManager.gd
+节点类型：CanvasLayer
+层级：layer = -100
+功能：远处天空层，承载天空背景、太阳和月亮。
+
+实体名：SkyBackground
+创建文件：scripts/DayNightManager.gd
+节点类型：ColorRect
+功能：天空背景色。白天为浅蓝，夜晚为深蓝。
+
+实体名：Sun
+中文名：太阳
+创建文件：scripts/DayNightManager.gd
+节点类型：Polygon2D
+功能：白天显示，按 DayNightRules.celestial_arc_position 的圆弧轨迹在远处天空移动。
+
+实体名：Moon
+中文名：月亮
+创建文件：scripts/DayNightManager.gd
+节点类型：Polygon2D
+功能：夜晚显示，按 DayNightRules.celestial_arc_position 的圆弧轨迹在远处天空移动。
+
+实体名：BuildPreview
+创建文件：scripts/BuildManager.gd
+视觉来源：scripts/BuildingVisualFactory.gd
+功能：玩家面前的建造虚影。
+绿色：可建造。
+红色：与已有实体或空气墙占地重叠，无法建造。
+碰撞：无物理碰撞体。
+
+实体名：BuildUI
+创建文件：scripts/BuildManager.gd
+节点类型：CanvasLayer
+子节点：BuildBarBackground、BuildBar、BuildStatus、GoldStatus
+功能：底部建造 UI，显示可选建筑、建筑价格、当前选择、金币余额和状态提示。
+
+实体名：BuildBar
+创建文件：scripts/BuildManager.gd
+节点类型：HBoxContainer
+功能：显示 1-4 号建筑槽位。
+
+实体名：BuildStatus
+创建文件：scripts/BuildManager.gd
+节点类型：Label
+功能：显示当前操作提示，例如建造、金币不足、无法建造、拆除、取消、砍树进度。
+
+实体名：GoldStatus
+创建文件：scripts/BuildManager.gd
+节点类型：Label
+功能：显示当前金币余额。开局金币为 20。
+
+实体名：Tree_01 到 Tree_18
+中文名：树
+创建文件：scripts/BuildManager.gd
+视觉来源：scripts/TreeFactory.gd
+容器：Buildings
+生成规则：启动时由 BuildRules.random_tree_positions 随机分布在地面上。
+随机种子：20260616，由 scripts/BuildManager.gd 的 TREE_RANDOM_SEED 定义。
+数量：18，由 scripts/BuildManager.gd 的 TREE_COUNT 定义。
+占地判定尺寸：64 x 120，由 scripts/BuildManager.gd 的 TREE_SIZE 定义。
+功能：环境实体，占用矩形范围参与建造重叠判定。
+碰撞：无物理碰撞体。
+拆除/砍伐：可砍伐。角色站在树占地范围内按 Q 标记红色拆除虚影，再按 Q 确认后不会立即删除树，而是创建砍树任务；任务完成后树消失、占地释放、获得 1 金币。
+村民砍树：确认砍树后会尝试派空闲村民走到树下砍树，耗时 30 秒。
+玩家砍树：确认砍树后，玩家站在树下按 E 可手动砍树，耗时 10 秒；玩家离开树范围会打断当前砍树动作，但已完成进度保留，回来按 E 可继续。
+
+实体名：Homeless_XX
+中文名：流浪汉
+创建文件：scripts/NPCManager.gd
+视觉来源：scripts/NPCFactory.gd
+行为脚本：scripts/NPC.gd
+容器：NPCs
+生成规则：每 300 秒判定一次；30% 概率生成；每次生成 2-4 个；位置在地图 x=0 到 x=9600 的任意地面点。
+功能：生成后围绕出生点附近游荡。
+交互：玩家靠近后按 E，流浪汉变为村民。
+碰撞：无物理碰撞体。
+
+实体名：Villager_XX
+中文名：村民
+创建文件：scripts/NPCManager.gd
+视觉来源：scripts/NPCFactory.gd
+行为脚本：scripts/NPC.gd
+容器：NPCs
+生成方式：由流浪汉按 E 交互转换而来。
+功能：优先前往最近的非市政厅建筑门前工作；每个建筑最多容纳 1 名村民；没有空建筑时在市政厅面前附近游荡。
+入职流程：村民先显示在地图上并走到目标建筑门前；到达后模型隐藏，表示进入建筑工作。
+砍树流程：空闲村民可被确认后的砍树任务派去树下；到达后保持可见并砍树 30 秒，完成后回到市政厅前游荡。
+碰撞：无物理碰撞体。
+
+
+可建造建筑
+
+建筑 ID：blacksmith
+中文名：铁匠铺
+选择按键：键盘左上数字 1，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：180 x 140
+建造花费：10 金币。
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每栋铁匠铺最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+建筑 ID：wall
+中文名：城墙
+选择按键：键盘左上数字 2，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：120 x 100
+建造花费：5 金币。
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每段城墙最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+建筑 ID：farm
+中文名：农田
+选择按键：键盘左上数字 3，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：220 x 60
+建造花费：5 金币。
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每块农田最多容纳 1 名村民。
+产出：当农田内有村民工作时，每 60 秒生产 1 金币。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+建筑 ID：tavern
+中文名：酒馆
+选择按键：键盘左上数字 4，非小键盘
+定义文件：scripts/BuildingCatalog.gd
+视觉生成文件：scripts/BuildingVisualFactory.gd
+尺寸：190 x 150
+建造花费：20 金币。
+功能：可放置视觉建筑，占用矩形范围参与重叠和拆除判定。
+碰撞：无物理碰撞体。
+拆除：可拆除。
+工作岗位：是。每间酒馆最多容纳 1 名村民。
+窗户状态：无村民在建筑内时为暗色；村民到达并进入后亮起。
+
+
+脚本职责
+
+文件：scripts/Player.gd
+负责实体：Player
+功能：处理左右移动、重力、move_and_slide、记录朝向 facing_direction。
+公开方法：get_facing_direction()
+
+文件：scripts/BuildManager.gd
+负责实体：BuildManager、BuildUI、BuildPreview、GoldStatus、运行时建筑、随机树、空气墙占地、砍树任务
+功能：处理输入、选中/取消选中、建造预览、建造放置、金币余额、建造扣费、农田产币、占地记录、随机树生成、可拆/不可拆标记、拆除确认、拆除取消、工作岗位记录、岗位预订、岗位占用、拆除后清理对应占地、树木砍伐任务。
+公开方法：
+get_work_sites：返回所有可工作建筑岗位，排除市政厅、树和空气墙。
+claim_work_site：为指定岗位预订 worker_id；已预订或已占用岗位不能再次预订；预订阶段不会点亮窗户。
+occupy_work_site：村民到达建筑门前后，把预订岗位标记为实际占用并点亮窗户。
+can_afford_building：检查当前金币是否足够建造目标建筑。
+spend_gold_for_building：建造成功前扣除目标建筑花费，金币不足时返回 false。
+add_gold：增加金币，用于农田产出和砍树奖励。
+advance_tree_chop：推进砍树任务进度；玩家砍树按 10 秒完成，村民砍树按 30 秒完成。
+get_tree_chop_task_for_point：根据玩家位置查找已经确认的砍树任务。
+拆除规则：拆除建筑时只移除该实体自身的占地，不会误删空气墙占地；拆除后同位置可再次建造。若建筑内已有村民，则在被拆建筑位置释放该村民；若村民还在路上，则取消其岗位预订。确认拆除树木时转为砍树任务，任务完成后才移除树木。
+关键常量：
+GROUND_MIN_X = 0.0
+GROUND_MAX_X = 9600.0
+GROUND_TOP_Y = 472.0
+AIR_WALL_WIDTH = 96.0
+AIR_WALL_HEIGHT = 1000.0
+CITY_HALL_SIZE = Vector2(400, 334)
+TREE_SIZE = Vector2(64, 120)
+TREE_COUNT = 18
+TREE_RANDOM_SEED = 20260616
+STARTING_GOLD = 20
+FARM_INCOME_SECONDS = 60.0
+PLAYER_TREE_CHOP_SECONDS = 10.0
+VALID_PREVIEW_COLOR = 绿色建造虚影
+INVALID_PREVIEW_COLOR = 红色不可建造虚影
+DEMOLITION_PREVIEW_COLOR = 红色拆除确认虚影
+
+文件：scripts/DayNightManager.gd
+负责实体：DayNightManager、SkyLayer、SkyBackground、Sun、Moon
+功能：累计昼夜时间；白天显示太阳和浅蓝天空，夜晚显示月亮和深蓝天空；太阳和月亮沿远处天空圆弧轨迹移动。
+
+文件：scripts/DayNightRules.gd
+负责功能：昼夜循环和天体轨迹规则
+功能：
+phase_for_time：根据累计秒数返回 day 或 night。
+phase_progress：返回当前白天或夜晚阶段内的 0-1 进度。
+celestial_arc_position：根据阶段进度和视口尺寸计算太阳/月亮的圆弧位置。
+
+文件：scripts/NPCManager.gd
+负责实体：NPCManager、Homeless_XX、Villager_XX
+功能：累计时间，每 300 秒执行刷新判定；按 30% 概率生成 2-4 个流浪汉；处理 E 交互，把流浪汉转换为村民，并分配到最近的空建筑工作；持续检查村民是否到达建筑门前，到达后让其进入建筑；分配空闲村民去确认后的树木任务砍树。
+公开方法：
+release_worker_from_demolished_building：拆除已有村民在内的建筑时，把村民显示在被拆建筑位置。
+cancel_worker_assignment_from_demolished_building：拆除村民尚未到达的预订建筑时，取消该村民岗位并让其回到市政厅前游荡。
+assign_tree_chopper：为砍树任务选择最近的空闲村民，并让村民走到树下。
+finish_tree_chop_for_worker：砍树完成后清理村民砍树状态，使其回到市政厅前游荡。
+
+文件：scripts/NPC.gd
+负责实体：Homeless_XX、Villager_XX
+功能：NPC 游荡行为；流浪汉围绕出生点游荡；interact 后变为村民；travel_to_workplace 后走到建筑门前；enter_building 后隐藏模型并停止游荡；exit_building 后重新显示并回到市政厅面前游荡；travel_to_tree_chop 后走到树下；start_tree_chop 后进入砍树状态；finish_tree_chop 后回到市政厅前游荡；无岗位时围绕市政厅面前游荡。
+
+文件：scripts/NPCRules.gd
+负责功能：NPC 生成规则
+功能：
+spawn_interval_seconds：返回 300 秒。
+should_spawn_from_roll：roll 小于 0.3 时生成。
+spawn_count_from_seed：返回 2-4 个生成数量。
+spawn_positions_from_seed：生成地图内地面位置。
+nearest_available_work_site_index：在可工作且未占用的建筑岗位中选择距离村民最近的岗位，跳过市政厅、树和已占用建筑。
+
+文件：scripts/NPCFactory.gd
+负责实体：Homeless_XX、Villager_XX
+功能：用 Node2D 和 Polygon2D 生成 NPC 外观并绑定 NPC.gd。
+约束：不得创建 CollisionObject2D、CollisionShape2D、CollisionPolygon2D。
+
+文件：scripts/BuildingCatalog.gd
+负责实体：铁匠铺、城墙、农田、酒馆
+功能：集中定义建筑 ID、显示名、选择按键、金币花费、尺寸和颜色。
+
+文件：scripts/BuildingVisualFactory.gd
+负责实体：所有可建造建筑的视觉节点
+功能：用 Node2D 和 Polygon2D 生成建筑外观；为每种建筑生成 Window 开头的窗户节点；set_occupied(false) 让窗户暗色，set_occupied(true) 让窗户亮色。
+约束：不得创建 CollisionObject2D、CollisionShape2D、CollisionPolygon2D。
+
+文件：scripts/TreeFactory.gd
+负责实体：Tree_01 到 Tree_18
+功能：用 Node2D 和 Polygon2D 生成树外观。
+约束：不得创建 CollisionObject2D、CollisionShape2D、CollisionPolygon2D。
+
+文件：scripts/BuildRules.gd
+负责功能：纯规则函数
+功能：
+selected_index_from_key：把键盘左上数字 1-4 映射到建筑槽位。
+selected_index_after_request：重复选择当前槽位时取消选中。
+build_position_for_player：根据玩家位置和朝向计算面前建造位置。
+footprint_for_position：根据底部中心点和尺寸计算占地矩形。
+has_overlap：判定建造占地是否与已有实体或空气墙重叠。
+footprint_index_containing_point：根据玩家位置查找占地目标。
+demolishable_entity_index_containing_point：根据玩家位置查找可拆实体，跳过市政厅等不可拆实体。
+random_tree_positions：按随机种子生成不与已有占地重叠的树位置。
+air_wall_footprints：生成地图两端空气墙占地，用于阻止空气墙内建造。当前空气墙宽度为 96。
+
+
+按键表
+
+按键：A 或 Left Arrow
+功能：玩家向左移动，并把朝向设为左；会被 LeftAirWall 阻挡。
+实现文件：scripts/Player.gd
+
+按键：D 或 Right Arrow
+功能：玩家向右移动，并把朝向设为右；会被 RightAirWall 阻挡。
+实现文件：scripts/Player.gd
+
+按键：键盘左上数字 1
+功能：选择或取消选择铁匠铺。小键盘 1 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：键盘左上数字 2
+功能：选择或取消选择城墙。小键盘 2 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：键盘左上数字 3
+功能：选择或取消选择农田。小键盘 3 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：键盘左上数字 4
+功能：选择或取消选择酒馆。小键盘 4 无效。
+实现文件：scripts/BuildRules.gd、scripts/BuildManager.gd
+
+按键：E
+功能：建造当前选中的建筑并扣除金币；若金币不足则无法建造；若处于拆除确认状态，则取消拆除；若附近有流浪汉，则与流浪汉交互并转为村民，随后村民选择最近空建筑工作；若站在已确认砍伐的树下，则开始或继续玩家手动砍树。
+实现文件：scripts/BuildManager.gd、scripts/NPCManager.gd
+
+按键：Q
+功能：拆除/砍树操作。第一次按 Q 在玩家所在可拆实体范围内标记红色拆除虚影，第二次按 Q 确认该目标。
+可拆目标：玩家建造的建筑、随机生成的树。
+不可拆目标：市政厅、空气墙、流浪汉、村民。
+取消条件：按 E 或玩家离开该实体占地范围。
+补充规则：确认玩家建筑后会立即拆除并释放该建筑占地，同位置可重新建造；若建筑内有村民，则该村民会出现在被拆建筑位置。确认树木后创建砍树任务，树木在砍树完成后才消失，完成时获得 1 金币。
+实现文件：scripts/BuildManager.gd
+
+
+测试文件
+
+文件：tests/BuildRulesTest.gd
+覆盖内容：建筑目录、建筑金币花费、数字键映射、重复选择取消、建造位置、占地矩形、重叠判定、拆除目标查找、市政厅不可拆、随机树位置生成、空气墙占地阻止建造。
+
+文件：tests/NPCRulesTest.gd
+覆盖内容：五分钟刷新间隔、30% 生成概率、2-4 个生成数量、地图内生成位置、最近空建筑岗位选择。
+
+文件：tests/NPCFactoryTest.gd
+覆盖内容：流浪汉视觉节点、无碰撞约束、E 交互后转换为村民、村民设置工作地点、村民走向岗位、进入建筑隐藏、退出建筑显示。
+
+文件：tests/BuildManagerWorkSiteTest.gd
+覆盖内容：只有玩家建造的建筑会成为工作岗位；市政厅和树不是岗位；每个岗位只能被 1 名村民预订或占用；预订阶段窗户保持暗色；占用阶段窗户亮起。
+
+文件：tests/VillagerWorkArrivalTest.gd
+覆盖内容：村民接到岗位后保持可见并走向建筑门前；到达后进入建筑、隐藏模型，并点亮建筑窗户。
+
+文件：tests/DemolishClearsFootprintTest.gd
+覆盖内容：拆除建筑时只移除被拆实体自身占地，空气墙占地保留；拆除后原位置不再阻止建造。
+
+文件：tests/DayNightRulesTest.gd
+覆盖内容：五分钟白天、五分钟夜晚、昼夜循环回绕、太阳/月亮圆弧轨迹关键位置。
+
+文件：tests/BuildingVisualFactoryTest.gd
+覆盖内容：每种建筑能生成视觉节点，并且不包含任何碰撞节点；每种建筑有窗户节点，窗户可在空置暗色和占用亮色之间切换。
+
+文件：tests/TreeFactoryTest.gd
+覆盖内容：树能生成视觉节点，并且不包含任何碰撞节点。
+
+文件：tests/EconomyTest.gd
+覆盖内容：开局 20 金币、建筑花费检查、建造扣费、金币增加、农田有村民工作时每 60 秒生产 1 金币。
+
+文件：tests/TreeChopTaskTest.gd
+覆盖内容：确认拆除树木会创建砍树任务而非立即删除；玩家手动砍树 10 秒完成；离开后进度保留；完成后获得 1 金币并释放树占地。
+
+文件：tests/NPCTreeChopTest.gd
+覆盖内容：确认砍树后分配空闲村民；村民走到树下后砍树 30 秒；完成后获得 1 金币并返回市政厅前游荡。
+
+
+后续更新检查清单
+1. 新增或改名节点：更新“场景实体”或“运行时实体”。
+2. 新增或修改建筑：更新“可建造建筑”和“按键表”。
+3. 新增或修改环境实体：更新“运行时实体”“脚本职责”和“测试文件”。
+4. 新增或修改 NPC：更新“运行时实体”“脚本职责”“按键表”和“测试文件”。
+5. 新增或修改按键：更新“按键表”和相关脚本职责。
+6. 新增或修改脚本：更新“脚本职责”。
+7. 新增或修改判定规则：更新“脚本职责”和“测试文件”。
+8. 新增测试：更新“测试文件”。
+2026-06-17 新增：开局 NPC
+
+实体与生成规则：
+- 开局村民：游戏启动时由 scripts/NPCManager.gd 的 spawn_starting_npcs 生成 3 名村民，位置在市政厅面前，围绕 Vector2(4800, 472) 按 48 像素间距排列。村民使用 scripts/NPCFactory.gd 的 NPC 色块外观创建，并立即通过 NPC.gd 的 interact 转换为 villager，默认 assigned_workplace_id 为 cityhall。
+- 开局流浪汉：游戏启动时由 scripts/NPCManager.gd 的 spawn_starting_npcs 在地图 x=0 到 x=9600 范围内随机生成 5 名流浪汉，y=472。随机位置使用 scripts/NPCRules.gd 的 spawn_positions_from_seed。
+- 命名规则：NPCManager 统一用 _next_npc_name 生成唯一编号。开局 3 名村民通常为 Villager_01 到 Villager_03，开局 5 名流浪汉通常为 Homeless_04 到 Homeless_08。流浪汉被 E 交互转成村民时保留编号，例如 Homeless_04 变为 Villager_04，避免重名。
+- 防重复规则：spawn_starting_npcs 只会执行一次，避免重复刷出开局 NPC。
+
+脚本职责变更：
+- scripts/NPCRules.gd：新增 STARTING_VILLAGER_COUNT = 3、STARTING_HOMELESS_COUNT = 5、STARTING_VILLAGER_SPACING = 48.0，并提供 starting_villager_count、starting_homeless_count、starting_villager_positions。
+- scripts/NPCManager.gd：_ready 时调用 spawn_starting_npcs；新增 _spawn_villager、_next_npc_name、_villager_name_for_homeless；_spawn_homeless 改为使用统一唯一命名。
+
+测试文件：
+- tests/NPCStartupSpawnTest.gd：覆盖开局 3 名村民、5 名流浪汉、村民位于市政厅面前、流浪汉位于地图内、NPC 名称唯一、重复调用 spawn_starting_npcs 不会重复生成。
+2026-06-17 新增：伐木场与伐木工
+
+可建造建筑：
+- 建筑 ID：lumberyard
+- 中文名：伐木场
+- 选择按键：键盘左上数字 5，非小键盘数字 5。
+- 定义文件：scripts/BuildingCatalog.gd
+- 视觉生成：scripts/BuildingVisualFactory.gd，使用通用简易色块建筑外观。
+- 尺寸：200 x 130
+- 建造花费：10 金币
+- 碰撞：无物理碰撞体。
+- 拆除：可拆除。若伐木场内有伐木工，按既有建筑拆除规则释放工人；若伐木工正在外出砍树，拆除会取消其原建筑岗位。
+- 工作岗位：是。每座伐木场最多容纳 1 名村民。
+
+伐木场周期长树：
+- scripts/BuildManager.gd 新增 LUMBERYARD_TREE_INTERVAL_SECONDS = 120.0、LUMBERYARD_TREE_BATCH_COUNT = 3、LUMBERYARD_TREE_RADIUS = 420.0。
+- 每座伐木场每 120 秒在自身周围 420 像素范围内尝试生成 3 棵树。
+- 生成位置必须在地图 x=0 到 x=9600 范围内，y=472，并且不与已有建筑、树、空气墙等 placed_footprints 重叠。
+- 新树使用 scripts/TreeFactory.gd 的简易色块树外观，进入 Buildings 容器，entity_kind 为 tree，building_id 为 tree，参与建造重叠判定和 Q/E 砍树规则。
+
+伐木工行为：
+- scripts/NPC.gd 新增 worker_role，普通村民为 villager，进入伐木场后 become_lumberjack，worker_role 变为 lumberjack，外观主体改为绿色。
+- 村民到达伐木场门前后由 scripts/NPCManager.gd 的 _finish_arriving_workers 调用 become_lumberjack，再进入建筑并隐藏模型。
+- 当伐木场 worker_inside 为 true 且周围存在未被砍树任务占用的树时，scripts/BuildManager.gd 会创建自动砍树任务，调用 scripts/NPCManager.gd 的 assign_lumberjack_tree_chop，让伐木工走出伐木场去树下砍树。
+- 伐木工外出时伐木场保留 worker_id，但 worker_inside 变为 false，建筑窗户变暗。
+- 伐木工到达树下后按既有 NPC 砍树流程推进，30 秒完成砍树，完成后获得 1 金币并释放树占地。
+- 伐木工砍完树后不会回市政厅，而是返回原伐木场；到达后再次进入建筑、隐藏模型，伐木场窗户点亮。
+- 如果伐木场周围没有树，伐木工保持在伐木场内等待。
+
+脚本职责变更：
+- scripts/BuildRules.gd：selected_index_from_key 新增 KEY_5 -> 4；新增 tree_positions_around_source，用于伐木场在周围空地生成树。
+- scripts/BuildManager.gd：新增伐木场长树计时、_spawn_lumberyard_trees、_spawn_tree_at、_dispatch_lumberjacks、_nearest_tree_index_near_lumberyard、_start_lumberjack_tree_chop_task，并将底部提示改为 1-5 选择建筑。
+- scripts/NPCManager.gd：新增 assign_lumberjack_tree_chop；砍树完成时只依赖 BuildManager 的完成通知，避免重复把伐木工送回市政厅。
+- scripts/NPC.gd：新增伐木工角色、伐木工颜色、树木任务返回工作地记录、travel_to_tree_chop_from_workplace、finish_tree_chop_to_workplace、has_tree_chop_return_workplace。
+
+测试文件：
+- tests/BuildRulesTest.gd：覆盖第 5 个建筑槽、KEY_5 选择、KEY_KP_5 无效、伐木场周围空地生成 3 棵树。
+- tests/LumberyardTest.gd：覆盖伐木场 120 秒长 3 棵树、村民进入伐木场变伐木工、伐木工出门砍附近树、砍完获得金币并返回伐木场。
+2026-06-17 新增：建筑信息面板、铁匠铺制造与工具效率
+
+建筑信息面板：
+- 触发方式：未选中建造目标时，角色站在建筑占地范围内按 E，BuildingInfoPanel 在原右侧位置向左偏移 200 像素出现；面板打开时再次按 E 或角色走出该建筑占地范围会关闭。
+- 面板文件职责：由 scripts/BuildManager.gd 在运行时生成简易色块和 Label，不使用外部美术资源。
+- 面板内容：图标、名字、等级、人员、功能、数值。当前建筑等级固定显示为 1。
+- 可显示对象：cityhall 和 entity_kind 为 building 的玩家建筑；树不显示建筑信息面板。
+- 铁匠铺面板额外显示制造信息：1 剑、2 斧、3 镰刀；花费 3 金币，耗时 30 秒，总存放上限 5。
+
+铁匠铺制造：
+- scripts/BuildManager.gd 新增 TOOL_CRAFT_SECONDS = 30.0、TOOL_CRAFT_COST = 3、BLACKSMITH_TOOL_LIMIT = 5。
+- start_blacksmith_craft(entity_index, tool_id)：用于启动铁匠铺制造；tool_id 可为 sword、axe、sickle。
+- 同一铁匠铺可同时排入多件工具；金币不足、非铁匠铺、库存与队列容量达到上限时无法启动。
+- _update_blacksmith_crafting(delta)：只推进队列最上方的第一件未完成工具；该工具 30 秒完成后生成工具实体，下一个队列项才开始制作。
+- 工具实体命名：Tool_sword_XX、Tool_axe_XX、Tool_sickle_XX。工具无碰撞体，放在铁匠铺建筑范围内，使用简易 Polygon2D 色块表现。
+- tool_count_for_building(building_name)：统计指定铁匠铺前已完成且未被拾取的工具数量。
+
+工具拾取与职业：
+- scripts/NPC.gd 新增 carried_tool。村民、农民、伐木工最多携带 1 件工具。
+- scripts/NPCManager.gd 的 _equip_workers_from_tools 不再瞬间装备工具；无工具且正在建筑内工作的 NPC 会预约匹配工具，离开工作场所走到铁匠铺领取，再返回原工作场所。
+- NPC 取工具期间原建筑保留 worker_id，但 worker_inside 为 false，建筑窗户变暗，农田不产金币，伐木场不会派该工人砍树。
+- 到达铁匠铺后，scripts/BuildManager.gd 的 claim_reserved_tool_for_worker 才会从铁匠铺库存删除被预约的工具，并由 NPC.gd 的 finish_tool_pickup_to_workplace 装备后返岗。
+- 村民 worker_role = villager，可拾取 sword。
+- 伐木工 worker_role = lumberjack，可拾取 axe。
+- 农民 worker_role = farmer，可拾取 sickle。
+- scripts/NPC.gd 新增 become_farmer。村民进入农田后由 NPCManager._finish_arriving_workers 转为农民，主体颜色改为黄色。
+- 伐木工仍由进入伐木场触发 become_lumberjack。
+
+效率与时间：
+- 基础 NPC 砍树时间从 30 秒改为 60 秒。
+- 携带 axe 的伐木工或村民砍树效率翻倍，砍树时间为 30 秒。
+- 农田基础产出仍为有农民工作时每 60 秒 +1 金币。
+- 携带 sickle 的农民农田效率翻倍，产出时间为 30 秒 +1 金币。
+- 玩家手动砍树时间仍为 10 秒。
+
+按键变更：
+- 建筑信息面板关闭：E。
+- 铁匠铺面板打开时：键盘左上数字 1 制作剑，2 制作斧，3 制作镰刀；这些按键在面板打开时不会切换建造目标。
+
+测试文件：
+- tests/BuildingInfoAndToolCraftTest.gd：覆盖建筑信息面板字段、左移 200 像素定位、离开建筑范围自动关闭、铁匠铺制造、3 金币消耗、30 秒完成、工具放置、库存上限 5、伐木工拾取斧。
+- tests/WorkerToolEfficiencyTest.gd：覆盖非工作状态 NPC 不会瞬间拾取工具、村民进农田变农民、镰刀 30 秒产金币、基础砍树 60 秒、斧头 30 秒砍树。
+- tests/NPCToolPickupTravelTest.gd：覆盖工作中的农民预约铁匠铺镰刀、离开农田去铁匠铺取工具、取工具期间农田不产出、拿到工具后返回农田并获得镰刀效率。
+- tests/NPCTreeChopTest.gd 与 tests/LumberyardTest.gd：更新为基础 NPC 砍树 60 秒。
+2026-06-17 修改：铁匠铺制造按钮、制作队列与库存管理
+
+铁匠铺信息面板：
+- 制造栏从键盘提示改为可点击 Button 控件。
+- 按钮名称与功能：
+  - CraftSwordButton：制作剑，花费 3 金币。
+  - CraftAxeButton：制作斧，花费 3 金币。
+  - CraftSickleButton：制作镰刀，花费 3 金币。
+- 面板新增显示：
+  - 队列：显示未完成工具及制作进度。
+  - 库存：显示已完成工具总数和剑、斧、镰刀数量。
+- 队列中的未完成工具会显示 CancelCraftXButton，点击后取消该工具制作并返还 3 金币。
+- 已完成库存工具会显示 DestroyToolXButton，点击后销毁该工具，不返还金币。
+
+铁匠铺制造规则：
+- scripts/BuildManager.gd 将单个 crafting_tool 状态扩展为 craft_queue 队列。
+- start_blacksmith_craft 会把工具加入队列并立即扣除 3 金币。
+- _update_blacksmith_crafting 会从上往下顺序推进队列；同一时间只制作队首工具，队首完成并进入库存后才继续下一个队列项。
+- 未完成工具取消：cancel_blacksmith_craft(entity_index, queue_index)，返还 3 金币。
+- 已完成工具销毁：destroy_stored_tool(building_name, stock_index)，只删除工具实体，不返还金币。
+- 存放上限仍为 5；排队数量上限为 5 - 当前库存工具数量，同时 start_blacksmith_craft 会阻止库存与未完成队列合计超过 5。
+
+工具摆放规则：
+- 制作完成的 Tool_sword_XX、Tool_axe_XX、Tool_sickle_XX 不再摆放在铁匠铺前方外侧，而是摆放在铁匠铺建筑占地范围内。
+- 工具仍然无碰撞体；匹配职业会先预约工具并实际走到铁匠铺后领取。
+
+测试文件：
+- tests/BlacksmithQueuePanelTest.gd：覆盖制造按钮存在且可点击、队列和库存显示、按钮入队扣金币、取消未完成工具返还金币、多个队列工具从上往下顺序完成、完成工具进入库存且位于铁匠铺范围内、销毁库存工具不返还金币。
+- tests/BuildingInfoAndToolCraftTest.gd：继续覆盖铁匠铺基础制造、30 秒完成、库存上限和工具拾取回归。
+
+2026-06-17 修改：铁匠铺制作队列与 NPC 往返取工具
+
+铁匠铺队列：
+- 队列中只有最上方未完成工具累计制作时间，达到 30 秒后生成对应 Tool_sword_XX、Tool_axe_XX 或 Tool_sickle_XX，后续工具再依次开始累计。
+- 可同时排入多件工具；排队容量受铁匠铺库存上限 5 限制，当前库存越多，可继续排队的数量越少。
+- 未完成队列项仍可取消并返还 3 金币；已完成库存工具仍可销毁且不返还金币。
+
+NPC 取工具：
+- 工作中的 NPC 缺少匹配工具时，NPCManager 会通过 BuildManager.reserve_tool_for_role 预约铁匠铺库存工具。
+- NPC 离开当前工作建筑后，BuildManager.worker_leaves_work_site 将该建筑 worker_inside 设为 false；期间建筑窗户变暗，农田不产金币，伐木场不会派该 NPC 工作。
+- NPC 到达铁匠铺后，通过 BuildManager.claim_reserved_tool_for_worker 取走预约工具，再由 NPC.finish_tool_pickup_to_workplace 装备工具并返回原工作建筑。
+- NPC 返回原建筑门前后，既有 _finish_arriving_workers 流程会再次 occupy_work_site，使建筑恢复 worker_inside 和亮窗状态。
+
+测试文件：
+- tests/NPCToolPickupTravelTest.gd：覆盖工作 NPC 从建筑去铁匠铺取工具、取工具期间停工、取到后返岗并应用工具效率。
+- tests/WorkerToolEfficiencyTest.gd：更新旧的瞬间拾取断言，确认非工作状态 NPC 不会原地拿工具。
+
+2026-06-17 修复：铁匠铺面板按钮点击与队列/库存布局
+
+建筑信息面板：
+- BuildingInfoPanel 改为挂在 BuildingInfoCanvas（CanvasLayer）下，位置由建筑世界坐标转换为屏幕坐标，避免 Camera2D 缩放导致 Button 无法响应鼠标点击。
+- 面板背景改为 ColorRect，鼠标过滤为忽略；按钮保留 Godot Button 控件并通过 pressed 信号调用制造、取消、销毁逻辑。
+
+铁匠铺信息面板布局：
+- 制作按钮仍位于面板上部。
+- 队列列表整体下移 80 像素；CancelCraftXButton 位于队列左侧列，当前基准位置为 Vector2(142, 298)。
+- 库存列表移动到队列右边；DestroyToolXButton 位于库存右侧列，当前基准位置为 Vector2(334, 298)。
+
+测试文件：
+- tests/BlacksmithQueuePanelTest.gd：新增覆盖制造按钮位于 CanvasLayer 界面层、队列按钮下移 80 像素、库存按钮位于队列右侧。
+
+2026-06-17 修复：铁匠铺制作按钮位置与队列状态点击
+
+铁匠铺信息面板布局：
+- 三个制作按钮 CraftSwordButton、CraftAxeButton、CraftSickleButton 在原位置基础上下移 60 像素，当前 y 坐标为 234。
+- 队列和库存列表位置保持在下方两列；队列第一行取消按钮仍为 Vector2(142, 298)，库存第一行销毁按钮仍为 Vector2(334, 298)。
+
+点击规则：
+- _add_panel_button 会将 Button.mouse_filter 显式设为 MOUSE_FILTER_STOP。
+- 制作按钮 z_index 高于队列取消按钮和库存销毁按钮；当队列中已有工作时，制作按钮仍可被鼠标点击继续排队。
+
+测试文件：
+- tests/BlacksmithQueuePanelTest.gd：新增覆盖三个制作按钮下移 60 像素，以及队列中有工作时制作按钮层级高于动态队列控件。
+
+2026-06-17 修复：铁匠铺制作中按钮永远可点
+
+按钮交互规则：
+- 所有通过 _add_panel_button 创建的按钮都会显式设置 disabled = false、mouse_filter = MOUSE_FILTER_STOP、process_mode = PROCESS_MODE_ALWAYS、focus_mode = FOCUS_ALL。
+- 制作按钮仍保持高于动态队列/库存控件的 z_index。
+- 队列制作进行中，_update_blacksmith_crafting 不再每帧重建 BuildingInfoPanel；只在工具完成导致队列/库存结构变化时重建。
+- 制作进度变化时只更新 QueueItemXLabel 文本，保留 CraftSwordButton、CraftAxeButton、CraftSickleButton 等 Button 实例，避免鼠标按下和松开落在不同按钮实例上。
+
+测试文件：
+- tests/BlacksmithQueuePanelTest.gd：新增覆盖按钮 ALWAYS 进程模式、非禁用状态、鼠标 STOP、可聚焦，以及队列制作推进 1 秒后制作按钮实例不被重建。
+
+2026-06-17 修改：铁匠铺队列顺序制作与队列文字
+
+铁匠铺制作队列：
+- 制作队列改为从上往下顺序制作；同一时间只推进队列1。
+- 队列1完成 30 秒制作后进入库存，原队列2会变为新的队列1并从 0% 开始制作。
+- 队列中等待的后续工具不会在前一个工具完成前累计进度。
+
+队列文字：
+- 队列列表和制作进度更新统一使用“队列1:”“队列2:”等正常中文文本。
+- QueueItemXLabel 在制作中只更新文本，不重建按钮；文本更新时也必须保持“队列X”格式。
+
+测试文件：
+- tests/BlacksmithQueuePanelTest.gd：新增覆盖第二个队列项等待第一个完成、完成后重新编号为队列1、队列进度文本保持正常中文。
+2026-06-17 新增：战士、夜晚怪物、死亡复活与建筑损毁
+
+金币系统：
+- 初始金币从 20 修改为 99。
+- 怪物命中主角时，主角损失当前金币的一半，最低损失 50 金币；若当前金币不足以支付该损失，则主角死亡并触发死亡弹窗。
+
+NPC 与职业：
+- scripts/NPC.gd 新增战士状态。村民装备 sword 后 worker_role 变为 warrior，attack_power = 2，主体颜色变为深红色。
+- 战士不会再进入普通建筑工作；scripts/NPCManager.gd 会按名字稳定排序，把战士分配到 left/right 两侧巡逻，左右数量差距不超过 1。
+- 战士巡逻锚点由 scripts/BuildManager.gd 的 get_warrior_patrol_anchors 提供：左侧取市政厅左边最远的玩家建筑，右侧取市政厅右边最远的玩家建筑；没有对应侧建筑时使用市政厅左右偏移点。
+- NPC 被怪物命中时，如果携带工具，会通过 drop_carried_tool 失去工具，怪物带走该工具原路返回；如果没有工具，则 become_homeless 变成流浪汉。
+- 复活惩罚会调用 scripts/NPCManager.gd 的 convert_random_half_villagers_to_homeless，将随机一半村民变为流浪汉；这些村民若携带工具会先失去工具，并释放原建筑岗位。
+
+怪物系统：
+- 新增脚本 scripts/MonsterRules.gd：定义 FIRST_MONSTER_NIGHT = 3、每侧夜晚刷怪概率 20%、每次每侧生成 1-4 只怪物、怪物命中主角的金币损失规则。
+- 新增脚本 scripts/Monster.gd：怪物血量为 3，记录出生侧、移动方向、蓄力/撤退状态、掠夺到的工具或金币。
+- 新增脚本 scripts/MonsterManager.gd：挂载在 scenes/Main.tscn 的 MonsterManager 节点；使用 Monsters 容器保存运行时怪物。
+- 从第三晚开始，每次进入夜晚时，左侧与右侧分别进行 20% 概率判定；成功时在对应地图边缘生成 1-4 只怪物。
+- 左侧怪物向右移动，右侧怪物向左移动；遇到可见村民或主角后蓄力 1 秒，目标仍在命中范围内则突进命中。
+- 怪物命中后会带着掠夺到的工具或金币原路返回；战士会周期性攻击附近怪物，每次造成 2 点伤害。
+- 复活后 MonsterManager.begin_safe_nights(3) 会让接下来的 3 个夜晚不刷怪，且 clear_monsters 会移除所有现存怪物。
+
+死亡与复活 UI：
+- scripts/BuildManager.gd 新增 player_dead、DeathCanvas 与死亡弹窗。
+- 主角死亡后显示“你已陨落”，下方按钮为“复活”、“退出到主菜单”、“退出游戏”。
+- 复活按钮调用 revive_player；退出到主菜单当前以 reload_current_scene 作为临时主菜单行为；退出游戏调用 get_tree().quit()。
+
+复活惩罚与建筑损毁：
+- scripts/BuildManager.gd 新增 apply_player_monster_hit、apply_revival_penalty、damage_random_half_buildings、repair_building、repair_cost_for_entity_index。
+- 复活时金币归零，所有怪物消失，主角回到市政厅位置 Vector2(4800, 472)。
+- 复活时随机一半市政厅以外的玩家建筑标记为 damaged，并将 level 降 1，最低保持 1。
+- 损毁建筑不会出现在可分配工作岗位中，无法被 occupy_work_site 占用；农田损毁时不产金币，伐木场损毁时不长树也不派伐木工。
+- 如果损毁建筑原本有工人，NPCManager.release_worker_from_damaged_building 会把工人显示在建筑面前徘徊等待。
+- 损毁建筑的信息面板会出现修复按钮；修复费用为该建筑建造费用的一半并向上取整。修复后 damaged 清除，原等待工人会通过 return_worker_to_repaired_building 重新走回建筑。
+
+场景实体：
+- scenes/Main.tscn 新增 Monsters 节点，z_index = 2，用于保存运行时怪物。
+- scenes/Main.tscn 新增 MonsterManager 节点，脚本为 scripts/MonsterManager.gd。
+
+测试文件：
+- tests/EconomyTest.gd 更新为验证初始金币 99。
+- tests/WarriorMonsterRulesTest.gd 新增覆盖：初始金币、剑转战士、战士攻击力、战士左右巡逻平衡、第三晚刷怪概率、安全夜晚、怪物数量与主角金币损失规则。
+- tests/MonsterRevivalTest.gd 新增覆盖：主角被怪物命中扣金币/死亡、复活金币归零、随机半数建筑损毁、随机半数村民变流浪汉、主角回市政厅、损毁建筑修复扣费并清除 damaged。
+
+2026-06-17 新增：测试按钮与测试面板
+
+测试 UI：
+- scripts/BuildManager.gd 的 _create_ui 会在屏幕左上角创建 TestButton，文字为“测试”，可用鼠标点击。
+- 点击 TestButton 会打开或关闭 TestPanel；TestPanel 位于屏幕左上角偏下，不占用底部建造栏。
+- TestPanel 控件：
+  - GoldAmountSpinBox：设置加减金币数量，范围 1-999，默认 10。
+  - AddGoldButton：按 GoldAmountSpinBox 的数值增加金币。
+  - RemoveGoldButton：按 GoldAmountSpinBox 的数值减少金币；最低不会低于 0。
+  - MonsterCountSpinBox：设置每次刷怪数量，范围 1-4，默认 1。
+  - SpawnLeftMonsterButton：在左侧生成指定数量怪物。
+  - SpawnRightMonsterButton：在右侧生成指定数量怪物。
+  - SpawnBothMonsterButton：左右两侧各生成指定数量怪物。
+- 测试按钮和测试面板按钮均设置为非禁用、MOUSE_FILTER_STOP、PROCESS_MODE_ALWAYS、FOCUS_ALL，保证可被鼠标点击。
+
+脚本接口：
+- scripts/BuildManager.gd 新增 test_spawn_monsters(side)，side 可为 left、right、both；该方法调用 scenes/Main.tscn 中 MonsterManager 的 spawn_monsters。
+- scripts/BuildManager.gd 新增 _adjust_test_gold(sign)，用于测试面板加减金币并刷新金币 UI 和底部建造栏状态。
+
+测试文件：
+- tests/TestPanelTest.gd 新增覆盖：TestButton 存在且可点击、点击后出现 TestPanel、金币加减按设置值生效且不低于 0、左侧/右侧/两侧刷怪按钮按设置数量生成怪物、再次点击 TestButton 关闭面板。
+
+2026-06-17 优化：怪物战利品举起显示与损毁建筑 E 键修复
+
+怪物撤退视觉：
+- scripts/Monster.gd 的 begin_return 会在怪物掠夺撤退时刷新 LootVisual。
+- 如果怪物掠夺到工具，LootVisual 会显示对应工具的简易色块并举在头顶；sword 为浅灰色，axe 为棕灰色，sickle 为浅绿色。
+- 如果怪物掠夺到金币，LootVisual 会显示金色方块并举在头顶。
+- 如果怪物没有掠夺到任何东西，LootVisual 会被移除。
+
+损毁建筑交互：
+- 损毁建筑不再打开建筑信息面板；scripts/BuildManager.gd 的 _show_building_info_panel 会直接忽略 damaged 建筑。
+- 角色站在损毁建筑范围内按 E 时会直接尝试 repair_building，修复费用仍为建筑造价一半向上取整。
+- 损毁建筑修复优先级高于建造目标；即使当前选中了建筑栏，按 E 也会先修复脚下损毁建筑。
+- 金币不足时不会打开信息面板，底部状态会提示“金币不足，无法修复”。
+
+测试文件：
+- tests/MonsterLootVisualTest.gd 新增覆盖：怪物掠夺工具/金币撤退时生成头顶 LootVisual，未掠夺时移除 LootVisual。
+- tests/DamagedBuildingRepairInteractionTest.gd 新增覆盖：损毁建筑按 E 修复且不打开信息面板、修复优先级高于当前建造选择、损毁建筑不能通过面板 API 打开。
+
+2026-06-17 优化：损毁建筑修复提示
+
+UI 提示：
+- 当主角站在 damaged 建筑范围内时，底部 BuildStatus 优先显示修复提示。
+- 金币足够时显示“E 修复 X金”，X 为 repair_cost_for_entity_index 返回的修复费用。
+- 金币不足时显示“金币不足，修复需要 X金”。
+- 该提示优先于建造预览提示；即使当前选中了建筑目标，站在损毁建筑下方也会先显示修复提示。
+
+测试文件：
+- tests/DamagedBuildingRepairInteractionTest.gd 新增覆盖：主角位于损毁建筑范围内时显示修复价格；金币不足时显示所需修复价格。
+
+2026-06-17 新增：弓、弓箭手、箭矢与城墙射手岗位
+
+铁匠铺工具：
+- scripts/BuildManager.gd 将 bow 加入有效工具列表；铁匠铺信息面板新增 CraftBowButton，文字为“制作弓 -3金”，花费 3 金币并进入现有制作队列。
+- 信息面板按键制作入口在已有 1/2/3 制作剑/斧/镰刀基础上，新增 4 制作弓；鼠标按钮仍是主要制作入口。
+- _blacksmith_stock_text 会统计并显示弓库存；制作完成的 Tool_bow_XX 与其它工具一样摆放在铁匠铺建筑范围内，受 BLACKSMITH_TOOL_LIMIT = 5 上限约束。
+- _create_tool_visual、_tool_color、_tool_display_name 新增 bow；弓使用棕黄色简易色块，显示名为“弓”。
+- reserve_tool_for_role / try_take_tool_for_role 改为按职业可接受工具列表匹配；普通村民可领取 sword 或 bow，伐木工仍只领取 axe，农民仍只领取 sickle。
+
+NPC 与职业：
+- scripts/NPC.gd 新增 archer 职业。村民装备 bow 后 worker_role = "archer"，carried_tool = "bow"，attack_power = 1，地面 attack_range = 600。
+- 弓箭手和战士一样使用左右两侧巡逻点，巡逻分配保持左右数量差距不超过 1；巡逻锚点继续由 scripts/BuildManager.gd 的 get_warrior_patrol_anchors 提供。
+- 弓箭手不会进入普通建筑工作；如果没有可进入的城墙，会在左右远端建筑附近巡逻。
+- drop_carried_tool 会把战士或弓箭手转回普通村民，清空 attack_power、attack_range、巡逻状态和城墙状态。
+
+城墙岗位：
+- scripts/BuildManager.gd 的 get_work_sites 会为 wall 岗位标记 required_role = "archer"。
+- claim_work_site 与 occupy_work_site 会通过 scripts/NPCManager.gd 的 worker_role_for(worker_id) 查询职业；只有 archer 可预订和占用 wall，普通村民、农民、伐木工、战士都不能进入城墙。
+- scripts/NPC.gd 新增 enter_wall_top：弓箭手到达城墙后站在城墙顶部，模型保持可见，is_on_wall = true，attack_range 提升为 900。
+- 城墙被拆除、损毁、怪物抢走弓或 NPC 退出建筑时，会清理弓箭手的城墙状态；弓箭手回到地面时射程恢复 600。
+
+远程攻击与箭矢：
+- 新增 scripts/Arrow.gd。Arrow 负责抛物线飞行、落地停留和淡出；默认飞行 0.8 秒，弧高 120，落地后保留 5 秒，随后 1 秒内逐渐变淡并 queue_free。
+- scenes/Main.tscn 新增 Projectiles 节点，Node2D，z_index = 3，用于保存运行时 Arrow_XX 箭矢。
+- scripts/MonsterManager.gd 新增 Projectiles 容器引用；若场景没有 Projectiles 节点会运行时创建。
+- scripts/MonsterManager.gd 新增 shoot_nearest_monster(origin, damage, attack_range)：寻找射程内最近怪物，生成 Arrow_XX，并对目标造成 damage 点伤害。
+- scripts/NPCManager.gd 新增 _update_archer_attacks：弓箭手每 1 秒尝试射击一次；地面弓箭手射程 600，站在城墙顶时射程 900。
+- scripts/Monster.gd 的 LootVisual 支持 bow；怪物抢走弓撤退时会把棕黄色弓形色块举在头顶。
+
+测试文件：
+- tests/ArcherBowRulesTest.gd 新增覆盖：bow 装备后变弓箭手、攻击力/射程、弓箭手左右巡逻平衡、城墙只允许弓箭手、弓箭手站上城墙顶部且射程变为 900。
+- tests/ArrowProjectileTest.gd 新增覆盖：Arrow 抛物线飞行、落地停留 5 秒、1 秒淡出、MonsterManager.shoot_nearest_monster 生成箭并造成 1 点伤害。
+- tests/BlacksmithQueuePanelTest.gd 更新覆盖：铁匠铺有 CraftBowButton，弓可进入制作队列，完成后进入库存。
+- tests/MonsterLootVisualTest.gd 更新覆盖：怪物掠夺 bow 时显示头顶弓战利品。
+
+2026-06-18 架构规则：玩法数据分离
+
+底层维护规则：
+- AGENTS.md 新增数据分离要求：以后新增或修改玩法时，实体定义、建筑/工具/NPC/怪物数值、经济数值、时间参数、颜色、职业属性等可调数据必须优先放入数据层或通过数据层读取。
+- 当前数据层入口为 scripts/GameData.gd；既有建筑定义继续由 scripts/BuildingCatalog.gd 维护；既有规则型数据可继续放在专门 rules/catalog 脚本中，但不能随意散落到 manager 或行为脚本里。
+- 如果某个值必须留在逻辑代码中，需要在本文件说明原因。
+
+新增数据脚本：
+- scripts/GameData.gd：集中维护世界参数、经济参数、伐木/砍树参数、NPC 参数、怪物参数、箭矢参数、工具定义、工具职业匹配和 NPC 职业属性。
+- WORLD 数据：ground_min_x、ground_max_x、ground_top_y、air_wall_width、air_wall_height、city_hall_size、tree_size、tree_count、tree_random_seed、city_hall_front。
+- ECONOMY 数据：starting_gold、farm_income_seconds、tool_craft_seconds、tool_craft_cost、blacksmith_tool_limit。
+- TOOLS 数据：sword、axe、sickle、bow 的 display_name、color、craft_text；TOOL_ROLE_PRIORITY 定义 villager 可拿 sword/bow，lumberjack 可拿 axe，farmer 可拿 sickle。
+- NPC_ROLES 数据：homeless、villager、lumberjack、farmer、warrior、archer 的颜色；warrior/archer 的攻击力和射程；archer 的城墙射程。
+- MONSTER 与 ARROW 常量：怪物生命、移动、感知、命中、蓄力、随机种子，以及箭矢飞行时间、弧高、落地停留和淡出时间。
+
+已接入数据层的脚本：
+- scripts/BuildManager.gd：地图边界、空气墙尺寸、市政厅/树尺寸、初始金币、农田收益时间、伐木场长树参数、砍树时间、铁匠铺制作时间/花费/库存上限、工具显示名、工具颜色、工具制作按钮文字、工具有效性、职业可用工具列表均通过 GameData 或其常量读取。
+- scripts/NPC.gd：NPC 移动速度、到达距离、职业颜色、战士/弓箭手攻击力、弓箭手地面/城墙射程、工具颜色通过 GameData 读取。
+- scripts/NPCManager.gd：地图边界、市政厅前点、交互距离、随机种子、砍树时间、工具效率倍率、战士射程/攻击间隔、弓箭手攻击间隔通过 GameData 读取。
+- scripts/MonsterManager.gd：地图边界、怪物出生边距、怪物移动/撤退速度、感知范围、命中范围、蓄力时间、随机种子通过 GameData 读取。
+- scripts/Monster.gd：怪物最大血量和工具颜色通过 GameData 读取。
+- scripts/Arrow.gd：箭矢飞行时间、弧高、落地停留时间、淡出时间通过 GameData 读取。
+
+测试文件：
+- tests/GameDataSeparationTest.gd 新增覆盖：GameData 可读取世界、经济、工具、职业、箭矢数据；bow 工具有效；未知工具会被拒绝。
+
+2026-06-18 新增：建筑升级与二级解锁
+
+升级数据：
+- scripts/GameData.gd 新增 BUILDING_UPGRADES 数据表，集中定义建筑升级目标等级、金币花费和前置条件。
+- 市政厅 cityhall 可花费 50 金币升级到 2 级。
+- 市政厅达到 2 级后解锁 blacksmith、wall、farm、lumberyard 的 2 级升级。
+- 铁匠铺 blacksmith 升 2 级花费 20 金币。
+- 城墙 wall 升 2 级花费 15 金币。
+- 农田 farm 升 2 级花费 15 金币。
+- 伐木场 lumberyard 升 2 级花费 30 金币。
+- 酒馆 tavern 当前未配置 2 级升级。
+
+升级功能：
+- scripts/BuildManager.gd 新增 upgrade_cost_for_entity_index、can_upgrade_entity、upgrade_building、building_level_for_id。
+- 建筑实例继续在 placed_buildings 中保存 level；升级成功时扣除金币并把该实例 level 加 1。
+- 升级只允许 cityhall 或 entity_kind 为 building 的玩家建筑；树、空气墙、损毁建筑不能升级。
+- 前置条件由 GameData.building_upgrade_requirements 读取；例如铁匠铺、城墙、农田、伐木场升 2 级时会检查 cityhall 当前最高等级是否达到 2。
+- 建筑信息面板的等级行现在显示真实 level，不再固定为 1。
+- 建筑信息面板在存在下一等级升级时显示升级状态，并新增 UpgradeBuildingButton，可鼠标点击尝试升级；金币不足或前置条件不足时不会升级。
+
+测试文件：
+- tests/BuildingUpgradeTest.gd 新增覆盖：升级数据表价格与解锁条件、市政厅金币不足不能升级、市政厅可升 2 级并扣 50 金币、铁匠铺在市政厅 1 级时无法升 2 级、市政厅 2 级后铁匠铺可升 2 级、面板显示真实等级。
+
+2026-06-18 优化：建筑面板快捷键
+
+建筑信息面板输入：
+- scripts/BuildManager.gd 的 _handle_info_panel_input 调整为：建筑信息面板打开时，按 E 默认尝试升级当前面板对应建筑。
+- 面板打开时按 Q 关闭建筑信息面板，并拦截 Q，不触发拆除流程。
+- E 升级失败时不会关闭面板；例如金币不足、前置条件不足、没有下一等级时，只保持当前面板。
+- 铁匠铺面板内数字键 1/2/3/4 仍用于排队制作剑、斧、镰刀、弓。
+
+测试文件：
+- tests/BuildingUpgradeTest.gd 更新覆盖：建筑面板打开时 E 会升级当前建筑并扣除升级费用，升级后面板保持打开；Q 会关闭面板。
+
+2026-06-18 修改：木/石工具、采石场、矿工与石箭头
+
+数据层：
+- scripts/GameData.gd 扩展工具数据。1 级铁匠铺工具为 sword=木剑、axe=木斧、sickle=木镰刀、bow=弓。
+- 新增 2 级工具 stone_sword=石剑、stone_pickaxe=石镐、stone_sickle=石镰刀、stone_arrowhead=石箭头。
+- 木质工作工具效率倍率为 1.5，表示工作耗时为基础耗时 / 1.5；石质工作工具效率倍率为 2.0，表示效率提升 100%。
+- 石箭头 damage_multiplier = 2.0；弓箭手装备后攻击力从 1 提升到 2。
+- blacksmith_craft_tool_ids(1) 返回木剑、木斧、木镰刀、弓；blacksmith_craft_tool_ids(2) 返回石剑、石镐、石镰刀、弓、石箭头。
+- blacksmith_craft_requirements(1) 要求存在 1 级伐木场；blacksmith_craft_requirements(2) 要求存在独立采石场 quarry。
+- RESOURCES 新增 tree 和 stone 数据。树奖励 1 金币，NPC 基础砍伐 60 秒，玩家手动砍伐 10 秒；石头作为采石场建造点随机分布在地图上。
+- QUARRY 数据：采石场 quarry 建造花费 20 金币，建造尺寸 180 x 120，需要村民进入工作，worker_role = miner，每 60 秒生产 3 金币。
+- NPC_ROLES 新增 miner，矿工颜色为灰色。
+
+铁匠铺：
+- scripts/BuildManager.gd 的 start_blacksmith_craft 会检查铁匠铺等级对应的可制作工具列表，以及对应前置建筑等级。
+- 没有伐木场时，1 级铁匠铺无法制作木工具和弓。
+- 铁匠铺 2 级后，木剑/木斧/木镰刀制作入口切换为石剑/石镐/石镰刀；弓保持可制作，并新增石箭头制作入口。
+- 铁匠铺面板的 1-5 数字快捷制作按当前等级动态映射到当前制作列表。
+- 制作按钮仍可鼠标点击；完成工具仍放在铁匠铺建筑范围内，总库存上限仍为 5。
+
+伐木场、石头与采石场：
+- 伐木场升到 2 级后仍是伐木场，信息按数据层显示为“2级伐木场”，不再变成采石场。
+- 1 级和 2 级伐木场都每 120 秒在周围生成 3 棵树；进入伐木场工作的村民仍变成伐木工。
+- 地图启动时随机分布 3 块石头，使用 STONE_RANDOM_SEED 和 STONE_COUNT 数据生成，并加入占地判定。
+- 玩家站在石头占地内时，如果市政厅已达到 2 级，可按 E 花费 20 金币将该石头改建为采石场；建造后石头实体和占地被移除，采石场占用该位置。
+- 市政厅未达到 2 级时，在石头处按 E 只显示提示，不扣金币；金币不足时同样只提示价格。
+- 采石场 quarry 是独立建筑，也是 1 人工作岗位；村民进入采石场后变成矿工，采石场未损毁且有矿工在内部工作时每 60 秒生产 3 金币。
+
+NPC 与战斗：
+- scripts/NPC.gd 新增 arrowhead_tool 字段。弓箭手装备 stone_arrowhead 时不会替换 carried_tool 的 bow，而是作为附加装备保存。
+- 弓箭手装备石箭头后 attack_power = 2；失去携带工具或变流浪汉时会清空石箭头。
+- scripts/NPCManager.gd 允许弓箭手在没有石箭头时从铁匠铺领取 stone_arrowhead，并在取回后返回原岗位。
+- 石剑和木剑一样会让村民变成战士；石剑不会让 NPC 返回原工作岗位。
+
+测试文件：
+- tests/ToolTierAndQuarryTest.gd 覆盖：工具显示名、木/石效率、铁匠铺制作列表、制作前置条件、初始 3 块石头、2 级伐木场仍产树和伐木工、市政厅 2 级后在石头处建采石场、采石场作为工作岗位、村民进入后变矿工、有矿工时每分钟 3 金币、石箭头弓箭手伤害翻倍。
+- tests/BlacksmithQueuePanelTest.gd 和 tests/BuildingInfoAndToolCraftTest.gd 更新为给铁匠铺测试夹具增加伐木场前置。
+- tests/WorkerToolEfficiencyTest.gd 和 tests/NPCToolPickupTravelTest.gd 更新木镰刀/木斧 40 秒效率断言。
+- tests/MonsterLootVisualTest.gd 更新木斧颜色断言。
+- tests/GameDataSeparationTest.gd 更新村民、矿工工具列表数据断言。
