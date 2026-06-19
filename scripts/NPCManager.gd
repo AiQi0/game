@@ -44,6 +44,7 @@ func _process(delta: float) -> void:
 	_equip_workers_from_tools()
 	_advance_tree_choppers(delta)
 	_assign_idle_archers_to_walls()
+	_assign_idle_warriors_to_defense_posts()
 	_assign_warrior_patrols()
 	_assign_archer_patrols()
 	_update_warrior_attacks(delta)
@@ -311,6 +312,74 @@ func worker_role_for(worker_id: String) -> String:
 	return npc.get("worker_role")
 
 
+func train_shield_guard(worker_id: String) -> bool:
+	var npc := _npc_by_name(worker_id)
+	if npc == null:
+		return false
+	if npc.get("npc_type") != "villager":
+		return false
+	if npc.get("worker_role") != "villager":
+		return false
+
+	var build_manager := get_parent().get_node_or_null("BuildManager") if get_parent() != null else null
+	if build_manager == null or not build_manager.has_method("spend_gold_for_shield_guard_training"):
+		return false
+	if not build_manager.spend_gold_for_shield_guard_training():
+		return false
+
+	if npc.has_method("become_shield_guard"):
+		npc.become_shield_guard()
+	return true
+
+
+func train_nearest_shield_guard_candidate(origin: Vector2) -> bool:
+	var candidate := _nearest_shield_guard_candidate(origin)
+	if candidate == null:
+		return false
+
+	return train_shield_guard(candidate.name)
+
+
+func shield_guard_count() -> int:
+	var count := 0
+	if npc_container == null:
+		return count
+
+	for child in npc_container.get_children():
+		if child.get("npc_type") == "villager" and child.get("worker_role") == "shield_guard":
+			count += 1
+	return count
+
+
+func expedition_loss_multiplier() -> float:
+	var reduction := float(game_data.npc_role_value("shield_guard", "expedition_loss_reduction", 0.2)) * shield_guard_count()
+	var max_reduction := float(game_data.defense_value("max_expedition_loss_reduction", 0.6))
+	return 1.0 - minf(reduction, max_reduction)
+
+
+func _nearest_shield_guard_candidate(origin: Vector2) -> Node2D:
+	if npc_container == null:
+		return null
+
+	var nearest: Node2D = null
+	var nearest_distance := INF
+	for child in npc_container.get_children():
+		if child.get("npc_type") != "villager":
+			continue
+		if child.get("worker_role") != "villager":
+			continue
+		if child.get("is_traveling_to_workplace") or child.get("is_traveling_to_tool_pickup"):
+			continue
+		if child.get("is_traveling_to_tree_chop") or child.get("is_chopping_tree"):
+			continue
+
+		var distance := origin.distance_to(child.global_position)
+		if distance < nearest_distance:
+			nearest = child
+			nearest_distance = distance
+	return nearest
+
+
 func _equip_workers_from_tools() -> void:
 	if npc_container == null:
 		return
@@ -352,10 +421,7 @@ func _equip_workers_from_tools() -> void:
 			continue
 
 		var released_work_site := false
-		if (
-			(pickup.get("tool_id", "") == "sword" or pickup.get("tool_id", "") == "stone_sword" or pickup.get("tool_id", "") == "bow")
-			and build_manager.has_method("release_work_site_for_worker")
-		):
+		if _is_patrol_tool(pickup.get("tool_id", "")) and build_manager.has_method("release_work_site_for_worker"):
 			released_work_site = build_manager.release_work_site_for_worker(child.name)
 		else:
 			released_work_site = build_manager.worker_leaves_work_site(workplace_id, child.name)
@@ -511,13 +577,50 @@ func _assign_idle_archers_to_walls() -> void:
 		_assign_workplace_to_villager(child)
 
 
+func _assign_idle_warriors_to_defense_posts() -> void:
+	if npc_container == null:
+		return
+
+	var build_manager := get_parent().get_node_or_null("BuildManager") if get_parent() != null else null
+	if build_manager == null or not build_manager.has_method("get_work_sites"):
+		return
+
+	for child in npc_container.get_children():
+		if child.get("npc_type") != "villager":
+			continue
+		if child.get("worker_role") != "warrior":
+			continue
+		if child.get("is_inside_building"):
+			continue
+		if child.get("is_traveling_to_workplace"):
+			continue
+		if child.get("is_traveling_to_tool_pickup"):
+			continue
+		if child.get("is_traveling_to_tree_chop") or child.get("is_chopping_tree"):
+			continue
+
+		var sites := _filtered_work_sites_for_npc(child, build_manager.get_work_sites())
+		var site_list_index := rules.nearest_available_work_site_index(child.global_position, sites)
+		if site_list_index == -1:
+			continue
+
+		var site: Dictionary = sites[site_list_index]
+		if build_manager.claim_work_site(site.entity_index, child.name):
+			child.travel_to_workplace(site.position, site.display_name, site.workplace_id)
+
+
 func _filtered_work_sites_for_npc(npc: Node2D, sites: Array) -> Array:
 	var filtered: Array = []
 	var role: String = npc.get("worker_role")
 	for site in sites:
 		var required_role: String = site.get("required_role", "")
+		var required_roles: Array = required_role.split(",") if required_role.find(",") != -1 else [required_role]
 		if role == "archer":
-			if required_role == "archer":
+			if required_roles.has("archer"):
+				filtered.append(site)
+			continue
+		if role == "warrior":
+			if required_roles.has("warrior"):
 				filtered.append(site)
 			continue
 		if required_role != "":
@@ -538,7 +641,7 @@ func _finish_arriving_workers() -> void:
 	for child in npc_container.get_children():
 		if child.get("npc_type") != "villager":
 			continue
-		if child.get("worker_role") == "warrior":
+		if child.get("worker_role") == "warrior" and not str(child.get("assigned_workplace_id")).begins_with("cliff_fort"):
 			continue
 		if child.get("is_inside_building"):
 			continue
@@ -551,22 +654,21 @@ func _finish_arriving_workers() -> void:
 
 		var workplace_id: String = child.get("assigned_workplace_id")
 		if build_manager.occupy_work_site(workplace_id, child.name):
+			var work_site_role := ""
+			if build_manager.has_method("work_site_role_for_workplace_id"):
+				work_site_role = build_manager.work_site_role_for_workplace_id(workplace_id)
 			if workplace_id.begins_with("wall") and child.get("worker_role") == "archer" and child.has_method("enter_wall_top"):
 				child.enter_wall_top(child.home_center, child.assigned_workplace_name, workplace_id)
+			elif workplace_id.begins_with("cliff_fort") and child.has_method("enter_defense_post"):
+				var range_bonus := 0.0
+				if build_manager.has_method("defense_post_range_bonus_for_workplace_id"):
+					range_bonus = build_manager.defense_post_range_bonus_for_workplace_id(workplace_id)
+				child.enter_defense_post(child.home_center, child.assigned_workplace_name, workplace_id, range_bonus)
 			elif workplace_id.begins_with("lumberyard"):
-				var worker_role := ""
-				if build_manager.has_method("work_site_role_for_workplace_id"):
-					worker_role = build_manager.work_site_role_for_workplace_id(workplace_id)
-				if worker_role == "miner" and child.has_method("become_miner"):
-					child.become_miner()
-				elif child.has_method("become_lumberjack"):
-					child.become_lumberjack()
+				_apply_work_role(child, "lumberjack" if work_site_role == "" else work_site_role)
 				child.enter_building(child.home_center, child.assigned_workplace_name, workplace_id)
-			elif workplace_id.begins_with("farm") and child.has_method("become_farmer"):
-				child.become_farmer()
-				child.enter_building(child.home_center, child.assigned_workplace_name, workplace_id)
-			elif workplace_id.begins_with("quarry") and child.has_method("become_miner"):
-				child.become_miner()
+			elif work_site_role != "":
+				_apply_work_role(child, work_site_role)
 				child.enter_building(child.home_center, child.assigned_workplace_name, workplace_id)
 			else:
 				child.enter_building(child.home_center, child.assigned_workplace_name, workplace_id)
@@ -595,11 +697,35 @@ func _finish_tool_pickup_travelers() -> void:
 			child.finish_tool_pickup_to_workplace(tool_id)
 		elif tool_id != "":
 			child.set("carried_tool", tool_id)
-		if tool_id == "sword" or tool_id == "stone_sword":
+		if _is_warrior_tool(tool_id):
 			_assign_warrior_patrols()
 		elif tool_id == "bow":
 			_assign_workplace_to_villager(child)
 			_assign_archer_patrols()
+
+
+func _apply_work_role(npc: Node2D, work_role: String) -> void:
+	match work_role:
+		"farmer":
+			if npc.has_method("become_farmer"):
+				npc.become_farmer()
+		"miner":
+			if npc.has_method("become_miner"):
+				npc.become_miner()
+		"lumberjack":
+			if npc.has_method("become_lumberjack"):
+				npc.become_lumberjack()
+		"merchant":
+			if npc.has_method("become_merchant"):
+				npc.become_merchant()
+
+
+func _is_warrior_tool(tool_id: String) -> bool:
+	return tool_id == "sword" or tool_id == "stone_sword" or game_data.tool_value(tool_id, "attack_power", null) != null
+
+
+func _is_patrol_tool(tool_id: String) -> bool:
+	return _is_warrior_tool(tool_id) or tool_id == "bow"
 
 
 func _finish_arriving_tree_choppers() -> void:
@@ -687,6 +813,8 @@ func _assign_warrior_patrols() -> void:
 
 	for i in range(warriors.size()):
 		var warrior: Node2D = warriors[i]
+		if warrior.get("is_inside_building") or warrior.get("is_traveling_to_workplace"):
+			continue
 		var side := "left" if i % 2 == 0 else "right"
 		var anchor: Vector2 = anchors.get(side, CITY_HALL_FRONT)
 		if warrior.has_method("set_warrior_patrol"):

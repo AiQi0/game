@@ -9,6 +9,8 @@ const VILLAGER_COLOR := GameData.NPC_ROLES.villager.color
 const LUMBERJACK_COLOR := GameData.NPC_ROLES.lumberjack.color
 const FARMER_COLOR := GameData.NPC_ROLES.farmer.color
 const MINER_COLOR := GameData.NPC_ROLES.miner.color
+const MERCHANT_COLOR := GameData.NPC_ROLES.merchant.color
+const SHIELD_GUARD_COLOR := GameData.NPC_ROLES.shield_guard.color
 const WARRIOR_COLOR := GameData.NPC_ROLES.warrior.color
 const ARCHER_COLOR := GameData.NPC_ROLES.archer.color
 const WARRIOR_ATTACK_POWER := GameData.NPC_ROLES.warrior.attack_power
@@ -134,6 +136,39 @@ func become_miner() -> void:
 		body.color = MINER_COLOR
 
 
+func become_merchant() -> void:
+	if npc_type != "villager":
+		return
+
+	worker_role = "merchant"
+	if body != null:
+		body.color = MERCHANT_COLOR
+
+
+func become_shield_guard() -> void:
+	if npc_type != "villager":
+		return
+
+	worker_role = "shield_guard"
+	attack_power = int(game_data.npc_role_value("shield_guard", "attack_power", 1))
+	attack_range = 0.0
+	is_on_wall = false
+	wall_id = ""
+	is_inside_building = false
+	is_traveling_to_workplace = false
+	is_traveling_to_tree_chop = false
+	is_traveling_to_tool_pickup = false
+	is_chopping_tree = false
+	tree_chop_task_id = ""
+	assigned_workplace_name = "patrol"
+	assigned_workplace_id = "patrol"
+	wander_radius = 120.0
+	visible = true
+	set_process(true)
+	if body != null:
+		body.color = SHIELD_GUARD_COLOR
+
+
 func become_warrior() -> void:
 	if npc_type != "villager":
 		return
@@ -183,7 +218,7 @@ func become_archer() -> void:
 
 
 func equip_tool(tool_id: String) -> void:
-	if tool_id == "stone_arrowhead":
+	if _is_arrowhead_tool(tool_id):
 		if worker_role != "archer" and carried_tool != "bow":
 			return
 
@@ -209,8 +244,9 @@ func equip_tool(tool_id: String) -> void:
 		old_tool.queue_free()
 	if tool_id == "":
 		return
-	if tool_id == "sword" or tool_id == "stone_sword":
+	if _is_warrior_tool(tool_id):
 		become_warrior()
+		attack_power = int(game_data.tool_value(tool_id, "attack_power", WARRIOR_ATTACK_POWER))
 	elif tool_id == "bow":
 		become_archer()
 		if arrowhead_tool != "":
@@ -450,7 +486,7 @@ func finish_tool_pickup_to_workplace(tool_id: String) -> void:
 	if tool_id != "":
 		equip_tool(tool_id)
 	_clear_tool_pickup()
-	if tool_id == "sword" or tool_id == "stone_sword" or tool_id == "bow":
+	if _is_warrior_tool(tool_id) or tool_id == "bow":
 		return
 	travel_to_workplace(return_position, return_name, return_id)
 
@@ -487,6 +523,38 @@ func enter_wall_top(wall_position: Vector2, workplace_name: String, workplace_id
 	patrol_side = ""
 	patrol_anchor = Vector2.ZERO
 	attack_range = ARCHER_WALL_ATTACK_RANGE
+	is_traveling_to_workplace = false
+	is_traveling_to_tree_chop = false
+	is_traveling_to_tool_pickup = false
+	is_chopping_tree = false
+	tree_chop_task_id = ""
+	wander_radius = 0.0
+	target_position = home_center
+	visible = true
+	set_process(false)
+
+
+func enter_defense_post(
+	post_position: Vector2,
+	workplace_name: String,
+	workplace_id: String,
+	archer_range_bonus := 0.0
+) -> void:
+	if worker_role != "archer" and worker_role != "warrior":
+		return
+
+	home_center = post_position + Vector2(0.0, -120.0)
+	global_position = home_center
+	assigned_workplace_name = workplace_name
+	assigned_workplace_id = workplace_id
+	is_inside_building = true
+	is_on_wall = false
+	wall_id = workplace_id
+	is_patrolling = false
+	patrol_side = ""
+	patrol_anchor = Vector2.ZERO
+	if worker_role == "archer":
+		attack_range = ARCHER_WALL_ATTACK_RANGE + archer_range_bonus
 	is_traveling_to_workplace = false
 	is_traveling_to_tree_chop = false
 	is_traveling_to_tool_pickup = false
@@ -556,6 +624,14 @@ func _clear_wall_state() -> void:
 	wall_id = ""
 	if worker_role == "archer":
 		attack_range = ARCHER_ATTACK_RANGE
+
+
+func _is_warrior_tool(tool_id: String) -> bool:
+	return tool_id == "sword" or tool_id == "stone_sword" or game_data.tool_value(tool_id, "attack_power", null) != null
+
+
+func _is_arrowhead_tool(tool_id: String) -> bool:
+	return tool_id.ends_with("_arrowhead")
 
 
 func _tool_color(tool_id: String) -> Color:

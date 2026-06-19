@@ -1,0 +1,703 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/Player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/cityhall.png" id="2_cityhall"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/post_station.png" id="3_post_station"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/wall.png" id="4_wall"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/farm.png" id="5_farm"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/lumberyard.png" id="6_lumberyard"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/quarry.png" id="7_quarry"]
+[ext_resource type="Texture2D" path="res://assets/river_merchant_alliance/buildings/blacksmith.png" id="8_blacksmith"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(9600, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
+size = Vector2(32, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_air_wall"]
+size = Vector2(96, 1000)
+
+[node name="RiverMerchantAlliance" type="Node2D"]
+
+[node name="Sky" type="ColorRect" parent="."]
+offset_right = 9600.0
+offset_bottom = 1080.0
+color = Color(0.09, 0.14, 0.18, 1)
+
+[node name="Water" type="Polygon2D" parent="."]
+color = Color(0.1, 0.33, 0.5, 1)
+polygon = PackedVector2Array(0, 520, 9600, 520, 9600, 650, 0, 650)
+
+[node name="Docks" type="Node2D" parent="."]
+
+[node name="CentralDock" type="Polygon2D" parent="Docks"]
+color = Color(0.5, 0.34, 0.18, 1)
+polygon = PackedVector2Array(4200, 440, 5600, 440, 5600, 472, 4200, 472)
+
+[node name="LeftDock" type="Polygon2D" parent="Docks"]
+color = Color(0.46, 0.3, 0.16, 1)
+polygon = PackedVector2Array(1500, 448, 2700, 448, 2700, 472, 1500, 472)
+
+[node name="RightDock" type="Polygon2D" parent="Docks"]
+color = Color(0.46, 0.3, 0.16, 1)
+polygon = PackedVector2Array(6100, 448, 7600, 448, 7600, 472, 6100, 472)
+
+[node name="AirWalls" type="Node2D" parent="."]
+
+[node name="LeftAirWall" type="StaticBody2D" parent="AirWalls"]
+position = Vector2(-48, 0)
+
+[node name="LeftAirWallCollision" type="CollisionShape2D" parent="AirWalls/LeftAirWall"]
+shape = SubResource("RectangleShape2D_air_wall")
+
+[node name="RightAirWall" type="StaticBody2D" parent="AirWalls"]
+position = Vector2(9648, 0)
+
+[node name="RightAirWallCollision" type="CollisionShape2D" parent="AirWalls/RightAirWall"]
+shape = SubResource("RectangleShape2D_air_wall")
+
+[node name="LeftWall" type="Node2D" parent="."]
+position = Vector2(760, 472)
+z_index = -1
+
+[node name="WallBody" type="Polygon2D" parent="LeftWall"]
+color = Color(0.48, 0.5, 0.5, 1)
+polygon = PackedVector2Array(-60, -78, 60, -78, 60, 0, -60, 0)
+
+[node name="Crenel0" type="Polygon2D" parent="LeftWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(-60, -100, -40.8, -100, -40.8, -78, -60, -78)
+
+[node name="Crenel1" type="Polygon2D" parent="LeftWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(-30, -100, -10.8, -100, -10.8, -78, -30, -78)
+
+[node name="Crenel2" type="Polygon2D" parent="LeftWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(0, -100, 19.2, -100, 19.2, -78, 0, -78)
+
+[node name="Crenel3" type="Polygon2D" parent="LeftWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(30, -100, 49.2, -100, 49.2, -78, 30, -78)
+
+[node name="Gate" type="Polygon2D" parent="LeftWall"]
+color = Color(0.18, 0.17, 0.16, 1)
+polygon = PackedVector2Array(-16.8, -38, 16.8, -38, 16.8, 0, -16.8, 0)
+
+[node name="WindowSlit" type="Polygon2D" parent="LeftWall"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-43.2, -62, -31.2, -62, -31.2, -44, -43.2, -44)
+
+[node name="RightWall" type="Node2D" parent="."]
+position = Vector2(8840, 472)
+z_index = -1
+
+[node name="WallBody" type="Polygon2D" parent="RightWall"]
+color = Color(0.48, 0.5, 0.5, 1)
+polygon = PackedVector2Array(-60, -78, 60, -78, 60, 0, -60, 0)
+
+[node name="Crenel0" type="Polygon2D" parent="RightWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(-60, -100, -40.8, -100, -40.8, -78, -60, -78)
+
+[node name="Crenel1" type="Polygon2D" parent="RightWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(-30, -100, -10.8, -100, -10.8, -78, -30, -78)
+
+[node name="Crenel2" type="Polygon2D" parent="RightWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(0, -100, 19.2, -100, 19.2, -78, 0, -78)
+
+[node name="Crenel3" type="Polygon2D" parent="RightWall"]
+color = Color(0.32, 0.34, 0.35, 1)
+polygon = PackedVector2Array(30, -100, 49.2, -100, 49.2, -78, 30, -78)
+
+[node name="Gate" type="Polygon2D" parent="RightWall"]
+color = Color(0.18, 0.17, 0.16, 1)
+polygon = PackedVector2Array(-16.8, -38, 16.8, -38, 16.8, 0, -16.8, 0)
+
+[node name="WindowSlit" type="Polygon2D" parent="RightWall"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-43.2, -62, -31.2, -62, -31.2, -44, -43.2, -44)
+
+[node name="Farms" type="Node2D" parent="."]
+z_index = -1
+
+[node name="Farm_01" type="Node2D" parent="Farms"]
+position = Vector2(1600, 472)
+
+[node name="Soil" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.55, 0.34, 0.16, 1)
+polygon = PackedVector2Array(-110, -60, 110, -60, 110, 0, -110, 0)
+
+[node name="CropRow0" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -55.2, 99, -55.2, 99, -50.4, -99, -50.4)
+
+[node name="CropRow1" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -40.2, 99, -40.2, 99, -35.4, -99, -35.4)
+
+[node name="CropRow2" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -25.2, 99, -25.2, 99, -20.4, -99, -20.4)
+
+[node name="CropRow3" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -10.2, 99, -10.2, 99, -5.4, -99, -5.4)
+
+[node name="Fence" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.72, 0.54, 0.32, 1)
+polygon = PackedVector2Array(-121, -10.8, 121, -10.8, 121, -4.8, -121, -4.8)
+
+[node name="WindowLantern" type="Polygon2D" parent="Farms/Farm_01"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(61.6, -50.4, 83.6, -50.4, 83.6, -38.4, 61.6, -38.4)
+
+[node name="Farm_02" type="Node2D" parent="Farms"]
+position = Vector2(1840, 472)
+
+[node name="Soil" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.55, 0.34, 0.16, 1)
+polygon = PackedVector2Array(-110, -60, 110, -60, 110, 0, -110, 0)
+
+[node name="CropRow0" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -55.2, 99, -55.2, 99, -50.4, -99, -50.4)
+
+[node name="CropRow1" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -40.2, 99, -40.2, 99, -35.4, -99, -35.4)
+
+[node name="CropRow2" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -25.2, 99, -25.2, 99, -20.4, -99, -20.4)
+
+[node name="CropRow3" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -10.2, 99, -10.2, 99, -5.4, -99, -5.4)
+
+[node name="Fence" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.72, 0.54, 0.32, 1)
+polygon = PackedVector2Array(-121, -10.8, 121, -10.8, 121, -4.8, -121, -4.8)
+
+[node name="WindowLantern" type="Polygon2D" parent="Farms/Farm_02"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(61.6, -50.4, 83.6, -50.4, 83.6, -38.4, 61.6, -38.4)
+
+[node name="Farm_03" type="Node2D" parent="Farms"]
+position = Vector2(2080, 472)
+
+[node name="Soil" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.55, 0.34, 0.16, 1)
+polygon = PackedVector2Array(-110, -60, 110, -60, 110, 0, -110, 0)
+
+[node name="CropRow0" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -55.2, 99, -55.2, 99, -50.4, -99, -50.4)
+
+[node name="CropRow1" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -40.2, 99, -40.2, 99, -35.4, -99, -35.4)
+
+[node name="CropRow2" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -25.2, 99, -25.2, 99, -20.4, -99, -20.4)
+
+[node name="CropRow3" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -10.2, 99, -10.2, 99, -5.4, -99, -5.4)
+
+[node name="Fence" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.72, 0.54, 0.32, 1)
+polygon = PackedVector2Array(-121, -10.8, 121, -10.8, 121, -4.8, -121, -4.8)
+
+[node name="WindowLantern" type="Polygon2D" parent="Farms/Farm_03"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(61.6, -50.4, 83.6, -50.4, 83.6, -38.4, 61.6, -38.4)
+
+[node name="Farm_04" type="Node2D" parent="Farms"]
+position = Vector2(2320, 472)
+
+[node name="Soil" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.55, 0.34, 0.16, 1)
+polygon = PackedVector2Array(-110, -60, 110, -60, 110, 0, -110, 0)
+
+[node name="CropRow0" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -55.2, 99, -55.2, 99, -50.4, -99, -50.4)
+
+[node name="CropRow1" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -40.2, 99, -40.2, 99, -35.4, -99, -35.4)
+
+[node name="CropRow2" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -25.2, 99, -25.2, 99, -20.4, -99, -20.4)
+
+[node name="CropRow3" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -10.2, 99, -10.2, 99, -5.4, -99, -5.4)
+
+[node name="Fence" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.72, 0.54, 0.32, 1)
+polygon = PackedVector2Array(-121, -10.8, 121, -10.8, 121, -4.8, -121, -4.8)
+
+[node name="WindowLantern" type="Polygon2D" parent="Farms/Farm_04"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(61.6, -50.4, 83.6, -50.4, 83.6, -38.4, 61.6, -38.4)
+
+[node name="Farm_05" type="Node2D" parent="Farms"]
+position = Vector2(2560, 472)
+
+[node name="Soil" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.55, 0.34, 0.16, 1)
+polygon = PackedVector2Array(-110, -60, 110, -60, 110, 0, -110, 0)
+
+[node name="CropRow0" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -55.2, 99, -55.2, 99, -50.4, -99, -50.4)
+
+[node name="CropRow1" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -40.2, 99, -40.2, 99, -35.4, -99, -35.4)
+
+[node name="CropRow2" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -25.2, 99, -25.2, 99, -20.4, -99, -20.4)
+
+[node name="CropRow3" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.38, 0.72, 0.24, 1)
+polygon = PackedVector2Array(-99, -10.2, 99, -10.2, 99, -5.4, -99, -5.4)
+
+[node name="Fence" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.72, 0.54, 0.32, 1)
+polygon = PackedVector2Array(-121, -10.8, 121, -10.8, 121, -4.8, -121, -4.8)
+
+[node name="WindowLantern" type="Polygon2D" parent="Farms/Farm_05"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(61.6, -50.4, 83.6, -50.4, 83.6, -38.4, 61.6, -38.4)
+
+[node name="Lumberyards" type="Node2D" parent="."]
+z_index = -1
+
+[node name="Lumberyard_01" type="Node2D" parent="Lumberyards"]
+position = Vector2(3100, 472)
+
+[node name="Body" type="Polygon2D" parent="Lumberyards/Lumberyard_01"]
+color = Color(0.44, 0.32, 0.2, 1)
+polygon = PackedVector2Array(-100, -130, 100, -130, 100, 0, -100, 0)
+
+[node name="WindowMain" type="Polygon2D" parent="Lumberyards/Lumberyard_01"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-32, -71.5, 32, -71.5, 32, -45.5, -32, -45.5)
+
+[node name="Lumberyard_02" type="Node2D" parent="Lumberyards"]
+position = Vector2(3340, 472)
+
+[node name="Body" type="Polygon2D" parent="Lumberyards/Lumberyard_02"]
+color = Color(0.44, 0.32, 0.2, 1)
+polygon = PackedVector2Array(-100, -130, 100, -130, 100, 0, -100, 0)
+
+[node name="WindowMain" type="Polygon2D" parent="Lumberyards/Lumberyard_02"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-32, -71.5, 32, -71.5, 32, -45.5, -32, -45.5)
+
+[node name="Lumberyard_03" type="Node2D" parent="Lumberyards"]
+position = Vector2(3580, 472)
+
+[node name="Body" type="Polygon2D" parent="Lumberyards/Lumberyard_03"]
+color = Color(0.44, 0.32, 0.2, 1)
+polygon = PackedVector2Array(-100, -130, 100, -130, 100, 0, -100, 0)
+
+[node name="WindowMain" type="Polygon2D" parent="Lumberyards/Lumberyard_03"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-32, -71.5, 32, -71.5, 32, -45.5, -32, -45.5)
+
+[node name="CityHall" type="Node2D" parent="."]
+position = Vector2(4800, 472)
+z_index = -1
+
+[node name="BuildingBody" type="Polygon2D" parent="CityHall"]
+color = Color(0.78, 0.78, 0.72, 1)
+polygon = PackedVector2Array(-170, -170, 170, -170, 170, 0, -170, 0)
+
+[node name="Roof" type="Polygon2D" parent="CityHall"]
+color = Color(0.52, 0.24, 0.18, 1)
+polygon = PackedVector2Array(-200, -170, 0, -270, 200, -170)
+
+[node name="Dome" type="Polygon2D" parent="CityHall"]
+color = Color(0.64, 0.68, 0.72, 1)
+polygon = PackedVector2Array(-54, -270, -36, -314, 0, -334, 36, -314, 54, -270)
+
+[node name="LeftColumn" type="Polygon2D" parent="CityHall"]
+color = Color(0.92, 0.9, 0.82, 1)
+polygon = PackedVector2Array(-118, -150, -86, -150, -86, 0, -118, 0)
+
+[node name="CenterColumn" type="Polygon2D" parent="CityHall"]
+color = Color(0.92, 0.9, 0.82, 1)
+polygon = PackedVector2Array(-16, -150, 16, -150, 16, 0, -16, 0)
+
+[node name="RightColumn" type="Polygon2D" parent="CityHall"]
+color = Color(0.92, 0.9, 0.82, 1)
+polygon = PackedVector2Array(86, -150, 118, -150, 118, 0, 86, 0)
+
+[node name="Door" type="Polygon2D" parent="CityHall"]
+color = Color(0.22, 0.15, 0.12, 1)
+polygon = PackedVector2Array(-34, -74, 34, -74, 34, 0, -34, 0)
+
+[node name="LeftWindow" type="Polygon2D" parent="CityHall"]
+color = Color(0.35, 0.62, 0.8, 1)
+polygon = PackedVector2Array(-145, -124, -122, -124, -122, -92, -145, -92)
+
+[node name="RightWindow" type="Polygon2D" parent="CityHall"]
+color = Color(0.35, 0.62, 0.8, 1)
+polygon = PackedVector2Array(122, -124, 145, -124, 145, -92, 122, -92)
+
+[node name="PostStation" type="Node2D" parent="."]
+position = Vector2(5350, 472)
+z_index = -1
+
+[node name="Body" type="Polygon2D" parent="PostStation"]
+color = Color(0.34, 0.27, 0.18, 1)
+polygon = PackedVector2Array(-95, -130, 95, -130, 95, 0, -95, 0)
+
+[node name="WindowMain" type="Polygon2D" parent="PostStation"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-30.4, -71.5, 30.4, -71.5, 30.4, -45.5, -30.4, -45.5)
+
+[node name="Quarries" type="Node2D" parent="."]
+z_index = -1
+
+[node name="Quarry_01" type="Node2D" parent="Quarries"]
+position = Vector2(6050, 472)
+
+[node name="RockPile" type="Polygon2D" parent="Quarries/Quarry_01"]
+color = Color(0.38, 0.38, 0.4, 1)
+polygon = PackedVector2Array(-86.4, 0, -64.8, -62.4, -21.6, -98.4, 28.8, -81.6, 82.8, -33.6, 75.6, 0)
+
+[node name="CutFace" type="Polygon2D" parent="Quarries/Quarry_01"]
+color = Color(0.58, 0.58, 0.62, 1)
+polygon = PackedVector2Array(-21.6, -93.6, 28.8, -81.6, 7.2, -38.4, -50.4, -45.6)
+
+[node name="WindowMain" type="Polygon2D" parent="Quarries/Quarry_01"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(28.8, -52.8, 57.6, -52.8, 57.6, -31.2, 28.8, -31.2)
+
+[node name="Quarry_02" type="Node2D" parent="Quarries"]
+position = Vector2(6280, 472)
+
+[node name="RockPile" type="Polygon2D" parent="Quarries/Quarry_02"]
+color = Color(0.38, 0.38, 0.4, 1)
+polygon = PackedVector2Array(-86.4, 0, -64.8, -62.4, -21.6, -98.4, 28.8, -81.6, 82.8, -33.6, 75.6, 0)
+
+[node name="CutFace" type="Polygon2D" parent="Quarries/Quarry_02"]
+color = Color(0.58, 0.58, 0.62, 1)
+polygon = PackedVector2Array(-21.6, -93.6, 28.8, -81.6, 7.2, -38.4, -50.4, -45.6)
+
+[node name="WindowMain" type="Polygon2D" parent="Quarries/Quarry_02"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(28.8, -52.8, 57.6, -52.8, 57.6, -31.2, 28.8, -31.2)
+
+[node name="Quarry_03" type="Node2D" parent="Quarries"]
+position = Vector2(6510, 472)
+
+[node name="RockPile" type="Polygon2D" parent="Quarries/Quarry_03"]
+color = Color(0.38, 0.38, 0.4, 1)
+polygon = PackedVector2Array(-86.4, 0, -64.8, -62.4, -21.6, -98.4, 28.8, -81.6, 82.8, -33.6, 75.6, 0)
+
+[node name="CutFace" type="Polygon2D" parent="Quarries/Quarry_03"]
+color = Color(0.58, 0.58, 0.62, 1)
+polygon = PackedVector2Array(-21.6, -93.6, 28.8, -81.6, 7.2, -38.4, -50.4, -45.6)
+
+[node name="WindowMain" type="Polygon2D" parent="Quarries/Quarry_03"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(28.8, -52.8, 57.6, -52.8, 57.6, -31.2, 28.8, -31.2)
+
+[node name="Blacksmiths" type="Node2D" parent="."]
+z_index = -1
+
+[node name="Blacksmith_01" type="Node2D" parent="Blacksmiths"]
+position = Vector2(7100, 472)
+
+[node name="Body" type="Polygon2D" parent="Blacksmiths/Blacksmith_01"]
+color = Color(0.42, 0.36, 0.32, 1)
+polygon = PackedVector2Array(-81, -100.8, 81, -100.8, 81, 0, -81, 0)
+
+[node name="Roof" type="Polygon2D" parent="Blacksmiths/Blacksmith_01"]
+color = Color(0.9, 0.32, 0.18, 1)
+polygon = PackedVector2Array(-99, -100.8, 0, -140, 99, -100.8)
+
+[node name="Chimney" type="Polygon2D" parent="Blacksmiths/Blacksmith_01"]
+color = Color(0.18, 0.16, 0.15, 1)
+polygon = PackedVector2Array(43.2, -137.2, 64.8, -137.2, 64.8, -86.8, 43.2, -86.8)
+
+[node name="Door" type="Polygon2D" parent="Blacksmiths/Blacksmith_01"]
+color = Color(0.15, 0.1, 0.08, 1)
+polygon = PackedVector2Array(-21.6, -50.4, 21.6, -50.4, 21.6, 0, -21.6, 0)
+
+[node name="WindowForge" type="Polygon2D" parent="Blacksmiths/Blacksmith_01"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-61.2, -64.4, -32.4, -64.4, -32.4, -42, -61.2, -42)
+
+[node name="Blacksmith_02" type="Node2D" parent="Blacksmiths"]
+position = Vector2(7330, 472)
+
+[node name="Body" type="Polygon2D" parent="Blacksmiths/Blacksmith_02"]
+color = Color(0.42, 0.36, 0.32, 1)
+polygon = PackedVector2Array(-81, -100.8, 81, -100.8, 81, 0, -81, 0)
+
+[node name="Roof" type="Polygon2D" parent="Blacksmiths/Blacksmith_02"]
+color = Color(0.9, 0.32, 0.18, 1)
+polygon = PackedVector2Array(-99, -100.8, 0, -140, 99, -100.8)
+
+[node name="Chimney" type="Polygon2D" parent="Blacksmiths/Blacksmith_02"]
+color = Color(0.18, 0.16, 0.15, 1)
+polygon = PackedVector2Array(43.2, -137.2, 64.8, -137.2, 64.8, -86.8, 43.2, -86.8)
+
+[node name="Door" type="Polygon2D" parent="Blacksmiths/Blacksmith_02"]
+color = Color(0.15, 0.1, 0.08, 1)
+polygon = PackedVector2Array(-21.6, -50.4, 21.6, -50.4, 21.6, 0, -21.6, 0)
+
+[node name="WindowForge" type="Polygon2D" parent="Blacksmiths/Blacksmith_02"]
+color = Color(0.08, 0.1, 0.13, 1)
+polygon = PackedVector2Array(-61.2, -64.4, -32.4, -64.4, -32.4, -42, -61.2, -42)
+
+[node name="StaticNPCs" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Farmers" type="Node2D" parent="StaticNPCs"]
+
+[node name="Farmer_01" type="Polygon2D" parent="StaticNPCs/Farmers"]
+position = Vector2(1600, 472)
+color = Color(0.86, 0.68, 0.22, 1)
+polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
+
+[node name="Farmer_02" type="Polygon2D" parent="StaticNPCs/Farmers"]
+position = Vector2(1840, 472)
+color = Color(0.86, 0.68, 0.22, 1)
+polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
+
+[node name="Farmer_03" type="Polygon2D" parent="StaticNPCs/Farmers"]
+position = Vector2(2080, 472)
+color = Color(0.86, 0.68, 0.22, 1)
+polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
+
+[node name="Farmer_04" type="Polygon2D" parent="StaticNPCs/Farmers"]
+position = Vector2(2320, 472)
+color = Color(0.86, 0.68, 0.22, 1)
+polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
+
+[node name="Farmer_05" type="Polygon2D" parent="StaticNPCs/Farmers"]
+position = Vector2(2560, 472)
+color = Color(0.86, 0.68, 0.22, 1)
+polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
+
+[node name="Lumberjacks" type="Node2D" parent="StaticNPCs"]
+
+[node name="Lumberjack_01" type="Polygon2D" parent="StaticNPCs/Lumberjacks"]
+position = Vector2(3100, 472)
+color = Color(0.28, 0.62, 0.28, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="Lumberjack_02" type="Polygon2D" parent="StaticNPCs/Lumberjacks"]
+position = Vector2(3340, 472)
+color = Color(0.28, 0.62, 0.28, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="Lumberjack_03" type="Polygon2D" parent="StaticNPCs/Lumberjacks"]
+position = Vector2(3580, 472)
+color = Color(0.28, 0.62, 0.28, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="Miners" type="Node2D" parent="StaticNPCs"]
+
+[node name="Miner_01" type="Polygon2D" parent="StaticNPCs/Miners"]
+position = Vector2(6050, 472)
+color = Color(0.44, 0.48, 0.52, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="Miner_02" type="Polygon2D" parent="StaticNPCs/Miners"]
+position = Vector2(6280, 472)
+color = Color(0.44, 0.48, 0.52, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="Miner_03" type="Polygon2D" parent="StaticNPCs/Miners"]
+position = Vector2(6510, 472)
+color = Color(0.44, 0.48, 0.52, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="SmithVillagers" type="Node2D" parent="StaticNPCs"]
+
+[node name="SmithVillager_01" type="Polygon2D" parent="StaticNPCs/SmithVillagers"]
+position = Vector2(7100, 472)
+color = Color(0.26, 0.5, 0.92, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="SmithVillager_02" type="Polygon2D" parent="StaticNPCs/SmithVillagers"]
+position = Vector2(7330, 472)
+color = Color(0.26, 0.5, 0.92, 1)
+polygon = PackedVector2Array(-10, -48, 10, -48, 10, 0, -10, 0)
+
+[node name="Warriors" type="Node2D" parent="StaticNPCs"]
+
+[node name="Warrior_01" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(650, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_02" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(710, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_03" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(770, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_04" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(830, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_05" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(890, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_06" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(8710, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_07" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(8770, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_08" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(8830, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_09" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(8890, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Warrior_10" type="Polygon2D" parent="StaticNPCs/Warriors"]
+position = Vector2(8950, 472)
+color = Color(0.62, 0.18, 0.24, 1)
+polygon = PackedVector2Array(-12, -54, 12, -54, 12, 0, -12, 0)
+
+[node name="Archers" type="Node2D" parent="StaticNPCs"]
+
+[node name="Archer_01" type="Polygon2D" parent="StaticNPCs/Archers"]
+position = Vector2(700, 340)
+color = Color(0.22, 0.58, 0.44, 1)
+polygon = PackedVector2Array(-10, -52, 10, -52, 10, 0, -10, 0)
+
+[node name="Archer_02" type="Polygon2D" parent="StaticNPCs/Archers"]
+position = Vector2(760, 340)
+color = Color(0.22, 0.58, 0.44, 1)
+polygon = PackedVector2Array(-10, -52, 10, -52, 10, 0, -10, 0)
+
+[node name="Archer_03" type="Polygon2D" parent="StaticNPCs/Archers"]
+position = Vector2(820, 340)
+color = Color(0.22, 0.58, 0.44, 1)
+polygon = PackedVector2Array(-10, -52, 10, -52, 10, 0, -10, 0)
+
+[node name="Archer_04" type="Polygon2D" parent="StaticNPCs/Archers"]
+position = Vector2(8780, 340)
+color = Color(0.22, 0.58, 0.44, 1)
+polygon = PackedVector2Array(-10, -52, 10, -52, 10, 0, -10, 0)
+
+[node name="Archer_05" type="Polygon2D" parent="StaticNPCs/Archers"]
+position = Vector2(8840, 340)
+color = Color(0.22, 0.58, 0.44, 1)
+polygon = PackedVector2Array(-10, -52, 10, -52, 10, 0, -10, 0)
+
+[node name="Archer_06" type="Polygon2D" parent="StaticNPCs/Archers"]
+position = Vector2(8900, 340)
+color = Color(0.22, 0.58, 0.44, 1)
+polygon = PackedVector2Array(-10, -52, 10, -52, 10, 0, -10, 0)
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(4800, 496)
+
+[node name="GroundVisual" type="Polygon2D" parent="Ground"]
+color = Color(0.24, 0.56, 0.34, 1)
+polygon = PackedVector2Array(-4800, -24, 4800, -24, 4800, 24, -4800, 24)
+
+[node name="GroundCollision" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(5350, 472)
+script = ExtResource("1_player")
+
+[node name="PlayerVisual" type="Polygon2D" parent="Player"]
+color = Color(0.95, 0.36, 0.22, 1)
+polygon = PackedVector2Array(-16, -64, 16, -64, 16, 0, -16, 0)
+
+[node name="PlayerCollision" type="CollisionShape2D" parent="Player"]
+position = Vector2(0, -32)
+shape = SubResource("RectangleShape2D_player")
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2(0, -32)
+enabled = true
+zoom = Vector2(1.35, 1.35)
+
+[node name="GeneratedSprite" type="Sprite2D" parent="CityHall"]
+texture = ExtResource("2_cityhall")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="PostStation"]
+texture = ExtResource("3_post_station")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="LeftWall"]
+texture = ExtResource("4_wall")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="RightWall"]
+texture = ExtResource("4_wall")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Farms/Farm_01"]
+texture = ExtResource("5_farm")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Farms/Farm_02"]
+texture = ExtResource("5_farm")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Farms/Farm_03"]
+texture = ExtResource("5_farm")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Farms/Farm_04"]
+texture = ExtResource("5_farm")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Farms/Farm_05"]
+texture = ExtResource("5_farm")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Lumberyards/Lumberyard_01"]
+texture = ExtResource("6_lumberyard")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Lumberyards/Lumberyard_02"]
+texture = ExtResource("6_lumberyard")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Lumberyards/Lumberyard_03"]
+texture = ExtResource("6_lumberyard")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Quarries/Quarry_01"]
+texture = ExtResource("7_quarry")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Quarries/Quarry_02"]
+texture = ExtResource("7_quarry")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Quarries/Quarry_03"]
+texture = ExtResource("7_quarry")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Blacksmiths/Blacksmith_01"]
+texture = ExtResource("8_blacksmith")
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Blacksmiths/Blacksmith_02"]
+texture = ExtResource("8_blacksmith")

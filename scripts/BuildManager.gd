@@ -14,11 +14,21 @@ const AIR_WALL_WIDTH := GameData.AIR_WALL_WIDTH
 const AIR_WALL_HEIGHT := GameData.AIR_WALL_HEIGHT
 const CITY_HALL_SIZE := GameData.CITY_HALL_SIZE
 const TREE_SIZE := GameData.TREE_SIZE
+const MOTHER_TREE_SIZE := GameData.MOTHER_TREE_SIZE
 const STONE_SIZE := GameData.STONE_SIZE
+const BRIDGE_SIZE := GameData.BRIDGE_SIZE
+const BRIDGE_WATER_SIZE := GameData.BRIDGE_WATER_SIZE
 const TREE_COUNT := GameData.TREE_COUNT
 const TREE_RANDOM_SEED := GameData.TREE_RANDOM_SEED
+const MOTHER_TREE_COUNT := GameData.MOTHER_TREE_COUNT
+const MOTHER_TREE_RANDOM_SEED := GameData.MOTHER_TREE_RANDOM_SEED
+const MOTHER_TREE_GROW_RADIUS := GameData.MOTHER_TREE_GROW_RADIUS
 const STONE_COUNT := GameData.STONE_COUNT
 const STONE_RANDOM_SEED := GameData.STONE_RANDOM_SEED
+const BRIDGE_COUNT := GameData.BRIDGE_COUNT
+const BRIDGE_RANDOM_SEED := GameData.BRIDGE_RANDOM_SEED
+const BRIDGE_NEAR_CITY_HALL_OFFSET := GameData.BRIDGE_NEAR_CITY_HALL_OFFSET
+const BRIDGE_NEAR_CITY_HALL_MAX_DISTANCE := GameData.BRIDGE_NEAR_CITY_HALL_MAX_DISTANCE
 const STARTING_GOLD := GameData.STARTING_GOLD
 const FARM_INCOME_SECONDS := GameData.FARM_INCOME_SECONDS
 const LUMBERYARD_TREE_INTERVAL_SECONDS := GameData.LUMBERYARD_TREE_INTERVAL_SECONDS
@@ -45,6 +55,12 @@ var placed_buildings: Array = []
 var placed_footprints: Array = []
 var tree_chop_tasks: Array = []
 var gold := STARTING_GOLD
+var city_terrain := ""
+var city_player_controlled := true
+var occupied_terrains := {}
+var trade_treaties := {}
+var trade_treaty_active := false
+var horse_count := 0
 var selected_index := 0
 var preview: Node2D
 var preview_valid := false
@@ -57,6 +73,8 @@ var demolition_target_index := -1
 var demolition_original_modulate := Color.WHITE
 var player_tree_task_id := ""
 var tree_sequence := 0
+var mother_tree_sequence := 0
+var bridge_sequence := 0
 var tool_sequence := 0
 var tool_items: Array = []
 var info_panel: Control
@@ -72,9 +90,11 @@ var test_monster_count_spinbox: SpinBox
 func _ready() -> void:
 	player = get_parent().get_node_or_null("Player")
 	buildings_container = get_parent().get_node_or_null("Buildings")
-	buildings = catalog.get_buildings()
+	_refresh_building_choices()
 
 	_seed_existing_buildings()
+	_spawn_bridges()
+	_spawn_mother_trees()
 	_spawn_trees()
 	_spawn_stones()
 	_create_ui()
@@ -123,6 +143,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		elif _try_build_quarry_at_player():
 			return
+		elif selected_index == -1 and _try_build_lumberyard_at_player_mother_tree():
+			return
+		elif selected_index == -1 and _try_build_farm_at_player_bridge():
+			return
 		elif selected_index != -1:
 			_try_build()
 		elif _try_toggle_building_info_panel():
@@ -157,6 +181,144 @@ func _seed_existing_buildings() -> void:
 			false,
 			"cityhall"
 		)
+
+
+func _spawn_bridges() -> void:
+	if buildings_container == null:
+		return
+
+	var positions: Array = []
+	var near_city_hall := _city_hall_position() + Vector2(BRIDGE_NEAR_CITY_HALL_OFFSET, 0)
+	near_city_hall.x = clampf(
+		near_city_hall.x,
+		GROUND_MIN_X + BRIDGE_SIZE.x * 0.5,
+		GROUND_MAX_X - BRIDGE_SIZE.x * 0.5
+	)
+	near_city_hall.y = GROUND_TOP_Y
+	positions.append(near_city_hall)
+	_spawn_bridge_at(near_city_hall)
+
+	var random_positions: Array = rules.random_tree_positions(
+		BRIDGE_RANDOM_SEED,
+		maxi(0, BRIDGE_COUNT - positions.size()),
+		GROUND_MIN_X,
+		GROUND_MAX_X,
+		GROUND_TOP_Y,
+		BRIDGE_SIZE,
+		placed_footprints
+	)
+	for position in random_positions:
+		positions.append(position)
+		_spawn_bridge_at(position)
+
+
+func _spawn_bridge_at(position: Vector2) -> Node2D:
+	if buildings_container == null:
+		return null
+
+	bridge_sequence += 1
+	var bridge := Node2D.new()
+	bridge.name = "Bridge_%02d" % bridge_sequence
+	bridge.position = buildings_container.to_local(position)
+	bridge.z_index = 2
+
+	var water := Polygon2D.new()
+	water.name = "Water"
+	water.color = Color(0.1, 0.34, 0.72, 1)
+	water.polygon = PackedVector2Array([
+		Vector2(-BRIDGE_WATER_SIZE.x * 0.5, BRIDGE_SIZE.y),
+		Vector2(BRIDGE_WATER_SIZE.x * 0.5, BRIDGE_SIZE.y),
+		Vector2(BRIDGE_WATER_SIZE.x * 0.5, BRIDGE_SIZE.y + BRIDGE_WATER_SIZE.y),
+		Vector2(-BRIDGE_WATER_SIZE.x * 0.5, BRIDGE_SIZE.y + BRIDGE_WATER_SIZE.y),
+	])
+	bridge.add_child(water)
+
+	var deck := Polygon2D.new()
+	deck.name = "Deck"
+	deck.color = Color(0.5, 0.29, 0.12, 1)
+	deck.polygon = PackedVector2Array([
+		Vector2(-BRIDGE_SIZE.x * 0.5, 0.0),
+		Vector2(BRIDGE_SIZE.x * 0.5, 0.0),
+		Vector2(BRIDGE_SIZE.x * 0.5, BRIDGE_SIZE.y),
+		Vector2(-BRIDGE_SIZE.x * 0.5, BRIDGE_SIZE.y),
+	])
+	bridge.add_child(deck)
+
+	for i in range(5):
+		var plank := Polygon2D.new()
+		plank.name = "Plank%d" % i
+		plank.color = Color(0.68, 0.45, 0.22, 1)
+		var left := -BRIDGE_SIZE.x * 0.45 + i * BRIDGE_SIZE.x * 0.225
+		plank.polygon = PackedVector2Array([
+			Vector2(left, 0.0),
+			Vector2(left + BRIDGE_SIZE.x * 0.12, 0.0),
+			Vector2(left + BRIDGE_SIZE.x * 0.12, BRIDGE_SIZE.y),
+			Vector2(left, BRIDGE_SIZE.y),
+		])
+		bridge.add_child(plank)
+
+	buildings_container.add_child(bridge)
+	_track_placed_entity(
+		bridge,
+		rules.footprint_for_position(position, BRIDGE_SIZE),
+		false,
+		"短桥梁",
+		"bridge",
+		false,
+		"",
+		"bridge"
+	)
+	var index := placed_buildings.size() - 1
+	var entity: Dictionary = placed_buildings[index]
+	entity.farm_built = false
+	entity.farm_node_name = ""
+	placed_buildings[index] = entity
+	return bridge
+
+
+func _spawn_mother_trees() -> void:
+	if buildings_container == null:
+		return
+
+	var positions: Array = rules.random_tree_positions(
+		MOTHER_TREE_RANDOM_SEED,
+		MOTHER_TREE_COUNT,
+		GROUND_MIN_X,
+		GROUND_MAX_X,
+		GROUND_TOP_Y,
+		MOTHER_TREE_SIZE,
+		placed_footprints
+	)
+
+	for position in positions:
+		_spawn_mother_tree_at(position)
+
+
+func _spawn_mother_tree_at(position: Vector2) -> Node2D:
+	if buildings_container == null:
+		return null
+
+	mother_tree_sequence += 1
+	var mother_tree := tree_factory.create_mother_tree_visual()
+	mother_tree.name = "MotherTree_%02d" % mother_tree_sequence
+	mother_tree.position = buildings_container.to_local(position)
+	buildings_container.add_child(mother_tree)
+	_track_placed_entity(
+		mother_tree,
+		rules.footprint_for_position(position, MOTHER_TREE_SIZE),
+		false,
+		game_data.resource_display_name("mother_tree"),
+		"mother_tree",
+		false,
+		"mother_tree",
+		"mother_tree"
+	)
+	var index := placed_buildings.size() - 1
+	var entity: Dictionary = placed_buildings[index]
+	entity.has_lumberyard = false
+	entity.lumberyard_node_name = ""
+	placed_buildings[index] = entity
+	return mother_tree
 
 
 func _spawn_trees() -> void:
@@ -266,17 +428,29 @@ func _update_preview() -> void:
 		status_label.text = quarry_prompt
 		return
 
+	var mother_tree_prompt := _mother_tree_lumberyard_prompt_for_player()
+	if selected_index == -1 and mother_tree_prompt != "":
+		preview_valid = false
+		status_label.text = mother_tree_prompt
+		return
+
+	var bridge_farm_prompt := _bridge_farm_prompt_for_player()
+	if selected_index == -1 and bridge_farm_prompt != "":
+		preview_valid = false
+		status_label.text = bridge_farm_prompt
+		return
+
 	if selected_index == -1:
 		preview_valid = false
 		var tree_task_id := _tree_task_for_player()
-		status_label.text = "E 砍树 / 1-5 选择建筑" if tree_task_id != "" else "1-5 选择建筑 / Q 拆除"
+		status_label.text = "E 砍树 / 1-0 选择建筑" if tree_task_id != "" else "1-0 选择建筑 / Q 拆除"
 		return
 
 	if player == null or preview == null:
 		return
 
 	var definition: Dictionary = buildings[selected_index]
-	var can_afford := can_afford_building(definition)
+	var unavailable_reason := _building_unavailable_reason(definition)
 	var build_position := rules.build_position_for_player(
 		player.global_position,
 		_get_player_facing_direction(),
@@ -286,12 +460,12 @@ func _update_preview() -> void:
 	var footprint := rules.footprint_for_position(build_position, definition.size)
 
 	preview.global_position = build_position
-	preview_valid = not rules.has_overlap(footprint, placed_footprints) and can_afford
+	preview_valid = not rules.has_overlap(footprint, placed_footprints) and unavailable_reason == ""
 	preview.modulate = VALID_PREVIEW_COLOR if preview_valid else INVALID_PREVIEW_COLOR
 	if preview_valid:
 		status_label.text = "E 建造"
-	elif not can_afford:
-		status_label.text = "金币不足，需要 %d" % int(definition.get("cost", 0))
+	elif unavailable_reason != "":
+		status_label.text = unavailable_reason
 	else:
 		status_label.text = "位置重叠，无法建造"
 
@@ -305,7 +479,7 @@ func _try_build() -> void:
 		return
 
 	var definition: Dictionary = buildings[selected_index]
-	if not spend_gold_for_building(definition):
+	if not can_build_definition(definition) or not spend_gold_for_building(definition):
 		_update_preview()
 		return
 
@@ -320,7 +494,7 @@ func _try_build() -> void:
 		true,
 		definition.display_name,
 		"building",
-		true,
+		bool(definition.get("is_workplace", true)),
 		definition.id
 	)
 	_refresh_ui()
@@ -491,6 +665,185 @@ func _quarry_prompt_for_player() -> String:
 	return "E 建造采石场 %d金" % cost
 
 
+func _bridge_entity_index_containing_point(point: Vector2) -> int:
+	for i in range(placed_buildings.size()):
+		var entity: Dictionary = placed_buildings[i]
+		if entity.get("entity_kind", "") != "bridge":
+			continue
+
+		var footprint: Rect2 = entity.footprint
+		if _rect_contains_point_inclusive(footprint, point):
+			return i
+
+	return -1
+
+
+func _bridge_farm_prompt_for_player() -> String:
+	if player == null:
+		return ""
+
+	var bridge_index := _bridge_entity_index_containing_point(player.global_position)
+	if bridge_index == -1:
+		return ""
+
+	var bridge_entity: Dictionary = placed_buildings[bridge_index]
+	if bool(bridge_entity.get("farm_built", false)):
+		return "桥上已有农田"
+
+	var cost := int(game_data.economy_value("bridge_farm_cost", 0))
+	if gold < cost:
+		return "金币不足，农田需要%d金" % cost
+
+	return "E 建造农田 %d金" % cost
+
+
+func _try_build_farm_at_player_bridge() -> bool:
+	if player == null:
+		return false
+
+	var bridge_index := _bridge_entity_index_containing_point(player.global_position)
+	if bridge_index == -1:
+		return false
+
+	var bridge_entity: Dictionary = placed_buildings[bridge_index]
+	if bool(bridge_entity.get("farm_built", false)):
+		if status_label != null:
+			status_label.text = "桥上已有农田"
+		return true
+
+	var definition := game_data.farm_definition()
+	var cost := int(definition.get("cost", game_data.economy_value("bridge_farm_cost", 0)))
+	if gold < cost:
+		if status_label != null:
+			status_label.text = "金币不足，农田需要%d金" % cost
+		return true
+	if buildings_container == null:
+		return true
+
+	var bridge_node: Node2D = bridge_entity.node
+	var build_position := Vector2(
+		bridge_entity.footprint.position.x + bridge_entity.footprint.size.x * 0.5,
+		bridge_entity.footprint.position.y + bridge_entity.footprint.size.y
+	)
+	if is_instance_valid(bridge_node):
+		build_position = bridge_node.global_position
+
+	gold -= cost
+	var farm := visual_factory.create_building_visual(definition)
+	farm.name = "farm_%d" % placed_footprints.size()
+	farm.position = buildings_container.to_local(build_position)
+	buildings_container.add_child(farm)
+
+	_track_placed_entity(
+		farm,
+		rules.footprint_for_position(build_position, definition.get("size", Vector2(220, 60))),
+		true,
+		definition.get("display_name", "农田"),
+		"building",
+		true,
+		"farm"
+	)
+	bridge_entity.farm_built = true
+	bridge_entity.farm_node_name = farm.name
+	placed_buildings[bridge_index] = bridge_entity
+	_refresh_gold_ui()
+	_refresh_ui()
+	_update_preview()
+	return true
+
+
+func _mother_tree_entity_index_containing_point(point: Vector2) -> int:
+	for i in range(placed_buildings.size()):
+		var entity: Dictionary = placed_buildings[i]
+		if entity.get("entity_kind", "") != "mother_tree":
+			continue
+
+		var footprint: Rect2 = entity.footprint
+		if _rect_contains_point_inclusive(footprint, point):
+			return i
+
+	return -1
+
+
+func _mother_tree_lumberyard_prompt_for_player() -> String:
+	if player == null:
+		return ""
+
+	var mother_tree_index := _mother_tree_entity_index_containing_point(player.global_position)
+	if mother_tree_index == -1:
+		return ""
+
+	var mother_tree_entity: Dictionary = placed_buildings[mother_tree_index]
+	if bool(mother_tree_entity.get("has_lumberyard", false)):
+		return "母树已有伐木场"
+
+	var cost := int(game_data.lumberyard_value("cost", 0))
+	if gold < cost:
+		return "金币不足，伐木场需要%d金" % cost
+
+	return "E 建造伐木场 %d金" % cost
+
+
+func _try_build_lumberyard_at_player_mother_tree() -> bool:
+	if player == null:
+		return false
+
+	var mother_tree_index := _mother_tree_entity_index_containing_point(player.global_position)
+	if mother_tree_index == -1:
+		return false
+
+	var mother_tree_entity: Dictionary = placed_buildings[mother_tree_index]
+	if bool(mother_tree_entity.get("has_lumberyard", false)):
+		if status_label != null:
+			status_label.text = "母树已有伐木场"
+		return true
+
+	var definition := game_data.lumberyard_definition()
+	var cost := int(definition.get("cost", 0))
+	if gold < cost:
+		if status_label != null:
+			status_label.text = "金币不足，伐木场需要%d金" % cost
+		return true
+	if buildings_container == null:
+		return true
+
+	var mother_tree_node: Node2D = mother_tree_entity.node
+	var build_position := Vector2(
+		mother_tree_entity.footprint.position.x + mother_tree_entity.footprint.size.x * 0.5,
+		mother_tree_entity.footprint.position.y + mother_tree_entity.footprint.size.y
+	)
+	if is_instance_valid(mother_tree_node):
+		build_position = mother_tree_node.global_position
+
+	gold -= cost
+	var lumberyard := visual_factory.create_building_visual(definition)
+	lumberyard.name = "lumberyard_%d" % placed_footprints.size()
+	lumberyard.position = buildings_container.to_local(build_position)
+	buildings_container.add_child(lumberyard)
+	_track_placed_entity(
+		lumberyard,
+		rules.footprint_for_position(build_position, definition.get("size", Vector2(200, 130))),
+		true,
+		definition.get("display_name", "伐木场"),
+		"building",
+		true,
+		"lumberyard"
+	)
+
+	var lumberyard_index := placed_buildings.size() - 1
+	var lumberyard_entity: Dictionary = placed_buildings[lumberyard_index]
+	lumberyard_entity.source_mother_tree_name = mother_tree_node.name if is_instance_valid(mother_tree_node) else ""
+	placed_buildings[lumberyard_index] = lumberyard_entity
+
+	mother_tree_entity.has_lumberyard = true
+	mother_tree_entity.lumberyard_node_name = lumberyard.name
+	placed_buildings[mother_tree_index] = mother_tree_entity
+	_refresh_gold_ui()
+	_refresh_ui()
+	_update_preview()
+	return true
+
+
 func _damaged_building_index_at_player() -> int:
 	if player == null:
 		return -1
@@ -604,6 +957,7 @@ func _show_building_info_panel(entity_index: int) -> void:
 		_add_panel_label(lines[i], Vector2(88 if i == 0 else 20, 20 + i * 26), 18 if i == 0 else 14)
 	if entity.get("building_id", "") == "blacksmith":
 		_add_blacksmith_panel_controls(entity_index, 174.0)
+	_add_special_panel_controls(entity_index)
 	if _has_next_upgrade(entity_index):
 		_add_panel_button(
 			"UpgradeBuildingButton",
@@ -752,6 +1106,93 @@ func _add_blacksmith_panel_controls(entity_index: int, start_y: float) -> void:
 		)
 
 
+func _add_special_panel_controls(entity_index: int) -> void:
+	if entity_index < 0 or entity_index >= placed_buildings.size():
+		return
+
+	var entity: Dictionary = placed_buildings[entity_index]
+	var building_id := str(entity.get("building_id", ""))
+	var y := INFO_PANEL_SIZE.y - 92.0
+	match building_id:
+		"cityhall":
+			if can_use_diplomacy():
+				_add_panel_button(
+					"SignRiverTradeButton",
+					"通商河湾",
+					Vector2(20, y),
+					Callable(self, "sign_trade_treaty").bind("river"),
+					Vector2(112, 30),
+					10
+				)
+		"post_station":
+			_add_panel_button(
+				"TravelRiverButton",
+				"游历河湾",
+				Vector2(20, y),
+				Callable(self, "travel_to_terrain").bind("river"),
+				Vector2(112, 30),
+				10
+			)
+			_add_panel_button(
+				"TravelNorthernButton",
+				"游历北境",
+				Vector2(144, y),
+				Callable(self, "travel_to_terrain").bind("northern"),
+				Vector2(112, 30),
+				10
+			)
+			_add_panel_button(
+				"TravelMountainButton",
+				"游历山岭",
+				Vector2(268, y),
+				Callable(self, "travel_to_terrain").bind("mountain"),
+				Vector2(112, 30),
+				10
+			)
+			_add_panel_button(
+				"BuyHorseButton",
+				"买马 %d金" % horse_price(),
+				Vector2(20, y + 38.0),
+				Callable(self, "buy_horse"),
+				Vector2(112, 30),
+				10
+			)
+		"barracks":
+			_add_panel_button(
+				"ExpeditionRiverButton",
+				"远征河湾",
+				Vector2(20, y),
+				Callable(self, "launch_expedition").bind("river"),
+				Vector2(112, 30),
+				10
+			)
+			_add_panel_button(
+				"ExpeditionNorthernButton",
+				"远征北境",
+				Vector2(144, y),
+				Callable(self, "launch_expedition").bind("northern"),
+				Vector2(112, 30),
+				10
+			)
+			_add_panel_button(
+				"ExpeditionMountainButton",
+				"远征山岭",
+				Vector2(268, y),
+				Callable(self, "launch_expedition").bind("mountain"),
+				Vector2(112, 30),
+				10
+			)
+		"shield_barracks":
+			_add_panel_button(
+				"TrainShieldGuardButton",
+				"训练盾卫 %d金" % int(game_data.training_value("shield_guard_cost", 25)),
+				Vector2(20, y),
+				Callable(self, "train_nearest_shield_guard"),
+				Vector2(132, 30),
+				10
+			)
+
+
 func _add_panel_button(
 	button_name: String,
 	text: String,
@@ -792,8 +1233,25 @@ func _building_function_text(building_id: String) -> String:
 			return "防御岗位"
 		"cityhall":
 			return "村民聚集地"
+		"post_station":
+			return "购买马匹并进行游历"
+		"barracks":
+			return "解锁盾卫营"
 		_:
-			return "工作建筑"
+			var definition := building_definition_for_id(building_id)
+			if definition.is_empty():
+				return "工作建筑"
+			if definition.get("unlocks_equipment_tier", "") == "iron":
+				return "生产金币并解锁铁质装备"
+			if definition.has("horse_offer_seconds"):
+				return "提供马匹购买机会"
+			if definition.has("trained_role"):
+				return "训练%s" % definition.get("trained_role", "")
+			if definition.has("defense_score"):
+				return "地形防御岗位"
+			if definition.has("income_gold"):
+				return "人员工作生产金币"
+			return "地形专属建筑"
 
 
 func _building_value_text(entity_index: int) -> String:
@@ -816,7 +1274,29 @@ func _building_value_text(entity_index: int) -> String:
 				int(game_data.quarry_value("income_seconds", 60.0)),
 				int(game_data.quarry_value("income_gold", 3)),
 			]
+		"post_station":
+			return "买马%d金；拥有马匹可游历" % horse_price()
+		"barracks":
+			return "盾卫营前置建筑"
 		_:
+			var definition := building_definition_for_id(str(entity.get("building_id", "")))
+			if not definition.is_empty():
+				var parts: Array = []
+				if definition.has("income_gold"):
+					parts.append("%d秒产%d金" % [
+						int(definition.get("income_seconds", 60.0)),
+						int(definition.get("income_gold", 0)),
+					])
+				if definition.has("trade_bonus_gold"):
+					parts.append("通商额外+%d金" % int(definition.get("trade_bonus_gold", 0)))
+				if definition.has("max_count_per_city"):
+					parts.append("每城上限%d座" % int(definition.get("max_count_per_city", 0)))
+				if definition.has("defense_score"):
+					parts.append("防御评分%d" % int(definition.get("defense_score", 0)))
+				if definition.has("horse_offer_seconds"):
+					parts.append("%d秒刷新马匹机会" % int(definition.get("horse_offer_seconds", 0)))
+				if not parts.is_empty():
+					return "；".join(parts)
 			return "岗位 1 人"
 
 
@@ -914,11 +1394,16 @@ func _building_icon_color(building_id: String) -> Color:
 		"cityhall":
 			return Color(0.78, 0.78, 0.72, 1)
 		_:
+			var definition := building_definition_for_id(building_id)
+			if not definition.is_empty():
+				return definition.get("accent_color", definition.get("base_color", Color(0.48, 0.5, 0.5, 1)))
 			return Color(0.48, 0.5, 0.5, 1)
 
 
 func _blacksmith_can_craft_tool(entity: Dictionary, tool_id: String) -> bool:
 	var blacksmith_level := int(entity.get("level", 1))
+	if blacksmith_level < game_data.tool_required_blacksmith_level(tool_id):
+		return false
 	var craft_tools := game_data.blacksmith_craft_tool_ids(blacksmith_level)
 	if not craft_tools.has(tool_id):
 		return false
@@ -928,6 +1413,9 @@ func _blacksmith_can_craft_tool(entity: Dictionary, tool_id: String) -> bool:
 		var required_level := int(requirements[required_building_id])
 		if building_level_for_id(str(required_building_id)) < required_level:
 			return false
+
+	if game_data.tool_tier(tool_id) == "iron" and not iron_mine_supply_available():
+		return false
 
 	return true
 
@@ -1230,7 +1718,7 @@ func _create_tool_visual(tool_id: String) -> Polygon2D:
 	polygon.name = "ToolVisual"
 	polygon.color = _tool_color(tool_id)
 	match tool_id:
-		"sword", "stone_sword":
+		"sword", "stone_sword", "iron_sword":
 			polygon.polygon = PackedVector2Array([
 				Vector2(-4, -34),
 				Vector2(4, -34),
@@ -1247,7 +1735,7 @@ func _create_tool_visual(tool_id: String) -> Polygon2D:
 				Vector2(18, -24),
 				Vector2(4, -18),
 			])
-		"stone_pickaxe":
+		"stone_pickaxe", "iron_pickaxe":
 			polygon.polygon = PackedVector2Array([
 				Vector2(-4, -34),
 				Vector2(4, -34),
@@ -1258,7 +1746,7 @@ func _create_tool_visual(tool_id: String) -> Polygon2D:
 				Vector2(12, -22),
 				Vector2(-12, -22),
 			])
-		"sickle", "stone_sickle":
+		"sickle", "stone_sickle", "iron_sickle":
 			polygon.polygon = PackedVector2Array([
 				Vector2(-4, -28),
 				Vector2(4, -28),
@@ -1277,7 +1765,7 @@ func _create_tool_visual(tool_id: String) -> Polygon2D:
 				Vector2(-12, -4),
 				Vector2(-6, -18),
 			])
-		"stone_arrowhead":
+		"stone_arrowhead", "iron_arrowhead":
 			polygon.polygon = PackedVector2Array([
 				Vector2(0, -34),
 				Vector2(16, -10),
@@ -1401,6 +1889,9 @@ func _demolish_target() -> void:
 		else:
 			_cancel_worker_assignment_from_demolished_entity(entity)
 
+	_clear_bridge_farm_for_entity(entity)
+	_clear_mother_tree_lumberyard_for_entity(entity)
+
 	if is_instance_valid(target):
 		target.queue_free()
 
@@ -1409,6 +1900,60 @@ func _demolish_target() -> void:
 	demolition_target_index = -1
 	demolition_original_modulate = Color.WHITE
 	_update_preview()
+
+
+func _clear_bridge_farm_for_entity(entity: Dictionary) -> void:
+	if entity.get("building_id", "") != "farm":
+		return
+
+	var farm_node_name := ""
+	var farm_node: Node2D = entity.get("node", null)
+	if is_instance_valid(farm_node):
+		farm_node_name = farm_node.name
+
+	for i in range(placed_buildings.size()):
+		var bridge_entity: Dictionary = placed_buildings[i]
+		if bridge_entity.get("entity_kind", "") != "bridge":
+			continue
+		if farm_node_name != "" and bridge_entity.get("farm_node_name", "") != farm_node_name:
+			continue
+
+		var bridge_footprint: Rect2 = bridge_entity.footprint
+		var farm_footprint: Rect2 = entity.footprint
+		if farm_node_name == "" and not rules.has_overlap(bridge_footprint, [farm_footprint]):
+			continue
+
+		bridge_entity.farm_built = false
+		bridge_entity.farm_node_name = ""
+		placed_buildings[i] = bridge_entity
+		return
+
+
+func _clear_mother_tree_lumberyard_for_entity(entity: Dictionary) -> void:
+	if entity.get("building_id", "") != "lumberyard":
+		return
+
+	var lumberyard_node_name := ""
+	var lumberyard_node: Node2D = entity.get("node", null)
+	if is_instance_valid(lumberyard_node):
+		lumberyard_node_name = lumberyard_node.name
+
+	for i in range(placed_buildings.size()):
+		var mother_tree_entity: Dictionary = placed_buildings[i]
+		if mother_tree_entity.get("entity_kind", "") != "mother_tree":
+			continue
+		if lumberyard_node_name != "" and mother_tree_entity.get("lumberyard_node_name", "") != lumberyard_node_name:
+			continue
+
+		var mother_tree_footprint: Rect2 = mother_tree_entity.footprint
+		var lumberyard_footprint: Rect2 = entity.footprint
+		if lumberyard_node_name == "" and not rules.has_overlap(mother_tree_footprint, [lumberyard_footprint]):
+			continue
+
+		mother_tree_entity.has_lumberyard = false
+		mother_tree_entity.lumberyard_node_name = ""
+		placed_buildings[i] = mother_tree_entity
+		return
 
 
 func _player_inside_demolition_target() -> bool:
@@ -1577,8 +2122,15 @@ func release_work_site_for_worker(worker_id: String) -> bool:
 
 
 func _required_role_for_work_site(entity: Dictionary) -> String:
-	if entity.get("building_id", "") == "wall":
+	var building_id := str(entity.get("building_id", ""))
+	if building_id == "wall":
 		return "archer"
+	var definition := building_definition_for_id(building_id)
+	if not definition.is_empty():
+		var required_roles: Array = definition.get("required_roles", [])
+		if not required_roles.is_empty():
+			return ",".join(required_roles)
+		return str(definition.get("required_role", ""))
 	return ""
 
 
@@ -1595,6 +2147,9 @@ func _work_site_worker_role(entity: Dictionary) -> String:
 		return "farmer"
 	if entity.get("building_id", "") == "quarry":
 		return str(game_data.quarry_value("worker_role", "miner"))
+	var definition := building_definition_for_id(str(entity.get("building_id", "")))
+	if not definition.is_empty():
+		return str(definition.get("work_role", ""))
 	return ""
 
 
@@ -1614,7 +2169,10 @@ func _worker_can_use_work_site(entity: Dictionary, worker_id: String) -> bool:
 	var required_role := _required_role_for_work_site(entity)
 	if required_role == "":
 		return true
-	return _worker_role_for_id(worker_id) == required_role
+	var worker_role := _worker_role_for_id(worker_id)
+	if required_role.find(",") != -1:
+		return required_role.split(",").has(worker_role)
+	return worker_role == required_role
 
 
 func _worker_role_for_id(worker_id: String) -> String:
@@ -1634,6 +2192,181 @@ func _worker_role_for_id(worker_id: String) -> String:
 
 func can_afford_building(definition: Dictionary) -> bool:
 	return gold >= int(definition.get("cost", 0))
+
+
+func set_city_context(terrain: String, player_controlled := true) -> void:
+	city_terrain = terrain
+	city_player_controlled = player_controlled
+	_refresh_building_choices()
+	_recreate_preview()
+	_refresh_ui()
+	_update_preview()
+
+
+func occupy_terrain(terrain: String) -> void:
+	if terrain == "":
+		return
+	occupied_terrains[terrain] = true
+
+
+func terrain_is_occupied(terrain: String) -> bool:
+	return bool(occupied_terrains.get(terrain, false))
+
+
+func set_city_context_for_occupied_terrain(terrain: String) -> bool:
+	if not terrain_is_occupied(terrain):
+		set_city_context(terrain, false)
+		return false
+
+	set_city_context(terrain, true)
+	return true
+
+
+func can_use_diplomacy() -> bool:
+	return building_level_for_id("cityhall") >= 4
+
+
+func sign_trade_treaty(terrain: String) -> bool:
+	if terrain == "" or not can_use_diplomacy():
+		return false
+
+	trade_treaties[terrain] = true
+	trade_treaty_active = true
+	return true
+
+
+func has_trade_treaty(terrain: String) -> bool:
+	return bool(trade_treaties.get(terrain, false))
+
+
+func can_travel_to_terrain(terrain: String) -> bool:
+	if terrain == "":
+		return false
+	if _building_count_for_id("post_station") <= 0:
+		return false
+	return horse_count > 0
+
+
+func travel_to_terrain(terrain: String) -> bool:
+	if not can_travel_to_terrain(terrain):
+		return false
+
+	set_city_context(terrain, terrain_is_occupied(terrain))
+	var scene_path := travel_scene_path_for_terrain(terrain)
+	if scene_path != "":
+		_request_travel_scene_change(scene_path)
+	return true
+
+
+func travel_scene_path_for_terrain(terrain: String) -> String:
+	return game_data.travel_destination_scene_path(terrain)
+
+
+func _request_travel_scene_change(scene_path: String) -> void:
+	if scene_path == "" or not is_inside_tree():
+		return
+
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return
+
+	tree.call_deferred("change_scene_to_file", scene_path)
+
+
+func launch_expedition(terrain: String) -> Dictionary:
+	if terrain == "":
+		return {"occupied": false, "loss_multiplier": 1.0}
+	if _building_count_for_id("barracks") <= 0:
+		return {"occupied": false, "loss_multiplier": 1.0}
+
+	var loss_multiplier := 1.0
+	var parent := get_parent()
+	if parent != null:
+		var npc_manager := parent.get_node_or_null("NPCManager")
+		if npc_manager != null and npc_manager.has_method("expedition_loss_multiplier"):
+			loss_multiplier = float(npc_manager.expedition_loss_multiplier())
+
+	occupy_terrain(terrain)
+	return {
+		"occupied": true,
+		"loss_multiplier": loss_multiplier,
+	}
+
+
+func building_definition_for_id(building_id: String) -> Dictionary:
+	if building_id == "farm":
+		return game_data.farm_definition()
+	if building_id == "lumberyard":
+		return game_data.lumberyard_definition()
+	for definition in catalog.get_buildings():
+		if definition.get("id", "") == building_id:
+			return definition.duplicate(true)
+	return {}
+
+
+func can_build_definition(definition: Dictionary) -> bool:
+	return _building_unavailable_reason(definition) == ""
+
+
+func _building_unavailable_reason(definition: Dictionary) -> String:
+	if definition.is_empty():
+		return "未知建筑"
+	if not city_player_controlled:
+		return "未占领城市，无法建造"
+
+	var required_terrain := str(definition.get("terrain_required", ""))
+	if required_terrain != "" and required_terrain != city_terrain:
+		return "需要%s地形" % _terrain_display_name(required_terrain)
+
+	var required_cityhall_level := int(definition.get("unlock_cityhall_level", 1))
+	if required_cityhall_level > 1 and building_level_for_id("cityhall") < required_cityhall_level:
+		return "需要市政厅%d级" % required_cityhall_level
+
+	var required_buildings: Dictionary = definition.get("requires_buildings", {})
+	for required_building_id in required_buildings.keys():
+		var required_count := int(required_buildings[required_building_id])
+		if _building_count_for_id(str(required_building_id)) < required_count:
+			return "需要%s" % _building_display_name_for_id(str(required_building_id))
+
+	var max_count := int(definition.get("max_count_per_city", 0))
+	if max_count > 0 and _building_count_for_id(str(definition.get("id", ""))) >= max_count:
+		return "已达建造上限"
+
+	if not can_afford_building(definition):
+		return "金币不足，需要 %d" % int(definition.get("cost", 0))
+
+	return ""
+
+
+func _terrain_display_name(terrain: String) -> String:
+	match terrain:
+		"river":
+			return "河湾"
+		"northern":
+			return "北境"
+		"mountain":
+			return "山岭"
+		_:
+			return terrain
+
+
+func _building_count_for_id(building_id: String) -> int:
+	var count := 0
+	for entity in placed_buildings:
+		if entity.get("building_id", "") == building_id and not entity.get("damaged", false):
+			count += 1
+	return count
+
+
+func _building_display_name_for_id(building_id: String) -> String:
+	var definition := building_definition_for_id(building_id)
+	if not definition.is_empty():
+		return str(definition.get("display_name", building_id))
+	if building_id == "post_station":
+		return "驿站"
+	if building_id == "barracks":
+		return "军营"
+	return building_id
 
 
 func spend_gold_for_building(definition: Dictionary) -> bool:
@@ -1691,6 +2424,19 @@ func building_level_for_id(building_id: String) -> int:
 	return highest_level
 
 
+func iron_mine_supply_available() -> bool:
+	if city_terrain != "mountain":
+		return false
+	for entity in placed_buildings:
+		if entity.get("building_id", "") != "iron_mine":
+			continue
+		if entity.get("damaged", false):
+			continue
+		if entity.get("worker_inside", false):
+			return true
+	return false
+
+
 func _has_next_upgrade(entity_index: int) -> bool:
 	if entity_index < 0 or entity_index >= placed_buildings.size():
 		return false
@@ -1746,6 +2492,59 @@ func _upgrade_button_text(entity_index: int) -> String:
 func add_gold(amount: int) -> void:
 	gold += amount
 	_refresh_gold_ui()
+
+
+func set_trade_treaty_active(active: bool) -> void:
+	trade_treaty_active = active
+
+
+func horse_price() -> int:
+	if trade_treaty_active:
+		return int(game_data.trade_value("horse_treaty_price", 20))
+	return int(game_data.trade_value("horse_base_price", 30))
+
+
+func buy_horse() -> bool:
+	if _building_count_for_id("post_station") <= 0:
+		return false
+
+	var price := horse_price()
+	if gold < price:
+		return false
+
+	gold -= price
+	horse_count += 1
+	_refresh_gold_ui()
+	return true
+
+
+func can_train_shield_guard() -> bool:
+	return _building_count_for_id("shield_barracks") > 0
+
+
+func spend_gold_for_shield_guard_training() -> bool:
+	if not can_train_shield_guard():
+		return false
+
+	var cost := int(game_data.training_value("shield_guard_cost", 25))
+	if gold < cost:
+		return false
+
+	gold -= cost
+	_refresh_gold_ui()
+	return true
+
+
+func train_nearest_shield_guard() -> bool:
+	var parent := get_parent()
+	if parent == null:
+		return false
+
+	var npc_manager := parent.get_node_or_null("NPCManager")
+	if npc_manager == null or not npc_manager.has_method("train_nearest_shield_guard_candidate"):
+		return false
+
+	return npc_manager.train_nearest_shield_guard_candidate(_city_hall_position())
 
 
 func apply_player_monster_hit() -> Dictionary:
@@ -1821,7 +2620,12 @@ func damage_random_half_buildings(seed: int) -> Array:
 	if candidates.is_empty():
 		return damaged
 
-	var target_count := int(ceil(float(candidates.size()) * 0.5))
+	var base_target_count := int(ceil(float(candidates.size()) * 0.5))
+	var target_count := int(floor(float(base_target_count) * (1.0 - building_damage_reduction())))
+	target_count = clampi(target_count, 0, candidates.size())
+	if target_count <= 0:
+		return damaged
+
 	var local_rng := RandomNumberGenerator.new()
 	local_rng.seed = seed
 	var chosen := {}
@@ -1834,6 +2638,64 @@ func damage_random_half_buildings(seed: int) -> Array:
 		damaged.append(entity_index)
 
 	return damaged
+
+
+func city_defense_score() -> int:
+	var score := 0
+	for entity in placed_buildings:
+		if not _active_defense_entity(entity):
+			continue
+
+		var definition := building_definition_for_id(str(entity.get("building_id", "")))
+		score += int(definition.get("defense_score", 0))
+	return score
+
+
+func building_damage_reduction() -> float:
+	var reduction := 0.0
+	for entity in placed_buildings:
+		if not _active_defense_entity(entity):
+			continue
+
+		var definition := building_definition_for_id(str(entity.get("building_id", "")))
+		reduction += float(definition.get("damage_reduction", 0.0))
+
+	var max_reduction := float(game_data.defense_value("max_building_damage_reduction", 0.6))
+	return minf(reduction, max_reduction)
+
+
+func monster_charge_block_chance() -> float:
+	var chance := 0.0
+	for entity in placed_buildings:
+		if not _active_defense_entity(entity):
+			continue
+		if _worker_role_for_id(str(entity.get("worker_id", ""))) != "warrior":
+			continue
+
+		var definition := building_definition_for_id(str(entity.get("building_id", "")))
+		chance += float(definition.get("charge_block_chance", 0.0))
+	return minf(chance, 0.75)
+
+
+func defense_post_range_bonus_for_workplace_id(workplace_id: String) -> float:
+	for entity in placed_buildings:
+		var node: Node2D = entity.node
+		if not is_instance_valid(node) or node.name != workplace_id:
+			continue
+
+		var definition := building_definition_for_id(str(entity.get("building_id", "")))
+		return float(definition.get("archer_range_bonus", 0.0))
+	return 0.0
+
+
+func _active_defense_entity(entity: Dictionary) -> bool:
+	if entity.get("damaged", false):
+		return false
+	if not entity.get("worker_inside", false):
+		return false
+
+	var definition := building_definition_for_id(str(entity.get("building_id", "")))
+	return not definition.is_empty() and int(definition.get("defense_score", 0)) > 0
 
 
 func repair_cost_for_entity_index(entity_index: int) -> int:
@@ -2016,6 +2878,10 @@ func _is_repairable_damage(entity_index: int) -> bool:
 func _building_base_cost(building_id: String) -> int:
 	if building_id == "quarry":
 		return int(game_data.quarry_value("cost", 0))
+	if building_id == "farm":
+		return int(game_data.farm_value("cost", 0))
+	if building_id == "lumberyard":
+		return int(game_data.lumberyard_value("cost", 0))
 
 	for definition in catalog.get_buildings():
 		if definition.get("id", "") == building_id:
@@ -2069,20 +2935,43 @@ func _farm_income_seconds_for_worker(worker_id: String) -> float:
 func _update_quarry_income(delta: float) -> void:
 	for i in range(placed_buildings.size()):
 		var entity: Dictionary = placed_buildings[i]
-		if entity.get("building_id", "") != "quarry":
+		var income_data := _income_data_for_building(entity)
+		if income_data.is_empty():
 			continue
 		if entity.get("damaged", false):
 			continue
-		if bool(game_data.quarry_value("requires_worker", true)) and not entity.get("worker_inside", false):
+		if bool(income_data.get("requires_worker", true)) and not entity.get("worker_inside", false):
 			continue
 
 		entity.quarry_income_elapsed = float(entity.get("quarry_income_elapsed", 0.0)) + delta
-		var income_seconds := float(game_data.quarry_value("income_seconds", 60.0))
-		var income_gold := int(game_data.quarry_value("income_gold", 0))
+		var income_seconds := float(income_data.get("income_seconds", 60.0))
+		var income_gold := int(income_data.get("income_gold", 0))
 		while entity.quarry_income_elapsed >= income_seconds:
 			entity.quarry_income_elapsed -= income_seconds
 			add_gold(income_gold)
 		placed_buildings[i] = entity
+
+
+func _income_data_for_building(entity: Dictionary) -> Dictionary:
+	var building_id := str(entity.get("building_id", ""))
+	if building_id == "quarry":
+		return {
+			"requires_worker": game_data.quarry_value("requires_worker", true),
+			"income_seconds": game_data.quarry_value("income_seconds", 60.0),
+			"income_gold": game_data.quarry_value("income_gold", 0),
+		}
+
+	var definition := building_definition_for_id(building_id)
+	if definition.is_empty() or not definition.has("income_gold"):
+		return {}
+	var income_gold := int(definition.get("income_gold", 0))
+	if trade_treaty_active:
+		income_gold += int(definition.get("trade_bonus_gold", 0))
+	return {
+		"requires_worker": definition.get("work_role", "") != "",
+		"income_seconds": definition.get("income_seconds", 60.0),
+		"income_gold": income_gold,
+	}
 
 
 func _worker_best_tool_multiplier(worker_id: String, resource_kind: String) -> float:
@@ -2137,11 +3026,13 @@ func _spawn_lumberyard_trees(lumberyard_index: int) -> int:
 
 	var resource_kind := _lumberyard_resource_kind(entity)
 	var resource_size := game_data.resource_size(resource_kind)
+	var source_position := _lumberyard_growth_source_position(entity, node.global_position)
+	var growth_radius := _lumberyard_growth_radius(entity)
 	var positions: Array = rules.tree_positions_around_source(
 		TREE_RANDOM_SEED + tree_sequence + lumberyard_index + 1,
 		LUMBERYARD_TREE_BATCH_COUNT,
-		node.global_position,
-		LUMBERYARD_TREE_RADIUS,
+		source_position,
+		growth_radius,
 		GROUND_MIN_X,
 		GROUND_MAX_X,
 		GROUND_TOP_Y,
@@ -2269,6 +3160,28 @@ func _lumberyard_worker_role(lumberyard: Dictionary) -> String:
 	return game_data.lumberyard_worker_role(int(lumberyard.get("level", 1)))
 
 
+func _lumberyard_growth_source_position(lumberyard: Dictionary, fallback_position: Vector2) -> Vector2:
+	var mother_tree_name := str(lumberyard.get("source_mother_tree_name", ""))
+	if mother_tree_name == "":
+		return fallback_position
+
+	for entity in placed_buildings:
+		if entity.get("entity_kind", "") != "mother_tree":
+			continue
+		var node: Node2D = entity.node
+		if is_instance_valid(node) and node.name == mother_tree_name:
+			return node.global_position
+
+	return fallback_position
+
+
+func _lumberyard_growth_radius(lumberyard: Dictionary) -> float:
+	if str(lumberyard.get("source_mother_tree_name", "")) != "":
+		return MOTHER_TREE_GROW_RADIUS
+
+	return LUMBERYARD_TREE_RADIUS
+
+
 func _is_resource_entity(entity: Dictionary) -> bool:
 	var resource_kind: String = entity.get("resource_kind", "")
 	return resource_kind == "tree" or resource_kind == "stone"
@@ -2283,6 +3196,8 @@ func _nearest_tree_index_near_lumberyard(lumberyard_index: int) -> int:
 	if not is_instance_valid(lumberyard_node):
 		return -1
 	var resource_kind := _lumberyard_resource_kind(lumberyard)
+	var source_position := _lumberyard_growth_source_position(lumberyard, lumberyard_node.global_position)
+	var growth_radius := _lumberyard_growth_radius(lumberyard)
 
 	var nearest_index := -1
 	var nearest_distance := INF
@@ -2297,8 +3212,8 @@ func _nearest_tree_index_near_lumberyard(lumberyard_index: int) -> int:
 		if _tree_chop_task_index(tree_node.name) != -1:
 			continue
 
-		var distance := lumberyard_node.global_position.distance_to(tree_node.global_position)
-		if distance > LUMBERYARD_TREE_RADIUS:
+		var distance := source_position.distance_to(tree_node.global_position)
+		if distance > growth_radius:
 			continue
 		if distance < nearest_distance:
 			nearest_index = i
@@ -2680,6 +3595,46 @@ func _has_npc_interaction() -> bool:
 	return npc_manager != null and npc_manager.has_method("has_interactable_homeless") and npc_manager.has_interactable_homeless()
 
 
+func _refresh_building_choices() -> void:
+	var all_buildings := catalog.get_buildings()
+	buildings.clear()
+	for definition in all_buildings:
+		var required_terrain := str(definition.get("terrain_required", ""))
+		if required_terrain == "" or required_terrain == city_terrain:
+			buildings.append(definition)
+
+	if selected_index >= buildings.size():
+		selected_index = -1
+	_sync_build_ui_slots()
+
+
+func _sync_build_ui_slots() -> void:
+	if ui_slots.is_empty():
+		return
+
+	var bar := get_node_or_null("BuildUI/BuildBar")
+	if bar == null:
+		return
+
+	for slot in ui_slots:
+		if is_instance_valid(slot):
+			slot.queue_free()
+	ui_slots.clear()
+
+	for i in range(buildings.size()):
+		_add_build_slot(bar)
+
+
+func _add_build_slot(bar: HBoxContainer) -> void:
+	var slot := Label.new()
+	slot.custom_minimum_size = Vector2(150, 42)
+	slot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slot.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	slot.add_theme_font_size_override("font_size", 18)
+	bar.add_child(slot)
+	ui_slots.append(slot)
+
+
 func _create_ui() -> void:
 	var canvas := CanvasLayer.new()
 	canvas.name = "BuildUI"
@@ -2709,13 +3664,7 @@ func _create_ui() -> void:
 	canvas.add_child(bar)
 
 	for i in range(buildings.size()):
-		var slot := Label.new()
-		slot.custom_minimum_size = Vector2(150, 42)
-		slot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		slot.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		slot.add_theme_font_size_override("font_size", 18)
-		bar.add_child(slot)
-		ui_slots.append(slot)
+		_add_build_slot(bar)
 
 	status_label = Label.new()
 	status_label.name = "BuildStatus"
@@ -2761,7 +3710,7 @@ func _refresh_ui() -> void:
 		if i == selected_index:
 			slot.text = "[%s]" % slot.text
 			slot.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45, 1))
-		elif not can_afford_building(definition):
+		elif not can_build_definition(definition):
 			slot.add_theme_color_override("font_color", Color(0.52, 0.56, 0.55, 1))
 		else:
 			slot.add_theme_color_override("font_color", Color(0.92, 0.95, 0.94, 1))

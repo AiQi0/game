@@ -31,7 +31,7 @@ func _init() -> void:
 			_assert_true(manager.can_afford_building(buildings[0]), "99 gold can afford blacksmith")
 			_assert_true(manager.spend_gold_for_building(buildings[0]), "building blacksmith spends gold")
 			_assert_equal(manager.gold, 89, "blacksmith leaves 89 gold")
-			_assert_true(manager.spend_gold_for_building(buildings[3]), "89 gold can afford tavern")
+			_assert_true(manager.spend_gold_for_building(buildings[2]), "89 gold can afford tavern")
 			_assert_equal(manager.gold, 69, "tavern leaves 69 gold")
 			manager.add_gold(1)
 			_assert_equal(manager.gold, 70, "add_gold increases balance")

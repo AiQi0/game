@@ -1,5 +1,7 @@
 extends RefCounted
 
+const GameData = preload("res://scripts/GameData.gd")
+
 const BUILDINGS := [
 	{
 		"id": "blacksmith",
@@ -20,41 +22,52 @@ const BUILDINGS := [
 		"accent_color": Color(0.32, 0.34, 0.35, 1),
 	},
 	{
-		"id": "farm",
-		"display_name": "农田",
-		"keycode": KEY_3,
-		"cost": 5,
-		"size": Vector2(220, 60),
-		"base_color": Color(0.55, 0.34, 0.16, 1),
-		"accent_color": Color(0.38, 0.72, 0.24, 1),
-	},
-	{
 		"id": "tavern",
 		"display_name": "酒馆",
-		"keycode": KEY_4,
+		"keycode": KEY_3,
 		"cost": 20,
 		"size": Vector2(190, 150),
 		"base_color": Color(0.58, 0.34, 0.18, 1),
 		"accent_color": Color(0.78, 0.2, 0.16, 1),
 	},
 	{
-		"id": "lumberyard",
-		"display_name": "伐木场",
+		"id": "post_station",
+		"display_name": "驿站",
+		"keycode": KEY_4,
+		"cost": 40,
+		"size": Vector2(190, 130),
+		"unlock_cityhall_level": 4,
+		"is_workplace": false,
+		"provides_horse_purchase": true,
+		"horse_offer_seconds": 180.0,
+		"base_color": Color(0.34, 0.27, 0.18, 1),
+		"accent_color": Color(0.74, 0.52, 0.26, 1),
+	},
+	{
+		"id": "barracks",
+		"display_name": "军营",
 		"keycode": KEY_5,
-		"cost": 10,
-		"size": Vector2(200, 130),
-		"base_color": Color(0.44, 0.32, 0.2, 1),
-		"accent_color": Color(0.22, 0.52, 0.24, 1),
+		"cost": 60,
+		"size": Vector2(220, 150),
+		"unlock_cityhall_level": 4,
+		"is_workplace": false,
+		"base_color": Color(0.36, 0.36, 0.42, 1),
+		"accent_color": Color(0.58, 0.58, 0.64, 1),
 	},
 ]
 
+var game_data := GameData.new()
+
 
 func get_buildings() -> Array:
-	return BUILDINGS.duplicate(true)
+	var definitions := BUILDINGS.duplicate(true)
+	definitions.append_array(game_data.terrain_building_definitions())
+	return definitions
 
 
 func get_building(index: int) -> Dictionary:
-	if index < 0 or index >= BUILDINGS.size():
+	var definitions := get_buildings()
+	if index < 0 or index >= definitions.size():
 		return {}
 
-	return BUILDINGS[index].duplicate(true)
+	return definitions[index].duplicate(true)

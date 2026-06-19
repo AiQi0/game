@@ -15,6 +15,16 @@ func selected_index_from_key(keycode: Key) -> int:
 			return 3
 		KEY_5:
 			return 4
+		KEY_6:
+			return 5
+		KEY_7:
+			return 6
+		KEY_8:
+			return 7
+		KEY_9:
+			return 8
+		KEY_0:
+			return 9
 		_:
 			return -1
 

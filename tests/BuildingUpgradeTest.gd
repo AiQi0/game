@@ -30,11 +30,15 @@ func _init() -> void:
 
 func _test_upgrade_data(data) -> void:
 	_assert_equal(data.building_upgrade_cost("cityhall", 2), 50, "city hall level 2 costs 50 gold")
+	_assert_equal(data.building_upgrade_cost("cityhall", 3), 100, "city hall level 3 costs 100 gold")
+	_assert_equal(data.building_upgrade_cost("cityhall", 4), 180, "city hall level 4 costs 180 gold")
 	_assert_equal(data.building_upgrade_cost("blacksmith", 2), 20, "blacksmith level 2 costs 20 gold")
+	_assert_equal(data.building_upgrade_cost("blacksmith", 3), 40, "blacksmith level 3 costs 40 gold")
 	_assert_equal(data.building_upgrade_cost("wall", 2), 15, "wall level 2 costs 15 gold")
 	_assert_equal(data.building_upgrade_cost("farm", 2), 15, "farm level 2 costs 15 gold")
 	_assert_equal(data.building_upgrade_cost("lumberyard", 2), 30, "lumberyard level 2 costs 30 gold")
 	_assert_equal(data.building_upgrade_requirements("blacksmith", 2), {"cityhall": 2}, "city hall level 2 unlocks blacksmith level 2")
+	_assert_equal(data.building_upgrade_requirements("blacksmith", 3), {"cityhall": 3}, "city hall level 3 unlocks blacksmith level 3")
 	_assert_false(data.has_building_upgrade("tavern", 2), "tavern has no level 2 upgrade yet")
 
 
@@ -90,7 +94,14 @@ func _test_building_upgrade_unlock(build_manager_script) -> void:
 	_assert_true(manager.upgrade_building(1), "blacksmith upgrades after unlock")
 	_assert_equal(manager.gold, 30, "city hall and blacksmith upgrades spend 70 gold total")
 	_assert_equal(manager.placed_buildings[1].get("level"), 2, "blacksmith stores level 2")
-	_assert_false(manager.can_upgrade_entity(1), "blacksmith has no level 3 upgrade yet")
+	_assert_false(manager.can_upgrade_entity(1), "blacksmith level 3 is locked before city hall level 3")
+
+	manager.gold = 140
+	_assert_true(manager.upgrade_building(0), "city hall level 3 unlocks iron-era blacksmith upgrade")
+	_assert_true(manager.can_upgrade_entity(1), "blacksmith can upgrade after city hall reaches level 3")
+	_assert_true(manager.upgrade_building(1), "blacksmith upgrades to level 3")
+	_assert_equal(manager.gold, 0, "city hall level 3 and blacksmith level 3 spend 140 gold")
+	_assert_equal(manager.placed_buildings[1].get("level"), 3, "blacksmith stores level 3")
 
 	setup.root.free()
 

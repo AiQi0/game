@@ -209,6 +209,11 @@ func _update_attacking_monster(monster: Node2D, delta: float) -> void:
 		return
 
 	if monster.global_position.distance_to(target.global_position) <= HIT_RANGE:
+		if _monster_charge_blocked():
+			monster.set("state", "advance")
+			monster.set("attack_target", null)
+			monster.set("charge_elapsed", 0.0)
+			return
 		_resolve_monster_hit(monster, target)
 	else:
 		monster.global_position.x += int(monster.get("direction")) * MONSTER_SPEED * delta
@@ -252,6 +257,16 @@ func _nearest_attack_target(origin: Vector2) -> Node2D:
 				nearest_distance = distance
 
 	return nearest
+
+
+func _monster_charge_blocked() -> bool:
+	if build_manager == null or not build_manager.has_method("monster_charge_block_chance"):
+		return false
+
+	var chance := float(build_manager.monster_charge_block_chance())
+	if chance <= 0.0:
+		return false
+	return rng.randf() < chance
 
 
 func _free_if_outside_far_edge(monster: Node2D) -> void:
