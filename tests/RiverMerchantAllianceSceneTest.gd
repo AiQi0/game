@@ -290,15 +290,15 @@ func _assert_mirror_water_surface(scene_art: Node2D) -> void:
 		_assert_true(tile != null, "mirror water tile %d exists" % i)
 		if tile == null:
 			continue
-		_assert_equal(tile.position, Vector2(1920.0 * i, 500.0), "mirror water tile %d starts 20px lower at the waterline" % i)
-		_assert_equal(tile.size, Vector2(1920, 580), "mirror water tile %d covers the lowered foreground water area" % i)
+		_assert_equal(tile.position, Vector2(1920.0 * i, 520.0), "mirror water tile %d starts 20px lower at the waterline" % i)
+		_assert_equal(tile.size, Vector2(1920, 560), "mirror water tile %d covers the lowered foreground water area" % i)
 		_assert_equal(tile.mouse_filter, Control.MOUSE_FILTER_IGNORE, "mirror water tile %d ignores mouse input" % i)
 
 		var material := tile.material as ShaderMaterial
 		_assert_true(material != null, "mirror water tile %d uses a shader material" % i)
 		if material == null:
 			continue
-		_assert_equal(material.get_shader_parameter("reflection_height_pixels"), 580.0, "mirror water tile %d mirrors the lowered water height" % i)
+		_assert_equal(material.get_shader_parameter("reflection_height_pixels"), 560.0, "mirror water tile %d mirrors the lowered water height" % i)
 		_assert_equal(material.get_shader_parameter("ripple_amplitude_pixels"), 8.0, "mirror water tile %d has animated ripple amplitude" % i)
 		_assert_equal(material.get_shader_parameter("ripple_speed"), 0.65, "mirror water tile %d has animated ripple speed" % i)
 		_assert_equal(material.get_shader_parameter("shimmer_strength"), 0.08, "mirror water tile %d has subtle shimmer animation" % i)
@@ -315,6 +315,39 @@ func _assert_mirror_water_surface(scene_art: Node2D) -> void:
 			_assert_true(material.shader.code.find("smoothstep(top_blur_fraction, 0.0, UV.y)") != -1, "mirror water shader fades blur through the top quarter")
 			_assert_true(material.shader.code.find("top_blur_radius_pixels * SCREEN_PIXEL_SIZE") != -1, "mirror water shader samples a blur radius in screen pixels")
 			_assert_true(material.shader.code.find("mix(reflected, blurred, top_blur_mask)") != -1, "mirror water shader blends blurred reflection gradually")
+
+	_assert_water_grass(scene_art)
+
+
+func _assert_water_grass(scene_art: Node2D) -> void:
+	var grass_root := scene_art.get_node_or_null("WaterGrass") as Node2D
+	_assert_true(grass_root != null, "river scene creates random water grass root")
+	if grass_root == null:
+		return
+	_assert_equal(grass_root.z_as_relative, false, "water grass renders in world z order")
+	_assert_equal(grass_root.z_index, 5, "water grass renders over mirror water")
+	_assert_equal(grass_root.get_child_count(), 24, "river scene creates expected water grass count")
+
+	for child in grass_root.get_children():
+		var clump := child as Node2D
+		_assert_true(clump != null, "water grass clump is Node2D")
+		if clump == null:
+			continue
+		_assert_true(clump.position.x >= 160.0 and clump.position.x <= 9440.0, "%s x stays in river world" % clump.name)
+		_assert_true(clump.position.y >= 560.0 and clump.position.y <= 1010.0, "%s y stays in water" % clump.name)
+		_assert_true(_has_no_collision_descendants(clump), "%s has no collision nodes" % clump.name)
+		_assert_true(clump.get_child_count() >= 3, "%s has several grass blades" % clump.name)
+		for blade in clump.get_children():
+			_assert_true(blade is Polygon2D, "%s blade is Polygon2D" % clump.name)
+
+
+func _has_no_collision_descendants(node: Node) -> bool:
+	for child in node.get_children():
+		if child is CollisionShape2D or child is CollisionPolygon2D or child is StaticBody2D or child is Area2D:
+			return false
+		if not _has_no_collision_descendants(child):
+			return false
+	return true
 
 
 func _assert_sprite_texture_path(scene: Node, node_path: String, expected_path: String) -> void:

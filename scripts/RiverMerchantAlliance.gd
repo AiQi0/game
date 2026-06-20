@@ -326,7 +326,9 @@ func _ensure_mirror_water_surface() -> void:
 		scene_art.remove_child(old_3d_water)
 		old_3d_water.queue_free()
 
+	var water_visual := game_data.river_mirror_water_visual()
 	if scene_art.get_node_or_null("WaterReflection") != null:
+		_ensure_water_grass(scene_art, water_visual)
 		return
 
 	var water_root := Node2D.new()
@@ -335,7 +337,6 @@ func _ensure_mirror_water_surface() -> void:
 	water_root.z_index = 4
 	scene_art.add_child(water_root)
 
-	var water_visual := game_data.river_mirror_water_visual()
 	var tile_width := float(water_visual.get("tile_width", 1920.0))
 	var tile_count := int(water_visual.get("tile_count", 5))
 	var waterline_y := float(water_visual.get("waterline_y", 420.0))
@@ -362,6 +363,49 @@ func _ensure_mirror_water_surface() -> void:
 			material.set_shader_parameter(str(parameter_name), water_visual.get(parameter_name))
 		tile.material = material
 		water_root.add_child(tile)
+	_ensure_water_grass(scene_art, water_visual)
+
+
+func _ensure_water_grass(scene_art: Node2D, water_visual: Dictionary) -> void:
+	if scene_art.get_node_or_null("WaterGrass") != null:
+		return
+
+	var grass_root := Node2D.new()
+	grass_root.name = "WaterGrass"
+	grass_root.z_as_relative = false
+	grass_root.z_index = 5
+	scene_art.add_child(grass_root)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(water_visual.get("water_grass_random_seed", 20260620))
+	var count := int(water_visual.get("water_grass_count", 24))
+	var min_y := float(water_visual.get("water_grass_y_min", 560.0))
+	var max_y := float(water_visual.get("water_grass_y_max", 1010.0))
+	for i in range(count):
+		var clump := Node2D.new()
+		clump.name = "WaterGrass_%02d" % [i + 1]
+		clump.position = Vector2(rng.randf_range(160.0, 9440.0), rng.randf_range(min_y, max_y))
+		grass_root.add_child(clump)
+
+		var blade_count := 3 + rng.randi_range(0, 2)
+		for blade_index in range(blade_count):
+			clump.add_child(_create_water_grass_blade(rng, blade_index))
+
+
+func _create_water_grass_blade(rng: RandomNumberGenerator, blade_index: int) -> Polygon2D:
+	var blade := Polygon2D.new()
+	blade.name = "Blade_%02d" % [blade_index + 1]
+	blade.color = Color(0.28 + rng.randf_range(-0.04, 0.04), 0.52 + rng.randf_range(-0.05, 0.05), 0.28, 0.88)
+	var base_x := rng.randf_range(-14.0, 14.0)
+	var width := rng.randf_range(3.0, 6.0)
+	var height := rng.randf_range(18.0, 42.0)
+	var lean := rng.randf_range(-8.0, 8.0)
+	blade.polygon = PackedVector2Array([
+		Vector2(base_x - width * 0.5, 0.0),
+		Vector2(base_x + width * 0.5, 0.0),
+		Vector2(base_x + lean, -height),
+	])
+	return blade
 
 
 func _request_scene_change(scene_path: String) -> bool:
