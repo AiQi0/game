@@ -298,7 +298,6 @@ func _assert_mirror_water_surface(scene_art: Node2D) -> void:
 		_assert_true(material != null, "mirror water tile %d uses a shader material" % i)
 		if material == null:
 			continue
-		_assert_equal(material.get_shader_parameter("reflection_height_pixels"), 560.0, "mirror water tile %d mirrors the lowered water height" % i)
 		_assert_equal(material.get_shader_parameter("ripple_amplitude_pixels"), 8.0, "mirror water tile %d has animated ripple amplitude" % i)
 		_assert_equal(material.get_shader_parameter("ripple_speed"), 0.65, "mirror water tile %d has animated ripple speed" % i)
 		_assert_equal(material.get_shader_parameter("shimmer_strength"), 0.08, "mirror water tile %d has subtle shimmer animation" % i)
@@ -308,7 +307,10 @@ func _assert_mirror_water_surface(scene_art: Node2D) -> void:
 		if material.shader != null:
 			_assert_equal(material.shader.resource_path, "res://shaders/river_mirror_water.gdshader", "mirror water tile %d uses mirror screen shader" % i)
 			_assert_true(material.shader.code.find("hint_screen_texture") != -1, "mirror water shader copies the rendered screen")
-			_assert_true(material.shader.code.find("SCREEN_UV.y - reflection_offset_uv * 2.0") != -1, "mirror water shader samples the vertically flipped image")
+			_assert_true(material.shader.code.find("UV.y * reflection_height_pixels") == -1, "mirror water shader does not stretch reflection by water rect height")
+			_assert_true(material.shader.code.find("dFdy(SCREEN_UV.y) / dFdy(UV.y)") != -1, "mirror water shader measures the drawn tile in screen pixels")
+			_assert_true(material.shader.code.find("waterline_screen_uv_y = SCREEN_UV.y - UV.y * rect_screen_height_uv") != -1, "mirror water shader finds the waterline in screen space")
+			_assert_true(material.shader.code.find("waterline_screen_uv_y - reflection_offset_uv") != -1, "mirror water shader samples a one-to-one vertically flipped image")
 			_assert_true(material.shader.code.find("TIME * ripple_speed") != -1, "mirror water shader animates ripple movement over time")
 			_assert_true(material.shader.code.find("ripple_amplitude_pixels * SCREEN_PIXEL_SIZE.x") != -1, "mirror water shader distorts the reflection horizontally")
 			_assert_true(material.shader.code.find("shimmer_strength") != -1, "mirror water shader animates soft brightness shimmer")

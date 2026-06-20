@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/buildings/cityhall.png" id="6_cityhall"]
 [ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/npcs/player.png" id="7_player_sprite"]
 [ext_resource type="Script" path="res://scripts/TerrainVisualManager.gd" id="8_terrain_visual_manager"]
+[ext_resource type="Script" path="res://scripts/FishingManager.gd" id="9_fishing_manager"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_air_wall"]
 size = Vector2(96, 1000)
@@ -146,6 +147,9 @@ script = ExtResource("3_npc_manager")
 
 [node name="BuildManager" type="Node2D" parent="." unique_id=1656434264]
 script = ExtResource("2_build_manager")
+
+[node name="FishingManager" type="Node" parent="."]
+script = ExtResource("9_fishing_manager")
 
 [node name="MonsterManager" type="Node2D" parent="." unique_id=259225699]
 script = ExtResource("5_monster_manager")

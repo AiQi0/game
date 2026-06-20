@@ -40,6 +40,9 @@ const ART_ASSET_ROOT := "res://assets/medieval_pixel_pack_v3_no_outline"
 const TERRAIN_ASSET_ROOT := "res://assets/world_terrain_v1"
 const TERRAIN_TILE_SIZE := Vector2(256, 64)
 const VISUAL_CHUNK_WIDTH := 1920
+const SKY_BACKGROUND_Z_INDEX := -260
+const TERRAIN_BACKGROUND_TOP_Z_INDEX := -80
+const CELESTIAL_Z_INDEX := -70
 const NON_CITYHALL_BUILDING_SIZE_MULTIPLIER := 2.0
 const BUILDING_ORIENTATION_RULES := {
 	"wall": {
@@ -47,7 +50,7 @@ const BUILDING_ORIENTATION_RULES := {
 	},
 }
 
-const STARTING_GOLD := 99
+const STARTING_GOLD := 30
 const FARM_INCOME_SECONDS := 60.0
 const TOOL_CRAFT_SECONDS := 30.0
 const TOOL_CRAFT_COST := 3
@@ -359,6 +362,13 @@ const RIVER_MIRROR_WATER_VISUAL := {
 	"water_grass_tip_color": Color(0.28, 0.62, 0.38, 0.68),
 }
 
+const DAY_NIGHT_VISUAL := {
+	"sky_layer_z_index": 0,
+	"sky_background_z_index": SKY_BACKGROUND_Z_INDEX,
+	"terrain_background_top_z_index": TERRAIN_BACKGROUND_TOP_Z_INDEX,
+	"celestial_z_index": CELESTIAL_Z_INDEX,
+}
+
 const TERRAIN_ASSETS := {
 	"grass_ground_tile": "ground/grass_ground_tile.png",
 	"grass_ground_variant_01": "ground/grass_ground_variant_01.png",
@@ -507,6 +517,7 @@ const FARM := {
 	"display_name": "农田",
 	"cost": BRIDGE_FARM_COST,
 	"size": Vector2(220, 60),
+	"worker_capacity": 4,
 	"base_color": Color(0.55, 0.34, 0.16, 1),
 	"accent_color": Color(0.38, 0.72, 0.24, 1),
 }
@@ -644,6 +655,19 @@ const ECONOMY := {
 	"bridge_farm_cost": BRIDGE_FARM_COST,
 }
 
+const FISHING := {
+	"bite_base_chance": 0.05,
+	"bite_chance_step": 0.05,
+	"bite_chance_max": 0.8,
+	"bite_check_seconds": 1.0,
+	"hook_window_seconds": 1.5,
+	"reel_start_progress": 0.2,
+	"reel_press_gain": 0.15,
+	"reel_decay_per_second": 0.18,
+	"result_visible_seconds": 1.2,
+	"reward_gold": 1,
+}
+
 const TRADE := {
 	"horse_base_price": 30,
 	"horse_treaty_price": 20,
@@ -717,6 +741,10 @@ func economy_value(key: String, default_value = null):
 	return ECONOMY.get(key, default_value)
 
 
+func fishing_value(key: String, default_value = null):
+	return FISHING.get(key, default_value)
+
+
 func trade_value(key: String, default_value = null):
 	return TRADE.get(key, default_value)
 
@@ -743,6 +771,10 @@ func river_merchant_alliance_npc_layout() -> Array:
 
 func river_mirror_water_visual() -> Dictionary:
 	return RIVER_MIRROR_WATER_VISUAL.duplicate(true)
+
+
+func day_night_visual() -> Dictionary:
+	return DAY_NIGHT_VISUAL.duplicate(true)
 
 
 func training_value(key: String, default_value = null):

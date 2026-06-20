@@ -48,8 +48,25 @@ func _init() -> void:
 			_assert_true(manager.get_work_sites()[0].worker_inside, "occupied site records worker inside")
 			_assert_false(manager.occupy_work_site("blacksmith_1", "Villager_01"), "occupied site cannot be occupied twice by duplicate worker id")
 
+			var farm := Node2D.new()
+			farm.name = "farm_1"
+			farm.global_position = Vector2(4300, 472)
+			manager._track_placed_entity(farm, Rect2(Vector2(4080, 412), Vector2(440, 120)), true, "鍐滅敯", "building", true, "farm")
+			var farm_site_index: int = manager.get_work_sites().size() - 1
+			var farm_entity_index: int = int(manager.get_work_sites()[farm_site_index].get("entity_index", -1))
+			for worker_number in range(4):
+				var worker_id := "Farmer_%02d" % [worker_number + 1]
+				_assert_true(manager.claim_work_site(farm_entity_index, worker_id), "farm worker slot %d can be claimed" % [worker_number + 1])
+				_assert_true(manager.occupy_work_site("farm_1", worker_id), "farm worker slot %d can enter" % [worker_number + 1])
+			_assert_false(manager.claim_work_site(farm_entity_index, "Farmer_05"), "farm rejects a fifth worker")
+			var farm_site: Dictionary = manager.get_work_sites()[farm_site_index]
+			_assert_equal(farm_site.get("worker_capacity", 0), 4, "farm exposes four worker slots")
+			_assert_equal(farm_site.get("worker_count", 0), 4, "farm records four assigned workers")
+			_assert_equal(farm_site.get("workers_inside", []).size(), 4, "farm records four workers inside")
+
 			city_hall.free()
 			blacksmith.free()
+			farm.free()
 			tree.free()
 
 		manager.free()

@@ -352,7 +352,6 @@ func _ensure_mirror_water_surface() -> void:
 		var material := ShaderMaterial.new()
 		material.shader = RIVER_MIRROR_WATER_SHADER
 		for parameter_name in [
-			"reflection_height_pixels",
 			"ripple_amplitude_pixels",
 			"ripple_frequency",
 			"ripple_speed",
@@ -379,26 +378,44 @@ func _ensure_water_grass(scene_art: Node2D, water_visual: Dictionary) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(water_visual.get("water_grass_random_seed", 20260620))
 	var count := int(water_visual.get("water_grass_count", 24))
+	var min_x := float(water_visual.get("water_grass_x_min", 160.0))
+	var max_x := float(water_visual.get("water_grass_x_max", 9440.0))
 	var min_y := float(water_visual.get("water_grass_y_min", 560.0))
 	var max_y := float(water_visual.get("water_grass_y_max", 1010.0))
+	var min_blades := int(water_visual.get("water_grass_min_blades", 3))
+	var max_blades := int(water_visual.get("water_grass_max_blades", 5))
+	if max_blades < min_blades:
+		max_blades = min_blades
+
 	for i in range(count):
 		var clump := Node2D.new()
 		clump.name = "WaterGrass_%02d" % [i + 1]
-		clump.position = Vector2(rng.randf_range(160.0, 9440.0), rng.randf_range(min_y, max_y))
+		clump.position = Vector2(rng.randf_range(min_x, max_x), rng.randf_range(min_y, max_y))
 		grass_root.add_child(clump)
 
-		var blade_count := 3 + rng.randi_range(0, 2)
+		var blade_count := rng.randi_range(min_blades, max_blades)
 		for blade_index in range(blade_count):
-			clump.add_child(_create_water_grass_blade(rng, blade_index))
+			clump.add_child(_create_water_grass_blade(rng, water_visual, blade_index, blade_count))
 
 
-func _create_water_grass_blade(rng: RandomNumberGenerator, blade_index: int) -> Polygon2D:
+func _create_water_grass_blade(
+	rng: RandomNumberGenerator,
+	water_visual: Dictionary,
+	blade_index: int,
+	blade_count: int
+) -> Polygon2D:
 	var blade := Polygon2D.new()
 	blade.name = "Blade_%02d" % [blade_index + 1]
-	blade.color = Color(0.28 + rng.randf_range(-0.04, 0.04), 0.52 + rng.randf_range(-0.05, 0.05), 0.28, 0.88)
-	var base_x := rng.randf_range(-14.0, 14.0)
-	var width := rng.randf_range(3.0, 6.0)
-	var height := rng.randf_range(18.0, 42.0)
+	var base_color: Color = water_visual.get("water_grass_color", Color(0.12, 0.38, 0.26, 0.78))
+	var tip_color: Color = water_visual.get("water_grass_tip_color", Color(0.28, 0.62, 0.38, 0.68))
+	blade.color = base_color.lerp(tip_color, rng.randf_range(0.0, 0.45))
+	var blade_width := float(water_visual.get("water_grass_blade_width", 8.0))
+	var min_height := float(water_visual.get("water_grass_min_height", 24.0))
+	var max_height := float(water_visual.get("water_grass_max_height", 58.0))
+	var base_x := (float(blade_index) - float(blade_count - 1) * 0.5) * blade_width * 0.72
+	base_x += rng.randf_range(-blade_width * 0.5, blade_width * 0.5)
+	var width := rng.randf_range(blade_width * 0.38, blade_width * 0.75)
+	var height := rng.randf_range(min_height, max_height)
 	var lean := rng.randf_range(-8.0, 8.0)
 	blade.polygon = PackedVector2Array([
 		Vector2(base_x - width * 0.5, 0.0),

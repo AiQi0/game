@@ -10,33 +10,43 @@ const NIGHT_SKY := Color(0.05, 0.07, 0.16, 1)
 var rules := DayNightRules.new()
 var game_data := GameData.new()
 var elapsed_seconds := 0.0
+var sky_layer: Node2D
 var sky: ColorRect
 var sun: Node2D
 var moon: Node2D
+var camera: Camera2D
 
 
 func _ready() -> void:
-	var canvas := CanvasLayer.new()
-	canvas.name = "SkyLayer"
-	canvas.layer = -100
-	add_child(canvas)
+	var visual_settings := game_data.day_night_visual()
+
+	sky_layer = Node2D.new()
+	sky_layer.name = "SkyLayer"
+	sky_layer.z_index = int(visual_settings.get("sky_layer_z_index", 0))
+	add_child(sky_layer)
 
 	sky = ColorRect.new()
 	sky.name = "SkyBackground"
 	sky.size = VIEWPORT_SIZE
-	canvas.add_child(sky)
+	sky.z_index = int(visual_settings.get("sky_background_z_index", -260))
+	sky_layer.add_child(sky)
 
 	sun = _celestial_visual("Sun", "sun", 88.0, Color(1.0, 0.82, 0.22, 1))
-	canvas.add_child(sun)
+	sun.z_index = int(visual_settings.get("celestial_z_index", -70))
+	sky_layer.add_child(sun)
 
 	moon = _celestial_visual("Moon", "moon", 68.0, Color(0.82, 0.88, 1.0, 1))
-	canvas.add_child(moon)
+	moon.z_index = int(visual_settings.get("celestial_z_index", -70))
+	sky_layer.add_child(moon)
 
+	_resolve_camera()
+	_update_sky_layer_position()
 	_update_visuals()
 
 
 func _process(delta: float) -> void:
 	elapsed_seconds += delta
+	_update_sky_layer_position()
 	_update_visuals()
 
 
@@ -50,6 +60,21 @@ func _update_visuals() -> void:
 	moon.visible = phase == "night"
 	sun.position = position
 	moon.position = position
+
+
+func _resolve_camera() -> void:
+	camera = get_node_or_null("../Player/Camera2D") as Camera2D
+	if camera == null and is_inside_tree():
+		camera = get_viewport().get_camera_2d()
+
+
+func _update_sky_layer_position() -> void:
+	if sky_layer == null:
+		return
+	if camera != null and is_instance_valid(camera):
+		sky_layer.global_position = camera.global_position - VIEWPORT_SIZE * 0.5
+	else:
+		sky_layer.global_position = Vector2.ZERO
 
 
 func _circle_polygon(node_name: String, radius: float, color: Color) -> Polygon2D:

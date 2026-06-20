@@ -73,10 +73,10 @@ func clear_monsters() -> void:
 func run_night_spawn(current_night: int) -> int:
 	var spawned := 0
 	for side in ["left", "right"]:
-		if not rules.should_spawn_side(current_night, rng.randf(), safe_nights_remaining):
+		var count := rules.spawn_count_for_side(current_night, side, rng.randf(), rng, safe_nights_remaining)
+		if count <= 0:
 			continue
 
-		var count := rng.randi_range(MonsterRules.MIN_MONSTERS_PER_SIDE, MonsterRules.MAX_MONSTERS_PER_SIDE)
 		spawn_monsters(side, count)
 		spawned += count
 

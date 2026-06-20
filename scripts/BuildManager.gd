@@ -97,6 +97,7 @@ var save_manager = SaveGameManager.new()
 var autosave_elapsed := 0.0
 var pause_canvas: CanvasLayer
 var pause_panel: Control
+var fishing_manager: Node
 
 
 func _init() -> void:
@@ -107,6 +108,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	player = get_parent().get_node_or_null("Player")
 	buildings_container = get_parent().get_node_or_null("Buildings")
+	fishing_manager = get_parent().get_node_or_null("FishingManager")
 	_refresh_building_choices()
 
 	_seed_existing_buildings()
@@ -153,6 +155,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _is_tree_paused():
+		return
+
+	if fishing_manager != null and fishing_manager.has_method("is_fishing") and fishing_manager.is_fishing():
 		return
 
 	if _handle_info_panel_input(key_event.keycode):
@@ -2083,10 +2088,10 @@ func _demolish_target() -> void:
 		return
 
 	var target: Node2D = entity.node
-	if entity.get("worker_id", "") != "":
-		if entity.get("worker_inside", false):
+	if _work_site_has_any_worker(entity):
+		if not _work_site_workers_inside(entity).is_empty():
 			_release_worker_from_demolished_entity(entity)
-		else:
+		if _work_site_worker_ids(entity).size() > _work_site_workers_inside(entity).size():
 			_cancel_worker_assignment_from_demolished_entity(entity)
 
 	_clear_bridge_farm_for_entity(entity)
@@ -2259,6 +2264,9 @@ func _track_placed_entity(
 		"is_workplace": is_workplace,
 		"worker_id": "",
 		"worker_inside": false,
+		"worker_ids": [],
+		"workers_inside": [],
+		"worker_income_elapsed": {},
 		"farm_income_elapsed": 0.0,
 		"quarry_income_elapsed": 0.0,
 		"crafting_tool": "",
@@ -2297,6 +2305,10 @@ func get_work_sites() -> Array:
 			"is_workplace": true,
 			"worker_id": entity.get("worker_id", ""),
 			"worker_inside": entity.get("worker_inside", false),
+			"worker_ids": _work_site_worker_ids(entity),
+			"workers_inside": _work_site_workers_inside(entity),
+			"worker_capacity": _work_site_capacity(entity),
+			"worker_count": _work_site_worker_ids(entity).size(),
 		})
 
 	return sites
@@ -2311,13 +2323,16 @@ func claim_work_site(entity_index: int, worker_id: String) -> bool:
 		return false
 	if entity.get("damaged", false):
 		return false
-	if entity.get("worker_id", "") != "":
+	var worker_ids := _work_site_worker_ids(entity)
+	if worker_ids.has(worker_id):
+		return false
+	if worker_ids.size() >= _work_site_capacity(entity):
 		return false
 	if not _worker_can_use_work_site(entity, worker_id):
 		return false
 
-	entity.worker_id = worker_id
-	entity.worker_inside = false
+	worker_ids.append(worker_id)
+	_set_work_site_workers(entity, worker_ids, _work_site_workers_inside(entity))
 	placed_buildings[entity_index] = entity
 	return true
 
@@ -2333,14 +2348,17 @@ func occupy_work_site(workplace_id: String, worker_id: String) -> bool:
 			continue
 		if entity.get("damaged", false):
 			return false
-		if entity.get("worker_id", "") != worker_id:
+		var worker_ids := _work_site_worker_ids(entity)
+		var workers_inside := _work_site_workers_inside(entity)
+		if not worker_ids.has(worker_id):
 			return false
-		if entity.get("worker_inside", false):
+		if workers_inside.has(worker_id):
 			return false
 		if not _worker_can_use_work_site(entity, worker_id):
 			return false
 
-		entity.worker_inside = true
+		workers_inside.append(worker_id)
+		_set_work_site_workers(entity, worker_ids, workers_inside)
 		placed_buildings[i] = entity
 		visual_factory.set_occupied(node, true)
 		return true
@@ -2357,12 +2375,15 @@ func worker_leaves_work_site(workplace_id: String, worker_id: String) -> bool:
 		var node: Node2D = entity.node
 		if not is_instance_valid(node) or node.name != workplace_id:
 			continue
-		if entity.get("worker_id", "") != worker_id:
+		var worker_ids := _work_site_worker_ids(entity)
+		var workers_inside := _work_site_workers_inside(entity)
+		if not worker_ids.has(worker_id):
 			return false
 
-		entity.worker_inside = false
+		workers_inside.erase(worker_id)
+		_set_work_site_workers(entity, worker_ids, workers_inside)
 		placed_buildings[i] = entity
-		visual_factory.set_occupied(node, false)
+		visual_factory.set_occupied(node, not workers_inside.is_empty())
 		return true
 
 	return false
@@ -2376,18 +2397,78 @@ func release_work_site_for_worker(worker_id: String) -> bool:
 		var entity: Dictionary = placed_buildings[i]
 		if not entity.get("is_workplace", false):
 			continue
-		if entity.get("worker_id", "") != worker_id:
+		var worker_ids := _work_site_worker_ids(entity)
+		if not worker_ids.has(worker_id):
 			continue
 
 		var node: Node2D = entity.node
-		entity.worker_id = ""
-		entity.worker_inside = false
+		var workers_inside := _work_site_workers_inside(entity)
+		worker_ids.erase(worker_id)
+		workers_inside.erase(worker_id)
+		var worker_income_elapsed: Dictionary = entity.get("worker_income_elapsed", {})
+		worker_income_elapsed.erase(worker_id)
+		entity.worker_income_elapsed = worker_income_elapsed
+		_set_work_site_workers(entity, worker_ids, workers_inside)
 		placed_buildings[i] = entity
 		if is_instance_valid(node):
-			visual_factory.set_occupied(node, false)
+			visual_factory.set_occupied(node, not workers_inside.is_empty())
 		return true
 
 	return false
+
+
+func _work_site_capacity(entity: Dictionary) -> int:
+	var definition := building_definition_for_id(str(entity.get("building_id", "")))
+	return max(1, int(definition.get("worker_capacity", 1)))
+
+
+func _work_site_worker_ids(entity: Dictionary) -> Array:
+	var worker_ids: Array = []
+	if entity.has("worker_ids") and entity.get("worker_ids") is Array:
+		for value in entity.get("worker_ids", []):
+			var worker_id := str(value)
+			if worker_id != "" and not worker_ids.has(worker_id):
+				worker_ids.append(worker_id)
+	var legacy_worker_id := str(entity.get("worker_id", ""))
+	if legacy_worker_id != "" and not worker_ids.has(legacy_worker_id):
+		worker_ids.append(legacy_worker_id)
+	return worker_ids
+
+
+func _work_site_workers_inside(entity: Dictionary) -> Array:
+	var workers_inside: Array = []
+	if entity.has("workers_inside") and entity.get("workers_inside") is Array:
+		for value in entity.get("workers_inside", []):
+			var worker_id := str(value)
+			if worker_id != "" and not workers_inside.has(worker_id):
+				workers_inside.append(worker_id)
+	var legacy_worker_id := str(entity.get("worker_id", ""))
+	if bool(entity.get("worker_inside", false)) and legacy_worker_id != "" and not workers_inside.has(legacy_worker_id):
+		workers_inside.append(legacy_worker_id)
+	return workers_inside
+
+
+func _set_work_site_workers(entity: Dictionary, worker_ids: Array, workers_inside: Array) -> void:
+	var normalized_worker_ids: Array = []
+	for value in worker_ids:
+		var worker_id := str(value)
+		if worker_id != "" and not normalized_worker_ids.has(worker_id):
+			normalized_worker_ids.append(worker_id)
+
+	var normalized_workers_inside: Array = []
+	for value in workers_inside:
+		var worker_id := str(value)
+		if worker_id != "" and normalized_worker_ids.has(worker_id) and not normalized_workers_inside.has(worker_id):
+			normalized_workers_inside.append(worker_id)
+
+	entity.worker_ids = normalized_worker_ids
+	entity.workers_inside = normalized_workers_inside
+	entity.worker_id = str(normalized_worker_ids[0]) if not normalized_worker_ids.is_empty() else ""
+	entity.worker_inside = not normalized_workers_inside.is_empty()
+
+
+func _work_site_has_any_worker(entity: Dictionary) -> bool:
+	return not _work_site_worker_ids(entity).is_empty()
 
 
 func _required_role_for_work_site(entity: Dictionary) -> String:
@@ -2777,6 +2858,24 @@ func add_gold(amount: int) -> void:
 	_update_preview()
 
 
+func can_start_fishing() -> bool:
+	if player_dead:
+		return false
+	if _is_tree_paused():
+		return false
+	if pause_panel != null:
+		return false
+	if test_panel != null:
+		return false
+	if info_panel != null:
+		return false
+	if demolition_target_index != -1:
+		return false
+	if player_tree_task_id != "":
+		return false
+	return true
+
+
 func set_trade_treaty_active(active: bool) -> void:
 	trade_treaty_active = active
 
@@ -2986,6 +3085,9 @@ func _buildings_save_snapshot() -> Array:
 			"is_workplace": bool(entity.get("is_workplace", true)),
 			"worker_id": str(entity.get("worker_id", "")),
 			"worker_inside": bool(entity.get("worker_inside", false)),
+			"worker_ids": _work_site_worker_ids(entity),
+			"workers_inside": _work_site_workers_inside(entity),
+			"worker_income_elapsed": (entity.get("worker_income_elapsed", {}) as Dictionary).duplicate(true),
 			"farm_income_elapsed": float(entity.get("farm_income_elapsed", 0.0)),
 			"quarry_income_elapsed": float(entity.get("quarry_income_elapsed", 0.0)),
 			"lumberyard_tree_elapsed": float(entity.get("lumberyard_tree_elapsed", 0.0)),
@@ -3169,6 +3271,13 @@ func _restore_building_snapshot(saved_building: Dictionary) -> void:
 	entity.damaged = bool(saved_building.get("damaged", false))
 	entity.worker_id = str(saved_building.get("worker_id", ""))
 	entity.worker_inside = bool(saved_building.get("worker_inside", false))
+	if saved_building.has("worker_ids"):
+		entity.worker_ids = (saved_building.get("worker_ids", []) as Array).duplicate()
+	if saved_building.has("workers_inside"):
+		entity.workers_inside = (saved_building.get("workers_inside", []) as Array).duplicate()
+	_set_work_site_workers(entity, _work_site_worker_ids(entity), _work_site_workers_inside(entity))
+	if saved_building.has("worker_income_elapsed") and saved_building.get("worker_income_elapsed") is Dictionary:
+		entity.worker_income_elapsed = (saved_building.get("worker_income_elapsed", {}) as Dictionary).duplicate(true)
 	entity.farm_income_elapsed = float(saved_building.get("farm_income_elapsed", 0.0))
 	entity.quarry_income_elapsed = float(saved_building.get("quarry_income_elapsed", 0.0))
 	entity.lumberyard_tree_elapsed = float(saved_building.get("lumberyard_tree_elapsed", 0.0))
@@ -3373,7 +3482,7 @@ func repair_building(entity_index: int) -> bool:
 	if is_instance_valid(node):
 		node.modulate = Color.WHITE
 		visual_factory.set_occupied(node, false)
-	if entity.get("worker_id", "") != "":
+	if _work_site_has_any_worker(entity):
 		_return_worker_to_repaired_entity(entity)
 
 	_refresh_gold_ui()
@@ -3618,7 +3727,8 @@ func _damage_building(entity_index: int) -> void:
 
 	entity.damaged = true
 	entity.level = max(1, int(entity.get("level", 1)) - 1)
-	entity.worker_inside = false
+	var workers_inside := _work_site_workers_inside(entity)
+	_set_work_site_workers(entity, _work_site_worker_ids(entity), [])
 	placed_buildings[entity_index] = entity
 
 	var node: Node2D = entity.node
@@ -3626,7 +3736,7 @@ func _damage_building(entity_index: int) -> void:
 		node.modulate = Color(0.48, 0.34, 0.34, 1)
 		visual_factory.set_occupied(node, false)
 
-	if entity.get("worker_id", "") != "":
+	if not workers_inside.is_empty():
 		_release_worker_from_damaged_entity(entity)
 
 
@@ -3676,14 +3786,20 @@ func _update_farm_income(delta: float) -> void:
 			continue
 		if entity.get("damaged", false):
 			continue
-		if not entity.get("worker_inside", false):
+		var workers_inside := _work_site_workers_inside(entity)
+		if workers_inside.is_empty():
 			continue
 
-		entity.farm_income_elapsed = float(entity.get("farm_income_elapsed", 0.0)) + delta
-		var income_seconds := _farm_income_seconds_for_worker(entity.get("worker_id", ""))
-		while entity.farm_income_elapsed >= income_seconds:
-			entity.farm_income_elapsed -= income_seconds
-			add_gold(1)
+		var worker_income_elapsed: Dictionary = entity.get("worker_income_elapsed", {})
+		for worker_id in workers_inside:
+			var elapsed := float(worker_income_elapsed.get(worker_id, 0.0)) + delta
+			var income_seconds := _farm_income_seconds_for_worker(str(worker_id))
+			while elapsed >= income_seconds:
+				elapsed -= income_seconds
+				add_gold(1)
+			worker_income_elapsed[str(worker_id)] = elapsed
+		entity.worker_income_elapsed = worker_income_elapsed
+		entity.farm_income_elapsed = float(worker_income_elapsed.get(str(workers_inside[0]), 0.0))
 		placed_buildings[i] = entity
 
 
@@ -4032,9 +4148,12 @@ func _start_lumberjack_tree_chop_task(tree_index: int, lumberyard_index: int) ->
 		"source": "lumberyard",
 		"resource_kind": resource_kind,
 	})
-	lumberyard.worker_inside = false
+	var worker_ids := _work_site_worker_ids(lumberyard)
+	var workers_inside := _work_site_workers_inside(lumberyard)
+	workers_inside.erase(worker_id)
+	_set_work_site_workers(lumberyard, worker_ids, workers_inside)
 	placed_buildings[lumberyard_index] = lumberyard
-	visual_factory.set_occupied(lumberyard_node, false)
+	visual_factory.set_occupied(lumberyard_node, not workers_inside.is_empty())
 
 
 func get_tree_chop_task_for_point(point: Vector2) -> String:
@@ -4297,7 +4416,8 @@ func _release_worker_from_demolished_entity(entity: Dictionary) -> void:
 	if is_instance_valid(node):
 		spawn_position = node.global_position
 
-	npc_manager.release_worker_from_demolished_building(entity.worker_id, spawn_position)
+	for worker_id in _work_site_workers_inside(entity):
+		npc_manager.release_worker_from_demolished_building(str(worker_id), spawn_position)
 
 
 func _release_worker_from_damaged_entity(entity: Dictionary) -> void:
@@ -4316,12 +4436,13 @@ func _release_worker_from_damaged_entity(entity: Dictionary) -> void:
 		spawn_position = node.global_position
 		workplace_id = node.name
 
-	npc_manager.release_worker_from_damaged_building(
-		entity.worker_id,
-		spawn_position,
-		entity.get("display_name", ""),
-		workplace_id
-	)
+	for worker_id in _work_site_worker_ids(entity):
+		npc_manager.release_worker_from_damaged_building(
+			str(worker_id),
+			spawn_position,
+			entity.get("display_name", ""),
+			workplace_id
+		)
 
 
 func _return_worker_to_repaired_entity(entity: Dictionary) -> void:
@@ -4337,12 +4458,13 @@ func _return_worker_to_repaired_entity(entity: Dictionary) -> void:
 	if not is_instance_valid(node):
 		return
 
-	npc_manager.return_worker_to_repaired_building(
-		entity.worker_id,
-		node.global_position,
-		entity.get("display_name", ""),
-		node.name
-	)
+	for worker_id in _work_site_worker_ids(entity):
+		npc_manager.return_worker_to_repaired_building(
+			str(worker_id),
+			node.global_position,
+			entity.get("display_name", ""),
+			node.name
+		)
 
 
 func _cancel_worker_assignment_from_demolished_entity(entity: Dictionary) -> void:
@@ -4354,7 +4476,11 @@ func _cancel_worker_assignment_from_demolished_entity(entity: Dictionary) -> voi
 	if npc_manager == null or not npc_manager.has_method("cancel_worker_assignment_from_demolished_building"):
 		return
 
-	npc_manager.cancel_worker_assignment_from_demolished_building(entity.worker_id)
+	var workers_inside := _work_site_workers_inside(entity)
+	for worker_id in _work_site_worker_ids(entity):
+		if workers_inside.has(worker_id):
+			continue
+		npc_manager.cancel_worker_assignment_from_demolished_building(str(worker_id))
 
 
 func _apply_building_orientation(building: Node2D, building_id: String, building_position: Vector2) -> void:

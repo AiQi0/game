@@ -101,6 +101,21 @@ func _test_nearest_available_work_site(rules) -> void:
 		"no available workplace when every building is occupied"
 	)
 
+	sites[1].worker_id = "Farmer_01"
+	sites[1].worker_count = 1
+	sites[1].worker_capacity = 4
+	_assert_equal(
+		rules.nearest_available_work_site_index(Vector2(4880, 472), sites),
+		1,
+		"multi-worker farm stays available until capacity is full"
+	)
+	sites[1].worker_count = 4
+	_assert_equal(
+		rules.nearest_available_work_site_index(Vector2(4880, 472), sites),
+		-1,
+		"multi-worker farm is unavailable when capacity is full"
+	)
+
 
 func _assert_equal(actual, expected, message: String) -> void:
 	if actual != expected:

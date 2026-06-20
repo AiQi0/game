@@ -8,13 +8,18 @@ var failures := 0
 func _init() -> void:
 	var build_manager_script := load("res://scripts/BuildManager.gd")
 	var npc_manager_script := load("res://scripts/NPCManager.gd")
+	var monster_manager_script := load("res://scripts/MonsterManager.gd")
 	if build_manager_script == null:
 		_fail("BuildManager.gd should load")
 	if npc_manager_script == null:
 		_fail("NPCManager.gd should load")
+	if monster_manager_script == null:
+		_fail("MonsterManager.gd should load")
 
 	if build_manager_script != null and npc_manager_script != null:
 		_test_player_hit_and_revival(build_manager_script, npc_manager_script)
+	if monster_manager_script != null:
+		_test_revival_safe_nights_block_early_and_random_raids(monster_manager_script)
 
 	if failures == 0:
 		print("MonsterRevivalTest: PASS")
@@ -92,6 +97,26 @@ func _test_player_hit_and_revival(build_manager_script: Script, npc_manager_scri
 			_assert_true(build_manager.repair_building(damaged_index), "repair spends gold and clears damaged state")
 			_assert_equal(build_manager.gold, 99 - repair_cost, "repair spends half building cost rounded up")
 			_assert_false(build_manager.placed_buildings[damaged_index].get("damaged", true), "repair clears damaged state")
+
+	root.free()
+
+
+func _test_revival_safe_nights_block_early_and_random_raids(monster_manager_script: Script) -> void:
+	var root := Node2D.new()
+	var monsters := Node2D.new()
+	monsters.name = "Monsters"
+	root.add_child(monsters)
+
+	var manager: Node2D = monster_manager_script.new()
+	manager.name = "MonsterManager"
+	root.add_child(manager)
+	manager.monsters_container = monsters
+
+	manager.begin_safe_nights(3)
+	_assert_equal(manager.run_night_spawn(1), 0, "revival safe nights suppress first night fixed raid")
+	_assert_equal(monsters.get_child_count(), 0, "first safe night creates no monsters")
+	_assert_equal(manager.run_night_spawn(3), 0, "revival safe nights suppress third night random raid")
+	_assert_equal(monsters.get_child_count(), 0, "third safe night creates no monsters")
 
 	root.free()
 

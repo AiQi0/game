@@ -66,8 +66,12 @@ func nearest_available_work_site_index(origin: Vector2, sites: Array) -> int:
 		var site: Dictionary = sites[i]
 		if not site.get("is_workplace", false):
 			continue
-		if site.get("worker_id", "") != "":
-			continue
+		if site.has("worker_capacity") or site.has("worker_count"):
+			if int(site.get("worker_count", 0)) >= int(site.get("worker_capacity", 1)):
+				continue
+		else:
+			if site.get("worker_id", "") != "":
+				continue
 
 		var distance := origin.distance_to(site.position)
 		if distance < nearest_distance:

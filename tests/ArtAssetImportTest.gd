@@ -146,10 +146,22 @@ func _test_day_night_uses_v3_celestial_sprites(day_night_script: Script) -> void
 	var manager: Node = day_night_script.new()
 	get_root().add_child(manager)
 	manager._ready()
+	var sky_layer := manager.get_node_or_null("SkyLayer") as Node2D
+	_assert_true(sky_layer != null, "day/night sky layer renders in the world 2D canvas")
+	if sky_layer != null:
+		_assert_equal(sky_layer.z_index, 0, "day/night sky layer keeps default world canvas sorting")
+	var sky_background := manager.get_node_or_null("SkyLayer/SkyBackground") as CanvasItem
+	_assert_true(sky_background != null, "day/night sky background exists")
+	if sky_background != null:
+		_assert_equal(sky_background.z_index, -260, "sky color stays behind generated terrain background")
 	var sun := manager.get_node_or_null("SkyLayer/Sun")
 	var moon := manager.get_node_or_null("SkyLayer/Moon")
 	_assert_sprite_texture_path(sun, ".", "%s/environment/sun.png" % V3_ROOT, "sun uses v3 sprite")
 	_assert_sprite_texture_path(moon, ".", "%s/environment/moon.png" % V3_ROOT, "moon uses v3 sprite")
+	if sun is CanvasItem:
+		_assert_equal((sun as CanvasItem).z_index, -70, "sun renders above terrain background layers")
+	if moon is CanvasItem:
+		_assert_equal((moon as CanvasItem).z_index, -70, "moon renders above terrain background layers")
 	manager.queue_free()
 
 

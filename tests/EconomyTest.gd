@@ -16,7 +16,7 @@ func _init() -> void:
 		var catalog = catalog_script.new()
 		var buildings: Array = catalog.get_buildings()
 
-		_assert_equal(manager.get("gold"), 99, "game starts with 99 gold")
+		_assert_equal(manager.get("gold"), 30, "game starts with 30 gold")
 		_assert_true(manager.has_method("can_afford_building"), "BuildManager can check building affordability")
 		_assert_true(manager.has_method("spend_gold_for_building"), "BuildManager can spend gold for buildings")
 		_assert_true(manager.has_method("add_gold"), "BuildManager can add gold")
@@ -28,13 +28,13 @@ func _init() -> void:
 			and manager.has_method("spend_gold_for_building")
 			and manager.has_method("add_gold")
 		):
-			_assert_true(manager.can_afford_building(buildings[0]), "99 gold can afford blacksmith")
+			_assert_true(manager.can_afford_building(buildings[0]), "30 gold can afford blacksmith")
 			_assert_true(manager.spend_gold_for_building(buildings[0]), "building blacksmith spends gold")
-			_assert_equal(manager.gold, 89, "blacksmith leaves 89 gold")
-			_assert_true(manager.spend_gold_for_building(buildings[2]), "89 gold can afford tavern")
-			_assert_equal(manager.gold, 69, "tavern leaves 69 gold")
+			_assert_equal(manager.gold, 20, "blacksmith leaves 20 gold")
+			_assert_true(manager.spend_gold_for_building(buildings[2]), "20 gold can afford tavern")
+			_assert_equal(manager.gold, 0, "tavern leaves 0 gold")
 			manager.add_gold(1)
-			_assert_equal(manager.gold, 70, "add_gold increases balance")
+			_assert_equal(manager.gold, 1, "add_gold increases balance")
 
 		if manager.has_method("_refresh_building_choices") and manager.has_method("_create_ui"):
 			_test_build_bar_gold_refresh(manager)
@@ -54,10 +54,12 @@ func _init() -> void:
 			)
 			_assert_true(manager.claim_work_site(0, "Villager_01"), "farm can be claimed")
 			_assert_true(manager.occupy_work_site("farm_1", "Villager_01"), "farm can be occupied")
+			_assert_true(manager.claim_work_site(0, "Villager_02"), "farm can accept a second villager")
+			_assert_true(manager.occupy_work_site("farm_1", "Villager_02"), "second villager can enter farm")
 			manager._update_farm_income(59.0)
 			_assert_equal(manager.gold, 0, "occupied farm does not pay before one minute")
 			manager._update_farm_income(1.0)
-			_assert_equal(manager.gold, 1, "occupied farm produces one gold per minute")
+			_assert_equal(manager.gold, 2, "each occupied farm worker produces one gold per minute")
 			farm.free()
 
 		manager.free()
