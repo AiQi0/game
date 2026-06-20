@@ -5,3 +5,5 @@ export_presets.cfg
 *.tmp
 *.translation
 备份文件/
+__pycache__/
+*.pyc

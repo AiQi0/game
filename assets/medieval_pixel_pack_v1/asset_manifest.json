@@ -1,0 +1,506 @@
+{
+  "pack_id": "medieval_pixel_pack_v1",
+  "status": "unapplied_art_prep_pack",
+  "style": "medieval fairy-tale refined pixel art, side-view 2D, transparent PNG",
+  "source_reference_pack": "assets/hand_drawn_cartoon_pack_v1",
+  "processing": [
+    "source image copied into a pixel-art preprocessing pass",
+    "nearest-neighbor downscale/upscale pixel clustering",
+    "limited color quantization with no dithering",
+    "alpha cleanup for transparent background",
+    "Aseprite batch outline and PNG save pass"
+  ],
+  "runtime_application": "not applied; no scenes or runtime scripts reference this pack",
+  "assets": [
+    {
+      "category": "buildings",
+      "slug": "cityhall",
+      "display_name": "City Hall",
+      "file": "assets/medieval_pixel_pack_v1/buildings/cityhall.png",
+      "size": {
+        "width": 420,
+        "height": 340
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "blacksmith",
+      "display_name": "Blacksmith",
+      "file": "assets/medieval_pixel_pack_v1/buildings/blacksmith.png",
+      "size": {
+        "width": 220,
+        "height": 160
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "wall",
+      "display_name": "Wall",
+      "file": "assets/medieval_pixel_pack_v1/buildings/wall.png",
+      "size": {
+        "width": 140,
+        "height": 120
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "farm",
+      "display_name": "Farm",
+      "file": "assets/medieval_pixel_pack_v1/buildings/farm.png",
+      "size": {
+        "width": 240,
+        "height": 80
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "tavern",
+      "display_name": "Tavern",
+      "file": "assets/medieval_pixel_pack_v1/buildings/tavern.png",
+      "size": {
+        "width": 220,
+        "height": 170
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "post_station",
+      "display_name": "Post Station",
+      "file": "assets/medieval_pixel_pack_v1/buildings/post_station.png",
+      "size": {
+        "width": 230,
+        "height": 160
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "lumberyard",
+      "display_name": "Lumberyard",
+      "file": "assets/medieval_pixel_pack_v1/buildings/lumberyard.png",
+      "size": {
+        "width": 220,
+        "height": 160
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "quarry",
+      "display_name": "Quarry",
+      "file": "assets/medieval_pixel_pack_v1/buildings/quarry.png",
+      "size": {
+        "width": 220,
+        "height": 140
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "barracks",
+      "display_name": "Barracks",
+      "file": "assets/medieval_pixel_pack_v1/buildings/barracks.png",
+      "size": {
+        "width": 240,
+        "height": 170
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "river_port",
+      "display_name": "River Port",
+      "file": "assets/medieval_pixel_pack_v1/buildings/river_port.png",
+      "size": {
+        "width": 240,
+        "height": 160
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "beacon_tower",
+      "display_name": "Beacon Tower",
+      "file": "assets/medieval_pixel_pack_v1/buildings/beacon_tower.png",
+      "size": {
+        "width": 160,
+        "height": 220
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "iron_mine",
+      "display_name": "Iron Mine",
+      "file": "assets/medieval_pixel_pack_v1/buildings/iron_mine.png",
+      "size": {
+        "width": 220,
+        "height": 150
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "player",
+      "display_name": "Player",
+      "file": "assets/medieval_pixel_pack_v1/npcs/player.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "villager",
+      "display_name": "Villager",
+      "file": "assets/medieval_pixel_pack_v1/npcs/villager.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "homeless",
+      "display_name": "Homeless",
+      "file": "assets/medieval_pixel_pack_v1/npcs/homeless.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "farmer",
+      "display_name": "Farmer",
+      "file": "assets/medieval_pixel_pack_v1/npcs/farmer.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "lumberjack",
+      "display_name": "Lumberjack",
+      "file": "assets/medieval_pixel_pack_v1/npcs/lumberjack.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "miner",
+      "display_name": "Miner",
+      "file": "assets/medieval_pixel_pack_v1/npcs/miner.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "warrior",
+      "display_name": "Warrior",
+      "file": "assets/medieval_pixel_pack_v1/npcs/warrior.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "archer",
+      "display_name": "Archer",
+      "file": "assets/medieval_pixel_pack_v1/npcs/archer.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "monster",
+      "display_name": "Monster",
+      "file": "assets/medieval_pixel_pack_v1/npcs/monster.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "wooden_sword",
+      "display_name": "Wooden Sword",
+      "file": "assets/medieval_pixel_pack_v1/tools/wooden_sword.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "wooden_axe",
+      "display_name": "Wooden Axe",
+      "file": "assets/medieval_pixel_pack_v1/tools/wooden_axe.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "wooden_sickle",
+      "display_name": "Wooden Sickle",
+      "file": "assets/medieval_pixel_pack_v1/tools/wooden_sickle.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "bow",
+      "display_name": "Bow",
+      "file": "assets/medieval_pixel_pack_v1/tools/bow.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_sword",
+      "display_name": "Stone Sword",
+      "file": "assets/medieval_pixel_pack_v1/tools/stone_sword.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_pickaxe",
+      "display_name": "Stone Pickaxe",
+      "file": "assets/medieval_pixel_pack_v1/tools/stone_pickaxe.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_sickle",
+      "display_name": "Stone Sickle",
+      "file": "assets/medieval_pixel_pack_v1/tools/stone_sickle.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_arrowhead",
+      "display_name": "Stone Arrowhead",
+      "file": "assets/medieval_pixel_pack_v1/tools/stone_arrowhead.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_sword",
+      "display_name": "Iron Sword",
+      "file": "assets/medieval_pixel_pack_v1/tools/iron_sword.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_pickaxe",
+      "display_name": "Iron Pickaxe",
+      "file": "assets/medieval_pixel_pack_v1/tools/iron_pickaxe.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_sickle",
+      "display_name": "Iron Sickle",
+      "file": "assets/medieval_pixel_pack_v1/tools/iron_sickle.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_arrowhead",
+      "display_name": "Iron Arrowhead",
+      "file": "assets/medieval_pixel_pack_v1/tools/iron_arrowhead.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "tree",
+      "display_name": "Tree",
+      "file": "assets/medieval_pixel_pack_v1/environment/tree.png",
+      "size": {
+        "width": 96,
+        "height": 128
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "mother_tree",
+      "display_name": "Mother Tree",
+      "file": "assets/medieval_pixel_pack_v1/environment/mother_tree.png",
+      "size": {
+        "width": 240,
+        "height": 260
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "stone",
+      "display_name": "Stone",
+      "file": "assets/medieval_pixel_pack_v1/environment/stone.png",
+      "size": {
+        "width": 120,
+        "height": 80
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "water",
+      "display_name": "Water",
+      "file": "assets/medieval_pixel_pack_v1/environment/water.png",
+      "size": {
+        "width": 240,
+        "height": 80
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "short_bridge",
+      "display_name": "Short Bridge",
+      "file": "assets/medieval_pixel_pack_v1/environment/short_bridge.png",
+      "size": {
+        "width": 240,
+        "height": 80
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "moon",
+      "display_name": "Moon",
+      "file": "assets/medieval_pixel_pack_v1/environment/moon.png",
+      "size": {
+        "width": 96,
+        "height": 96
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "sun",
+      "display_name": "Sun",
+      "file": "assets/medieval_pixel_pack_v1/environment/sun.png",
+      "size": {
+        "width": 96,
+        "height": 96
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "gold",
+      "display_name": "Gold",
+      "file": "assets/medieval_pixel_pack_v1/ui/gold.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "build",
+      "display_name": "Build",
+      "file": "assets/medieval_pixel_pack_v1/ui/build.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "upgrade",
+      "display_name": "Upgrade",
+      "file": "assets/medieval_pixel_pack_v1/ui/upgrade.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "repair",
+      "display_name": "Repair",
+      "file": "assets/medieval_pixel_pack_v1/ui/repair.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "demolish",
+      "display_name": "Demolish",
+      "file": "assets/medieval_pixel_pack_v1/ui/demolish.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "travel",
+      "display_name": "Travel",
+      "file": "assets/medieval_pixel_pack_v1/ui/travel.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "diplomacy",
+      "display_name": "Diplomacy",
+      "file": "assets/medieval_pixel_pack_v1/ui/diplomacy.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "train",
+      "display_name": "Train",
+      "file": "assets/medieval_pixel_pack_v1/ui/train.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "death",
+      "display_name": "Death Popup",
+      "file": "assets/medieval_pixel_pack_v1/ui/death.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    }
+  ]
+}

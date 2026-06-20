@@ -46,6 +46,7 @@ func _init() -> void:
 			_assert_true(manager.occupy_work_site("blacksmith_1", "Villager_01"), "arrived worker occupies claimed site")
 			_assert_true(window.color != Color(0.08, 0.1, 0.13, 1), "occupied work site lights windows")
 			_assert_true(manager.get_work_sites()[0].worker_inside, "occupied site records worker inside")
+			_assert_false(manager.occupy_work_site("blacksmith_1", "Villager_01"), "occupied site cannot be occupied twice by duplicate worker id")
 
 			city_hall.free()
 			blacksmith.free()

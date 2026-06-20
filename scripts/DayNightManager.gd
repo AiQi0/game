@@ -1,16 +1,18 @@
 extends Node
 
 const DayNightRules = preload("res://scripts/DayNightRules.gd")
+const GameData = preload("res://scripts/GameData.gd")
 
 const VIEWPORT_SIZE := Vector2(1920, 1080)
 const DAY_SKY := Color(0.52, 0.78, 1.0, 1)
 const NIGHT_SKY := Color(0.05, 0.07, 0.16, 1)
 
 var rules := DayNightRules.new()
+var game_data := GameData.new()
 var elapsed_seconds := 0.0
 var sky: ColorRect
-var sun: Polygon2D
-var moon: Polygon2D
+var sun: Node2D
+var moon: Node2D
 
 
 func _ready() -> void:
@@ -24,10 +26,10 @@ func _ready() -> void:
 	sky.size = VIEWPORT_SIZE
 	canvas.add_child(sky)
 
-	sun = _circle_polygon("Sun", 44.0, Color(1.0, 0.82, 0.22, 1))
+	sun = _celestial_visual("Sun", "sun", 88.0, Color(1.0, 0.82, 0.22, 1))
 	canvas.add_child(sun)
 
-	moon = _circle_polygon("Moon", 34.0, Color(0.82, 0.88, 1.0, 1))
+	moon = _celestial_visual("Moon", "moon", 68.0, Color(0.82, 0.88, 1.0, 1))
 	canvas.add_child(moon)
 
 	_update_visuals()
@@ -61,3 +63,17 @@ func _circle_polygon(node_name: String, radius: float, color: Color) -> Polygon2
 	polygon.color = color
 	polygon.polygon = points
 	return polygon
+
+
+func _celestial_visual(node_name: String, asset_id: String, diameter: float, fallback_color: Color) -> Node2D:
+	var texture := game_data.art_asset_texture("environment", asset_id)
+	if texture == null:
+		return _circle_polygon(node_name, diameter * 0.5, fallback_color)
+
+	var sprite := Sprite2D.new()
+	sprite.name = node_name
+	sprite.texture = texture
+	sprite.centered = true
+	var scale_factor = diameter / maxf(float(texture.get_width()), float(texture.get_height()))
+	sprite.scale = Vector2(scale_factor, scale_factor)
+	return sprite

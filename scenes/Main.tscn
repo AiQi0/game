@@ -1,10 +1,16 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene format=3 uid="uid://b5ok28h7lpjqm"]
 
-[ext_resource type="Script" path="res://scripts/Player.gd" id="1_player"]
-[ext_resource type="Script" path="res://scripts/BuildManager.gd" id="2_build_manager"]
-[ext_resource type="Script" path="res://scripts/NPCManager.gd" id="3_npc_manager"]
-[ext_resource type="Script" path="res://scripts/DayNightManager.gd" id="4_day_night_manager"]
-[ext_resource type="Script" path="res://scripts/MonsterManager.gd" id="5_monster_manager"]
+[ext_resource type="Script" uid="uid://c4qp3iiaceb1a" path="res://scripts/Player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://bh0mpu80bs2rq" path="res://scripts/BuildManager.gd" id="2_build_manager"]
+[ext_resource type="Script" uid="uid://b56omq88mel3p" path="res://scripts/NPCManager.gd" id="3_npc_manager"]
+[ext_resource type="Script" uid="uid://5cip2kujdusq" path="res://scripts/DayNightManager.gd" id="4_day_night_manager"]
+[ext_resource type="Script" uid="uid://dav62reb61bh5" path="res://scripts/MonsterManager.gd" id="5_monster_manager"]
+[ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/buildings/cityhall.png" id="6_cityhall"]
+[ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/npcs/player.png" id="7_player_sprite"]
+[ext_resource type="Script" path="res://scripts/TerrainVisualManager.gd" id="8_terrain_visual_manager"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_air_wall"]
+size = Vector2(96, 1000)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(9600, 48)
@@ -12,112 +18,134 @@ size = Vector2(9600, 48)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(32, 64)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_air_wall"]
-size = Vector2(96, 1000)
+[node name="Main" type="Node2D" unique_id=1817650503]
 
-[node name="Main" type="Node2D"]
-
-[node name="DayNightManager" type="Node" parent="."]
+[node name="DayNightManager" type="Node" parent="." unique_id=1715246575]
 script = ExtResource("4_day_night_manager")
 
-[node name="Buildings" type="Node2D" parent="."]
+[node name="TerrainVisualManager" type="Node2D" parent="."]
+script = ExtResource("8_terrain_visual_manager")
+
+[node name="Buildings" type="Node2D" parent="." unique_id=834219098]
 z_index = -1
 
-[node name="NPCs" type="Node2D" parent="."]
+[node name="NPCs" type="Node2D" parent="." unique_id=563594740]
 z_index = 1
 
-[node name="Monsters" type="Node2D" parent="."]
+[node name="Monsters" type="Node2D" parent="." unique_id=114879532]
 z_index = 2
 
-[node name="Projectiles" type="Node2D" parent="."]
+[node name="Projectiles" type="Node2D" parent="." unique_id=2142373193]
 z_index = 3
 
-[node name="AirWalls" type="Node2D" parent="."]
+[node name="AirWalls" type="Node2D" parent="." unique_id=671793530]
 
-[node name="LeftAirWall" type="StaticBody2D" parent="AirWalls"]
+[node name="LeftAirWall" type="StaticBody2D" parent="AirWalls" unique_id=2076072627]
 position = Vector2(-48, 0)
 
-[node name="LeftAirWallCollision" type="CollisionShape2D" parent="AirWalls/LeftAirWall"]
+[node name="LeftAirWallCollision" type="CollisionShape2D" parent="AirWalls/LeftAirWall" unique_id=2071202858]
 shape = SubResource("RectangleShape2D_air_wall")
 
-[node name="RightAirWall" type="StaticBody2D" parent="AirWalls"]
+[node name="RightAirWall" type="StaticBody2D" parent="AirWalls" unique_id=1179938032]
 position = Vector2(9648, 0)
 
-[node name="RightAirWallCollision" type="CollisionShape2D" parent="AirWalls/RightAirWall"]
+[node name="RightAirWallCollision" type="CollisionShape2D" parent="AirWalls/RightAirWall" unique_id=741177777]
 shape = SubResource("RectangleShape2D_air_wall")
 
-[node name="CityHall" type="Node2D" parent="."]
-position = Vector2(4800, 472)
+[node name="CityHall" type="Node2D" parent="." unique_id=1892864872]
 z_index = -1
+position = Vector2(4800, 472)
 
-[node name="BuildingBody" type="Polygon2D" parent="CityHall"]
+[node name="BuildingBody" type="Polygon2D" parent="CityHall" unique_id=75422450]
+visible = false
 color = Color(0.78, 0.78, 0.72, 1)
 polygon = PackedVector2Array(-170, -170, 170, -170, 170, 0, -170, 0)
 
-[node name="Roof" type="Polygon2D" parent="CityHall"]
+[node name="Roof" type="Polygon2D" parent="CityHall" unique_id=611312783]
+visible = false
 color = Color(0.52, 0.24, 0.18, 1)
 polygon = PackedVector2Array(-200, -170, 0, -270, 200, -170)
 
-[node name="Dome" type="Polygon2D" parent="CityHall"]
+[node name="Dome" type="Polygon2D" parent="CityHall" unique_id=45912766]
+visible = false
 color = Color(0.64, 0.68, 0.72, 1)
 polygon = PackedVector2Array(-54, -270, -36, -314, 0, -334, 36, -314, 54, -270)
 
-[node name="LeftColumn" type="Polygon2D" parent="CityHall"]
+[node name="LeftColumn" type="Polygon2D" parent="CityHall" unique_id=1766622456]
+visible = false
 color = Color(0.92, 0.9, 0.82, 1)
 polygon = PackedVector2Array(-118, -150, -86, -150, -86, 0, -118, 0)
 
-[node name="CenterColumn" type="Polygon2D" parent="CityHall"]
+[node name="CenterColumn" type="Polygon2D" parent="CityHall" unique_id=555897253]
+visible = false
 color = Color(0.92, 0.9, 0.82, 1)
 polygon = PackedVector2Array(-16, -150, 16, -150, 16, 0, -16, 0)
 
-[node name="RightColumn" type="Polygon2D" parent="CityHall"]
+[node name="RightColumn" type="Polygon2D" parent="CityHall" unique_id=1102101006]
+visible = false
 color = Color(0.92, 0.9, 0.82, 1)
 polygon = PackedVector2Array(86, -150, 118, -150, 118, 0, 86, 0)
 
-[node name="Door" type="Polygon2D" parent="CityHall"]
+[node name="Door" type="Polygon2D" parent="CityHall" unique_id=1874655002]
+visible = false
 color = Color(0.22, 0.15, 0.12, 1)
 polygon = PackedVector2Array(-34, -74, 34, -74, 34, 0, -34, 0)
 
-[node name="LeftWindow" type="Polygon2D" parent="CityHall"]
+[node name="LeftWindow" type="Polygon2D" parent="CityHall" unique_id=626643641]
+visible = false
 color = Color(0.35, 0.62, 0.8, 1)
 polygon = PackedVector2Array(-145, -124, -122, -124, -122, -92, -145, -92)
 
-[node name="RightWindow" type="Polygon2D" parent="CityHall"]
+[node name="RightWindow" type="Polygon2D" parent="CityHall" unique_id=682307193]
+visible = false
 color = Color(0.35, 0.62, 0.8, 1)
 polygon = PackedVector2Array(122, -124, 145, -124, 145, -92, 122, -92)
 
-[node name="Ground" type="StaticBody2D" parent="."]
+[node name="GeneratedSprite" type="Sprite2D" parent="CityHall"]
+position = Vector2(-200, -323.81)
+scale = Vector2(0.952381, 0.952381)
+centered = false
+texture = ExtResource("6_cityhall")
+
+[node name="Ground" type="StaticBody2D" parent="." unique_id=255585828]
 position = Vector2(4800, 496)
 
-[node name="GroundVisual" type="Polygon2D" parent="Ground"]
+[node name="GroundVisual" type="Polygon2D" parent="Ground" unique_id=269140392]
+visible = false
 color = Color(0.25, 0.62, 0.34, 1)
 polygon = PackedVector2Array(-4800, -24, 4800, -24, 4800, 24, -4800, 24)
 
-[node name="GroundCollision" type="CollisionShape2D" parent="Ground"]
+[node name="GroundCollision" type="CollisionShape2D" parent="Ground" unique_id=845760029]
 shape = SubResource("RectangleShape2D_ground")
 
-[node name="Player" type="CharacterBody2D" parent="."]
+[node name="Player" type="CharacterBody2D" parent="." unique_id=57473396]
 position = Vector2(4800, 472)
 script = ExtResource("1_player")
 
-[node name="PlayerVisual" type="Polygon2D" parent="Player"]
+[node name="PlayerVisual" type="Polygon2D" parent="Player" unique_id=1298933497]
+visible = false
 color = Color(0.95, 0.36, 0.22, 1)
 polygon = PackedVector2Array(-16, -64, 16, -64, 16, 0, -16, 0)
 
-[node name="PlayerCollision" type="CollisionShape2D" parent="Player"]
+[node name="GeneratedSprite" type="Sprite2D" parent="Player"]
+position = Vector2(-21.3333, -64)
+scale = Vector2(0.666667, 0.666667)
+centered = false
+texture = ExtResource("7_player_sprite")
+
+[node name="PlayerCollision" type="CollisionShape2D" parent="Player" unique_id=923346097]
 position = Vector2(0, -32)
 shape = SubResource("RectangleShape2D_player")
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1976310050]
 position = Vector2(0, -32)
-enabled = true
 zoom = Vector2(1.35, 1.35)
 
-[node name="NPCManager" type="Node2D" parent="."]
+[node name="NPCManager" type="Node2D" parent="." unique_id=1606872675]
 script = ExtResource("3_npc_manager")
 
-[node name="BuildManager" type="Node2D" parent="."]
+[node name="BuildManager" type="Node2D" parent="." unique_id=1656434264]
 script = ExtResource("2_build_manager")
 
-[node name="MonsterManager" type="Node2D" parent="."]
+[node name="MonsterManager" type="Node2D" parent="." unique_id=259225699]
 script = ExtResource("5_monster_manager")

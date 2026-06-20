@@ -204,8 +204,38 @@ func _test_city_hall_two_builds_quarry_on_stone(build_manager_script) -> void:
 	manager.gold = 20
 	_assert_true(manager._try_build_quarry_at_player(), "city hall level two builds quarry on stone")
 	_assert_equal(manager.gold, 0, "building quarry spends twenty gold")
-	_assert_equal(_building_count(manager, "stone"), 0, "stone is consumed by quarry build")
+	_assert_equal(_resource_count(manager, "stone"), 1, "stone remains as the quarry source")
+	_assert_true(is_instance_valid(stone), "quarry construction keeps the source stone node")
+	if is_instance_valid(stone):
+		_assert_false(stone.visible, "source stone is hidden while occupied by a quarry")
 	_assert_equal(_building_count(manager, "quarry"), 1, "one quarry is built")
+
+	var stone_index := _first_resource_index(manager, "stone")
+	if stone_index != -1:
+		var stone_entity: Dictionary = manager.placed_buildings[stone_index]
+		_assert_true(bool(stone_entity.get("has_quarry", false)), "source stone records the quarry occupying it")
+		_assert_false(bool(stone_entity.get("demolishable", true)), "occupied source stone cannot be demolished before its quarry")
+
+	var quarry_index := _first_building_index(manager, "quarry")
+	_assert_true(quarry_index != -1, "quarry entity is tracked before demolition")
+	if quarry_index != -1:
+		manager.demolition_target_index = quarry_index
+		manager._demolish_target()
+	_assert_equal(_building_count(manager, "quarry"), 0, "demolishing quarry removes the quarry")
+	_assert_equal(_resource_count(manager, "stone"), 1, "demolishing quarry restores the source stone")
+	_assert_true(is_instance_valid(stone), "source stone node remains valid after quarry demolition")
+	if is_instance_valid(stone):
+		_assert_true(stone.visible, "source stone is visible again after quarry demolition")
+
+	stone_index = _first_resource_index(manager, "stone")
+	if stone_index != -1:
+		var restored_stone_entity: Dictionary = manager.placed_buildings[stone_index]
+		_assert_false(bool(restored_stone_entity.get("has_quarry", false)), "restored stone is no longer occupied by a quarry")
+		_assert_true(bool(restored_stone_entity.get("demolishable", false)), "restored stone can be demolished again")
+
+	manager.gold = 20
+	_assert_true(manager._try_build_quarry_at_player(), "restored stone can build a replacement quarry")
+	_assert_equal(_building_count(manager, "quarry"), 1, "replacement quarry is built on restored stone")
 	_assert_true(is_instance_valid(city_hall), "city hall fixture remains valid")
 
 	setup.root.free()
@@ -333,12 +363,26 @@ func _resource_count(manager: Node2D, resource_kind: String) -> int:
 	return count
 
 
+func _first_resource_index(manager: Node2D, resource_kind: String) -> int:
+	for i in range(manager.placed_buildings.size()):
+		if manager.placed_buildings[i].get("resource_kind", "") == resource_kind:
+			return i
+	return -1
+
+
 func _building_count(manager: Node2D, building_id: String) -> int:
 	var count := 0
 	for entity in manager.placed_buildings:
 		if entity.get("building_id", "") == building_id:
 			count += 1
 	return count
+
+
+func _first_building_index(manager: Node2D, building_id: String) -> int:
+	for i in range(manager.placed_buildings.size()):
+		if manager.placed_buildings[i].get("building_id", "") == building_id:
+			return i
+	return -1
 
 
 func _assert_equal(actual, expected, message: String) -> void:

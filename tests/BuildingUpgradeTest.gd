@@ -37,8 +37,8 @@ func _test_upgrade_data(data) -> void:
 	_assert_equal(data.building_upgrade_cost("wall", 2), 15, "wall level 2 costs 15 gold")
 	_assert_equal(data.building_upgrade_cost("farm", 2), 15, "farm level 2 costs 15 gold")
 	_assert_equal(data.building_upgrade_cost("lumberyard", 2), 30, "lumberyard level 2 costs 30 gold")
-	_assert_equal(data.building_upgrade_requirements("blacksmith", 2), {"cityhall": 2}, "city hall level 2 unlocks blacksmith level 2")
-	_assert_equal(data.building_upgrade_requirements("blacksmith", 3), {"cityhall": 3}, "city hall level 3 unlocks blacksmith level 3")
+	_assert_equal(data.building_upgrade_requirements("blacksmith", 2), {"cityhall": 2, "quarry": 1}, "blacksmith level 2 requires city hall level 2 and a quarry")
+	_assert_equal(data.building_upgrade_requirements("blacksmith", 3), {"cityhall": 3, "iron_mine": 1}, "blacksmith level 3 requires city hall level 3 and an iron mine")
 	_assert_false(data.has_building_upgrade("tavern", 2), "tavern has no level 2 upgrade yet")
 
 
@@ -70,19 +70,7 @@ func _test_building_upgrade_unlock(build_manager_script) -> void:
 	var manager = setup.manager
 	var buildings_container: Node2D = setup.buildings_container
 
-	var blacksmith := Node2D.new()
-	blacksmith.name = "blacksmith_1"
-	blacksmith.global_position = Vector2(5200, 472)
-	buildings_container.add_child(blacksmith)
-	manager._track_placed_entity(
-		blacksmith,
-		Rect2(Vector2(5110, 332), Vector2(180, 140)),
-		true,
-		"Blacksmith",
-		"building",
-		true,
-		"blacksmith"
-	)
+	_track_building(manager, buildings_container, "blacksmith_1", "blacksmith", Vector2(5200, 472), Vector2(180, 140), 1)
 
 	manager.gold = 100
 	_assert_false(manager.can_upgrade_entity(1), "blacksmith level 2 is locked before city hall level 2")
@@ -90,7 +78,12 @@ func _test_building_upgrade_unlock(build_manager_script) -> void:
 	_assert_equal(manager.placed_buildings[1].get("level"), 1, "locked blacksmith stays level 1")
 
 	_assert_true(manager.upgrade_building(0), "city hall upgrade unlocks building level 2")
-	_assert_true(manager.can_upgrade_entity(1), "blacksmith can upgrade after city hall reaches level 2")
+	_assert_false(manager.can_upgrade_entity(1), "blacksmith level 2 still needs a quarry after city hall reaches level 2")
+	_assert_false(manager.upgrade_building(1), "blacksmith level 2 upgrade fails without a quarry")
+	_assert_equal(manager.placed_buildings[1].get("level"), 1, "blacksmith stays level 1 without a quarry")
+
+	_track_building(manager, buildings_container, "quarry_1", "quarry", Vector2(5600, 472), Vector2(220, 150), 1)
+	_assert_true(manager.can_upgrade_entity(1), "blacksmith can upgrade after city hall reaches level 2 and a quarry exists")
 	_assert_true(manager.upgrade_building(1), "blacksmith upgrades after unlock")
 	_assert_equal(manager.gold, 30, "city hall and blacksmith upgrades spend 70 gold total")
 	_assert_equal(manager.placed_buildings[1].get("level"), 2, "blacksmith stores level 2")
@@ -98,7 +91,12 @@ func _test_building_upgrade_unlock(build_manager_script) -> void:
 
 	manager.gold = 140
 	_assert_true(manager.upgrade_building(0), "city hall level 3 unlocks iron-era blacksmith upgrade")
-	_assert_true(manager.can_upgrade_entity(1), "blacksmith can upgrade after city hall reaches level 3")
+	_assert_false(manager.can_upgrade_entity(1), "blacksmith level 3 still needs an iron mine after city hall reaches level 3")
+	_assert_false(manager.upgrade_building(1), "blacksmith level 3 upgrade fails without an iron mine")
+	_assert_equal(manager.placed_buildings[1].get("level"), 2, "blacksmith stays level 2 without an iron mine")
+
+	_track_building(manager, buildings_container, "iron_mine_1", "iron_mine", Vector2(6000, 472), Vector2(240, 180), 1)
+	_assert_true(manager.can_upgrade_entity(1), "blacksmith can upgrade after city hall reaches level 3 and an iron mine exists")
 	_assert_true(manager.upgrade_building(1), "blacksmith upgrades to level 3")
 	_assert_equal(manager.gold, 0, "city hall level 3 and blacksmith level 3 spend 140 gold")
 	_assert_equal(manager.placed_buildings[1].get("level"), 3, "blacksmith stores level 3")
@@ -165,6 +163,35 @@ func _create_manager_with_city_hall(build_manager_script) -> Dictionary:
 		"manager": manager,
 		"buildings_container": buildings_container,
 	}
+
+
+func _track_building(
+	manager: Node2D,
+	buildings_container: Node2D,
+	node_name: String,
+	building_id: String,
+	position: Vector2,
+	size: Vector2,
+	level: int
+) -> Node2D:
+	var building := Node2D.new()
+	building.name = node_name
+	building.global_position = position
+	buildings_container.add_child(building)
+	manager._track_placed_entity(
+		building,
+		Rect2(position - Vector2(size.x * 0.5, size.y), size),
+		true,
+		building_id.capitalize(),
+		"building",
+		true,
+		building_id
+	)
+	var entity_index: int = int(manager.placed_buildings.size()) - 1
+	var entity: Dictionary = manager.placed_buildings[entity_index]
+	entity.level = level
+	manager.placed_buildings[entity_index] = entity
+	return building
 
 
 func _panel_has_text(node: Node, needle: String) -> bool:

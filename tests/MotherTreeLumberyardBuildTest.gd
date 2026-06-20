@@ -37,7 +37,7 @@ func _test_mother_tree_data(data) -> void:
 		var lumberyard: Dictionary = data.lumberyard_definition()
 		_assert_equal(lumberyard.get("id", ""), "lumberyard", "lumberyard definition keeps id")
 		_assert_equal(lumberyard.get("cost", 0), 10, "lumberyard built on mother tree costs ten gold")
-		_assert_equal(lumberyard.get("size", Vector2.ZERO), Vector2(200, 130), "lumberyard keeps existing footprint size")
+		_assert_equal(lumberyard.get("size", Vector2.ZERO), Vector2(400, 260), "lumberyard footprint is doubled outside the build bar")
 
 
 func _test_lumberyard_removed_from_build_bar(catalog) -> void:
@@ -81,7 +81,7 @@ func _test_mother_tree_spawn_and_lumberyard_build(build_manager_script) -> void:
 	_assert_equal(_work_site_count(manager, "lumberyard"), 1, "mother-tree lumberyard is a work site")
 
 	var duplicate: bool = manager._try_build_lumberyard_at_player_mother_tree()
-	_assert_true(duplicate, "pressing E on an already used mother tree is handled")
+	_assert_false(duplicate, "already used mother tree no longer intercepts E")
 	_assert_equal(_building_count(manager, "lumberyard"), 1, "same mother tree cannot build a second lumberyard")
 
 	var lumberyard_index := _entity_index_for_building(manager, "lumberyard")

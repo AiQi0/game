@@ -31,8 +31,7 @@ var game_data := GameData.new()
 
 
 func _ready() -> void:
-	player = get_parent().get_node_or_null("Player")
-	npc_container = get_parent().get_node_or_null("NPCs")
+	_ensure_scene_references()
 	rng.seed = RANDOM_SEED
 	spawn_starting_npcs()
 
@@ -106,6 +105,70 @@ func spawn_starting_npcs() -> void:
 
 	for position in positions:
 		_spawn_homeless(position)
+
+
+func save_snapshot() -> Array:
+	_ensure_scene_references()
+	var saved_npcs := []
+	if npc_container == null:
+		return saved_npcs
+
+	for child in npc_container.get_children():
+		var npc := child as Node2D
+		if npc == null:
+			continue
+
+		saved_npcs.append({
+			"name": npc.name,
+			"npc_type": str(npc.get("npc_type")),
+			"worker_role": str(npc.get("worker_role")),
+			"carried_tool": str(npc.get("carried_tool")),
+			"arrowhead_tool": str(npc.get("arrowhead_tool")),
+			"attack_power": int(npc.get("attack_power")),
+			"attack_range": float(npc.get("attack_range")),
+			"is_patrolling": bool(npc.get("is_patrolling")),
+			"patrol_side": str(npc.get("patrol_side")),
+			"patrol_anchor": _vector2_to_save(npc.get("patrol_anchor")),
+			"is_on_wall": bool(npc.get("is_on_wall")),
+			"wall_id": str(npc.get("wall_id")),
+			"home_center": _vector2_to_save(npc.get("home_center")),
+			"villager_home_center": _vector2_to_save(npc.get("villager_home_center")),
+			"assigned_workplace_name": str(npc.get("assigned_workplace_name")),
+			"assigned_workplace_id": str(npc.get("assigned_workplace_id")),
+			"tree_chop_return_position": _vector2_to_save(npc.get("tree_chop_return_position")),
+			"tree_chop_return_name": str(npc.get("tree_chop_return_name")),
+			"tree_chop_return_id": str(npc.get("tree_chop_return_id")),
+			"is_inside_building": bool(npc.get("is_inside_building")),
+			"is_traveling_to_workplace": bool(npc.get("is_traveling_to_workplace")),
+			"is_traveling_to_tree_chop": bool(npc.get("is_traveling_to_tree_chop")),
+			"is_traveling_to_tool_pickup": bool(npc.get("is_traveling_to_tool_pickup")),
+			"is_chopping_tree": bool(npc.get("is_chopping_tree")),
+			"tree_chop_task_id": str(npc.get("tree_chop_task_id")),
+			"tool_pickup_tool_id": str(npc.get("tool_pickup_tool_id")),
+			"tool_pickup_blacksmith_id": str(npc.get("tool_pickup_blacksmith_id")),
+			"tool_return_position": _vector2_to_save(npc.get("tool_return_position")),
+			"tool_return_name": str(npc.get("tool_return_name")),
+			"tool_return_id": str(npc.get("tool_return_id")),
+			"wander_radius": float(npc.get("wander_radius")),
+			"target_position": _vector2_to_save(npc.get("target_position")),
+			"position": _vector2_to_save(npc.global_position),
+			"visible": npc.visible,
+			"process_enabled": npc.is_processing(),
+		})
+	return saved_npcs
+
+
+func apply_snapshot(saved_npcs) -> void:
+	_ensure_scene_references()
+	if npc_container == null or not (saved_npcs is Array):
+		return
+
+	_clear_all_npcs()
+	starting_npcs_spawned = true
+	spawned_count = 0
+	for saved_npc in saved_npcs:
+		if saved_npc is Dictionary:
+			_restore_npc_snapshot(saved_npc)
 
 
 func release_worker_from_demolished_building(worker_id: String, spawn_position: Vector2) -> void:
@@ -898,6 +961,129 @@ func _update_archer_attacks(delta: float) -> void:
 			range = 600.0
 		if monster_manager.shoot_nearest_monster(archer.global_position, damage, range):
 			archer_attack_timers[archer.name] = ARCHER_ATTACK_INTERVAL
+
+
+func _ensure_scene_references() -> void:
+	var parent := get_parent()
+	if parent == null:
+		return
+	if player == null:
+		player = parent.get_node_or_null("Player")
+	if npc_container == null:
+		npc_container = parent.get_node_or_null("NPCs")
+
+
+func _clear_all_npcs() -> void:
+	if npc_container == null:
+		return
+
+	for child in npc_container.get_children():
+		npc_container.remove_child(child)
+		child.free()
+
+
+func _restore_npc_snapshot(saved_npc: Dictionary) -> void:
+	var position := _vector2_from_save(saved_npc.get("position", []), CITY_HALL_FRONT)
+	var npc := factory.create_homeless(position, CITY_HALL_FRONT)
+	var saved_name := str(saved_npc.get("name", ""))
+	if saved_name != "":
+		npc.name = saved_name
+	_update_spawned_count_from_name(npc.name)
+	npc_container.add_child(npc)
+
+	var npc_type := str(saved_npc.get("npc_type", "homeless"))
+	if npc_type == "villager":
+		npc.interact()
+
+	var worker_role := str(saved_npc.get("worker_role", "none"))
+	_apply_saved_worker_role(npc, worker_role)
+	var carried_tool := str(saved_npc.get("carried_tool", ""))
+	if carried_tool != "":
+		npc.equip_tool(carried_tool)
+	var arrowhead_tool := str(saved_npc.get("arrowhead_tool", ""))
+	if arrowhead_tool != "":
+		npc.equip_tool(arrowhead_tool)
+
+	npc.global_position = position
+	npc.set("npc_type", npc_type)
+	npc.set("worker_role", worker_role)
+	npc.set("carried_tool", carried_tool)
+	npc.set("arrowhead_tool", arrowhead_tool)
+	npc.set("attack_power", int(saved_npc.get("attack_power", npc.get("attack_power"))))
+	npc.set("attack_range", float(saved_npc.get("attack_range", npc.get("attack_range"))))
+	npc.set("is_patrolling", bool(saved_npc.get("is_patrolling", npc.get("is_patrolling"))))
+	npc.set("patrol_side", str(saved_npc.get("patrol_side", npc.get("patrol_side"))))
+	npc.set("patrol_anchor", _vector2_from_save(saved_npc.get("patrol_anchor", []), npc.get("patrol_anchor")))
+	npc.set("is_on_wall", bool(saved_npc.get("is_on_wall", npc.get("is_on_wall"))))
+	npc.set("wall_id", str(saved_npc.get("wall_id", npc.get("wall_id"))))
+	npc.set("home_center", _vector2_from_save(saved_npc.get("home_center", []), npc.get("home_center")))
+	npc.set("villager_home_center", _vector2_from_save(saved_npc.get("villager_home_center", []), CITY_HALL_FRONT))
+	npc.set("assigned_workplace_name", str(saved_npc.get("assigned_workplace_name", npc.get("assigned_workplace_name"))))
+	npc.set("assigned_workplace_id", str(saved_npc.get("assigned_workplace_id", npc.get("assigned_workplace_id"))))
+	npc.set("tree_chop_return_position", _vector2_from_save(saved_npc.get("tree_chop_return_position", []), Vector2.ZERO))
+	npc.set("tree_chop_return_name", str(saved_npc.get("tree_chop_return_name", "")))
+	npc.set("tree_chop_return_id", str(saved_npc.get("tree_chop_return_id", "")))
+	npc.set("is_inside_building", bool(saved_npc.get("is_inside_building", false)))
+	npc.set("is_traveling_to_workplace", bool(saved_npc.get("is_traveling_to_workplace", false)))
+	npc.set("is_traveling_to_tree_chop", bool(saved_npc.get("is_traveling_to_tree_chop", false)))
+	npc.set("is_traveling_to_tool_pickup", bool(saved_npc.get("is_traveling_to_tool_pickup", false)))
+	npc.set("is_chopping_tree", bool(saved_npc.get("is_chopping_tree", false)))
+	npc.set("tree_chop_task_id", str(saved_npc.get("tree_chop_task_id", "")))
+	npc.set("tool_pickup_tool_id", str(saved_npc.get("tool_pickup_tool_id", "")))
+	npc.set("tool_pickup_blacksmith_id", str(saved_npc.get("tool_pickup_blacksmith_id", "")))
+	npc.set("tool_return_position", _vector2_from_save(saved_npc.get("tool_return_position", []), Vector2.ZERO))
+	npc.set("tool_return_name", str(saved_npc.get("tool_return_name", "")))
+	npc.set("tool_return_id", str(saved_npc.get("tool_return_id", "")))
+	npc.set("wander_radius", float(saved_npc.get("wander_radius", npc.get("wander_radius"))))
+	npc.set("target_position", _vector2_from_save(saved_npc.get("target_position", []), npc.get("target_position")))
+	npc.visible = bool(saved_npc.get("visible", npc.visible))
+	npc.set_process(bool(saved_npc.get("process_enabled", npc.is_processing())))
+
+
+func _apply_saved_worker_role(npc: Node2D, worker_role: String) -> void:
+	match worker_role:
+		"farmer":
+			if npc.has_method("become_farmer"):
+				npc.become_farmer()
+		"miner":
+			if npc.has_method("become_miner"):
+				npc.become_miner()
+		"lumberjack":
+			if npc.has_method("become_lumberjack"):
+				npc.become_lumberjack()
+		"merchant":
+			if npc.has_method("become_merchant"):
+				npc.become_merchant()
+		"warrior":
+			if npc.has_method("become_warrior"):
+				npc.become_warrior()
+		"archer":
+			if npc.has_method("become_archer"):
+				npc.become_archer()
+		"shield_guard":
+			if npc.has_method("become_shield_guard"):
+				npc.become_shield_guard()
+
+
+func _vector2_to_save(value) -> Array:
+	if value is Vector2:
+		return [value.x, value.y]
+	return [0.0, 0.0]
+
+
+func _vector2_from_save(value, default_value: Vector2) -> Vector2:
+	if value is Array and value.size() >= 2:
+		return Vector2(float(value[0]), float(value[1]))
+	return default_value
+
+
+func _update_spawned_count_from_name(npc_name: String) -> void:
+	var pieces := npc_name.split("_")
+	if pieces.size() < 2:
+		return
+
+	var number := int(pieces[pieces.size() - 1])
+	spawned_count = maxi(spawned_count, number)
 
 
 func _npc_by_name(npc_name: String) -> Node2D:

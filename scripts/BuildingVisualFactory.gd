@@ -1,7 +1,11 @@
 extends RefCounted
 
+const GameData = preload("res://scripts/GameData.gd")
+
 const WINDOW_DARK := Color(0.08, 0.1, 0.13, 1)
 const WINDOW_LIT := Color(1.0, 0.82, 0.24, 1)
+
+var game_data := GameData.new()
 
 
 func create_building_visual(definition: Dictionary) -> Node2D:
@@ -22,6 +26,7 @@ func create_building_visual(definition: Dictionary) -> Node2D:
 		_:
 			_add_box(root, definition)
 
+	_add_generated_sprite(root, definition)
 	return root
 
 
@@ -234,6 +239,37 @@ func _polygon(node_name: String, color: Color, points: Array) -> Polygon2D:
 	polygon.color = color
 	polygon.polygon = PackedVector2Array(points)
 	return polygon
+
+
+func _add_generated_sprite(root: Node2D, definition: Dictionary) -> void:
+	var building_id := str(definition.get("id", ""))
+	var texture := game_data.art_asset_texture("buildings", building_id)
+	if texture == null:
+		return
+
+	_hide_canvas_children(root)
+	var sprite := Sprite2D.new()
+	sprite.name = "GeneratedSprite"
+	sprite.texture = texture
+	sprite.centered = false
+	var target_size: Vector2 = definition.get("size", Vector2(texture.get_width(), texture.get_height()))
+	var scale_factor = minf(
+		target_size.x / maxf(1.0, float(texture.get_width())),
+		target_size.y / maxf(1.0, float(texture.get_height()))
+	)
+	sprite.scale = Vector2(scale_factor, scale_factor)
+	sprite.position = Vector2(
+		-float(texture.get_width()) * scale_factor * 0.5,
+		-float(texture.get_height()) * scale_factor
+	)
+	root.add_child(sprite)
+
+
+func _hide_canvas_children(node: Node) -> void:
+	for child in node.get_children():
+		if child is CanvasItem:
+			(child as CanvasItem).visible = false
+		_hide_canvas_children(child)
 
 
 func _window_nodes(node: Node) -> Array:

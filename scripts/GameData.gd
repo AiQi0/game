@@ -6,9 +6,13 @@ const GROUND_TOP_Y := 472.0
 const AIR_WALL_WIDTH := 96.0
 const AIR_WALL_HEIGHT := 1000.0
 const CITY_HALL_SIZE := Vector2(400, 334)
-const TREE_SIZE := Vector2(64, 120)
-const MOTHER_TREE_SIZE := Vector2(170, 260)
-const STONE_SIZE := Vector2(72, 72)
+const RESOURCE_SIZE_MULTIPLIER := 2.0
+const BASE_TREE_SIZE := Vector2(64, 120)
+const BASE_MOTHER_TREE_SIZE := Vector2(170, 260)
+const BASE_STONE_SIZE := Vector2(72, 72)
+const TREE_SIZE := BASE_TREE_SIZE * RESOURCE_SIZE_MULTIPLIER
+const MOTHER_TREE_SIZE := BASE_MOTHER_TREE_SIZE * RESOURCE_SIZE_MULTIPLIER
+const STONE_SIZE := BASE_STONE_SIZE * RESOURCE_SIZE_MULTIPLIER
 const QUARRY_SIZE := Vector2(180, 120)
 const BRIDGE_SIZE := Vector2(260, 16)
 const BRIDGE_WATER_SIZE := Vector2(220, 56)
@@ -21,9 +25,27 @@ const STONE_COUNT := 3
 const STONE_RANDOM_SEED := 20260618
 const BRIDGE_COUNT := 5
 const BRIDGE_RANDOM_SEED := 20260619
-const BRIDGE_NEAR_CITY_HALL_OFFSET := 520.0
-const BRIDGE_NEAR_CITY_HALL_MAX_DISTANCE := 650.0
+const CITY_HALL_RESOURCE_INNER_RADIUS := 1000.0
+const CITY_HALL_RESOURCE_OUTER_RADIUS := 2000.0
+const BRIDGE_CITY_HALL_RING_OFFSET := -1300.0
+const MOTHER_TREE_CITY_HALL_RING_OFFSET := 1450.0
+const STONE_CITY_HALL_RING_OFFSET := 1800.0
 const CITY_HALL_FRONT := Vector2(4800, 472)
+const MAIN_MENU_SCENE_PATH := "res://scenes/MainMenu.tscn"
+const MAIN_SCENE_PATH := "res://scenes/Main.tscn"
+const SAVE_DIRECTORY := "user://saves"
+const LAST_SAVE_FILENAME := "last_save.json"
+const AUTOSAVE_SECONDS := 60.0
+const ART_ASSET_ROOT := "res://assets/medieval_pixel_pack_v3_no_outline"
+const TERRAIN_ASSET_ROOT := "res://assets/world_terrain_v1"
+const TERRAIN_TILE_SIZE := Vector2(256, 64)
+const VISUAL_CHUNK_WIDTH := 1920
+const NON_CITYHALL_BUILDING_SIZE_MULTIPLIER := 2.0
+const BUILDING_ORIENTATION_RULES := {
+	"wall": {
+		"mirror_right_of_cityhall": true,
+	},
+}
 
 const STARTING_GOLD := 99
 const FARM_INCOME_SECONDS := 60.0
@@ -34,6 +56,8 @@ const BLACKSMITH_TOOL_LIMIT := 5
 const LUMBERYARD_TREE_INTERVAL_SECONDS := 120.0
 const LUMBERYARD_TREE_BATCH_COUNT := 3
 const LUMBERYARD_TREE_RADIUS := 420.0
+const LUMBERJACK_TREE_SEARCH_RADIUS := LUMBERYARD_TREE_RADIUS * 2.0
+const MOTHER_TREE_LUMBERJACK_SEARCH_RADIUS := MOTHER_TREE_GROW_RADIUS * 2.0
 const PLAYER_TREE_CHOP_SECONDS := 10.0
 const PLAYER_STONE_MINE_SECONDS := 60.0
 const NPC_TREE_CHOP_SECONDS := 60.0
@@ -71,6 +95,8 @@ const ARROW_FLIGHT_SECONDS := 0.8
 const ARROW_ARC_HEIGHT := 120.0
 const ARROW_LANDED_VISIBLE_SECONDS := 5.0
 const ARROW_FADE_SECONDS := 1.0
+
+var _art_asset_visible_rect_cache := {}
 
 const NPC_ROLES := {
 	"homeless": {
@@ -240,6 +266,129 @@ const BLACKSMITH_CRAFT_REQUIREMENTS_BY_LEVEL := {
 	3: {"iron_mine": 1},
 }
 
+const ART_ASSETS := {
+	"buildings": {
+		"cityhall": "cityhall.png",
+		"blacksmith": "blacksmith.png",
+		"wall": "wall.png",
+		"farm": "farm.png",
+		"tavern": "tavern.png",
+		"post_station": "post_station.png",
+		"lumberyard": "lumberyard.png",
+		"quarry": "quarry.png",
+		"barracks": "barracks.png",
+		"river_port": "river_port.png",
+		"beacon_tower": "beacon_tower.png",
+		"iron_mine": "iron_mine.png",
+	},
+	"npcs": {
+		"player": "player.png",
+		"villager": "villager.png",
+		"homeless": "homeless.png",
+		"farmer": "farmer.png",
+		"lumberjack": "lumberjack.png",
+		"miner": "miner.png",
+		"merchant": "villager.png",
+		"shield_guard": "warrior.png",
+		"warrior": "warrior.png",
+		"archer": "archer.png",
+		"monster": "monster.png",
+	},
+	"tools": {
+		"sword": "wooden_sword.png",
+		"axe": "wooden_axe.png",
+		"sickle": "wooden_sickle.png",
+		"bow": "bow.png",
+		"stone_sword": "stone_sword.png",
+		"stone_pickaxe": "stone_pickaxe.png",
+		"stone_sickle": "stone_sickle.png",
+		"stone_arrowhead": "stone_arrowhead.png",
+		"iron_sword": "iron_sword.png",
+		"iron_pickaxe": "iron_pickaxe.png",
+		"iron_sickle": "iron_sickle.png",
+		"iron_arrowhead": "iron_arrowhead.png",
+	},
+	"environment": {
+		"tree": "tree.png",
+		"mother_tree": "mother_tree.png",
+		"stone": "stone.png",
+		"water": "water.png",
+		"short_bridge": "short_bridge.png",
+		"river_background": "river_background.png",
+		"river_ground": "river_ground.png",
+		"foreground_water": "foreground_water.png",
+		"moon": "moon.png",
+		"sun": "sun.png",
+	},
+	"ui": {
+		"gold": "gold.png",
+		"build": "build.png",
+		"upgrade": "upgrade.png",
+		"repair": "repair.png",
+		"demolish": "demolish.png",
+		"travel": "travel.png",
+		"diplomacy": "diplomacy.png",
+		"train": "train.png",
+		"death": "death.png",
+	},
+}
+
+const RIVER_MIRROR_WATER_VISUAL := {
+	"tile_width": 1920.0,
+	"tile_count": 5,
+	"waterline_y": 500.0,
+	"reflection_height_pixels": 580.0,
+	"ripple_amplitude_pixels": 8.0,
+	"ripple_frequency": 18.0,
+	"ripple_speed": 0.65,
+	"shimmer_strength": 0.08,
+	"top_blur_fraction": 0.25,
+	"top_blur_radius_pixels": 6.0,
+}
+
+const TERRAIN_ASSETS := {
+	"grass_ground_tile": "ground/grass_ground_tile.png",
+	"grass_ground_variant_01": "ground/grass_ground_variant_01.png",
+	"grass_ground_variant_02": "ground/grass_ground_variant_02.png",
+	"ground_fill": "ground/ground_fill.png",
+	"water_tile": "water/water_tile.png",
+	"short_bridge_tile": "bridges/short_bridge_tile.png",
+	"bridge_support": "bridges/bridge_support.png",
+	"sky_gradient": "backgrounds/sky_gradient.png",
+	"far_hills_loop": "backgrounds/far_hills_loop.png",
+	"far_forest_loop": "backgrounds/far_forest_loop.png",
+	"cloud_loop_01": "backgrounds/cloud_loop_01.png",
+	"cloud_loop_02": "backgrounds/cloud_loop_02.png",
+	"tree_variant_01": "resources/tree_variant_01.png",
+	"tree_variant_02": "resources/tree_variant_02.png",
+	"mother_tree_variant_01": "resources/mother_tree_variant_01.png",
+	"mother_tree_variant_02": "resources/mother_tree_variant_02.png",
+	"stone_variant_01": "resources/stone_variant_01.png",
+	"stone_variant_02": "resources/stone_variant_02.png",
+}
+
+const TERRAIN_SETS := {
+	"main_grass": {
+		"ground_tiles": ["grass_ground_tile", "grass_ground_variant_01", "grass_ground_variant_02"],
+		"ground_fill": "ground_fill",
+		"water_tile": "water_tile",
+		"short_bridge_tile": "short_bridge_tile",
+		"bridge_support": "bridge_support",
+		"background_layers": [
+			{"id": "SkyGradient", "asset": "sky_gradient", "z_index": -120, "parallax": 0.0, "position": Vector2(0, -608), "repeat": false},
+			{"id": "FarHills", "asset": "far_hills_loop", "z_index": -90, "parallax": 0.12, "position": Vector2(0, 96), "repeat": true},
+			{"id": "FarForest", "asset": "far_forest_loop", "z_index": -80, "parallax": 0.18, "position": Vector2(0, 220), "repeat": true},
+			{"id": "CloudsA", "asset": "cloud_loop_01", "z_index": -100, "parallax": 0.05, "position": Vector2(0, -360), "repeat": true},
+			{"id": "CloudsB", "asset": "cloud_loop_02", "z_index": -99, "parallax": 0.08, "position": Vector2(0, -260), "repeat": true},
+		],
+		"resource_variants": {
+			"tree": ["tree_variant_01", "tree_variant_02"],
+			"mother_tree": ["mother_tree_variant_01", "mother_tree_variant_02"],
+			"stone": ["stone_variant_01", "stone_variant_02"],
+		},
+	},
+}
+
 const TERRAIN_BUILDINGS := {
 	"river": [
 		{
@@ -397,11 +546,11 @@ const BUILDING_UPGRADES := {
 	"blacksmith": {
 		2: {
 			"cost": 20,
-			"requires": {"cityhall": 2},
+			"requires": {"cityhall": 2, "quarry": 1},
 		},
 		3: {
 			"cost": 40,
-			"requires": {"cityhall": 3},
+			"requires": {"cityhall": 3, "iron_mine": 1},
 		},
 	},
 	"wall": {
@@ -446,6 +595,7 @@ const WORLD := {
 	"tree_size": TREE_SIZE,
 	"mother_tree_size": MOTHER_TREE_SIZE,
 	"stone_size": STONE_SIZE,
+	"resource_size_multiplier": RESOURCE_SIZE_MULTIPLIER,
 	"quarry_size": QUARRY_SIZE,
 	"bridge_size": BRIDGE_SIZE,
 	"bridge_water_size": BRIDGE_WATER_SIZE,
@@ -454,13 +604,22 @@ const WORLD := {
 	"mother_tree_count": MOTHER_TREE_COUNT,
 	"mother_tree_random_seed": MOTHER_TREE_RANDOM_SEED,
 	"mother_tree_grow_radius": MOTHER_TREE_GROW_RADIUS,
+	"lumberjack_tree_search_radius": LUMBERJACK_TREE_SEARCH_RADIUS,
+	"mother_tree_lumberjack_search_radius": MOTHER_TREE_LUMBERJACK_SEARCH_RADIUS,
 	"stone_count": STONE_COUNT,
 	"stone_random_seed": STONE_RANDOM_SEED,
 	"bridge_count": BRIDGE_COUNT,
 	"bridge_random_seed": BRIDGE_RANDOM_SEED,
-	"bridge_near_city_hall_offset": BRIDGE_NEAR_CITY_HALL_OFFSET,
-	"bridge_near_city_hall_max_distance": BRIDGE_NEAR_CITY_HALL_MAX_DISTANCE,
+	"city_hall_resource_inner_radius": CITY_HALL_RESOURCE_INNER_RADIUS,
+	"city_hall_resource_outer_radius": CITY_HALL_RESOURCE_OUTER_RADIUS,
+	"bridge_city_hall_ring_offset": BRIDGE_CITY_HALL_RING_OFFSET,
+	"mother_tree_city_hall_ring_offset": MOTHER_TREE_CITY_HALL_RING_OFFSET,
+	"stone_city_hall_ring_offset": STONE_CITY_HALL_RING_OFFSET,
+	"autosave_seconds": AUTOSAVE_SECONDS,
+	"non_cityhall_building_size_multiplier": NON_CITYHALL_BUILDING_SIZE_MULTIPLIER,
 	"city_hall_front": CITY_HALL_FRONT,
+	"terrain_tile_size": TERRAIN_TILE_SIZE,
+	"visual_chunk_width": VISUAL_CHUNK_WIDTH,
 }
 
 const ECONOMY := {
@@ -478,11 +637,47 @@ const TRADE := {
 }
 
 const TRAVEL_DESTINATIONS := {
+	"main": {
+		"display_name": "main",
+		"scene_path": MAIN_SCENE_PATH,
+	},
 	"river": {
 		"display_name": "河湾商盟",
 		"scene_path": "res://scenes/RiverMerchantAlliance.tscn",
 	},
 }
+
+const RIVER_MERCHANT_ALLIANCE_NPC_LAYOUT := [
+	{"name": "Farmer_01", "role": "farmer", "position": Vector2(1600, GROUND_TOP_Y), "home_position": Vector2(1600, GROUND_TOP_Y), "home_id": "farm_1", "home_name": "farm", "enters_building": true},
+	{"name": "Farmer_02", "role": "farmer", "position": Vector2(1840, GROUND_TOP_Y), "home_position": Vector2(1840, GROUND_TOP_Y), "home_id": "farm_2", "home_name": "farm", "enters_building": true},
+	{"name": "Farmer_03", "role": "farmer", "position": Vector2(2080, GROUND_TOP_Y), "home_position": Vector2(2080, GROUND_TOP_Y), "home_id": "farm_3", "home_name": "farm", "enters_building": true},
+	{"name": "Farmer_04", "role": "farmer", "position": Vector2(2320, GROUND_TOP_Y), "home_position": Vector2(2320, GROUND_TOP_Y), "home_id": "farm_4", "home_name": "farm", "enters_building": true},
+	{"name": "Farmer_05", "role": "farmer", "position": Vector2(2560, GROUND_TOP_Y), "home_position": Vector2(2560, GROUND_TOP_Y), "home_id": "farm_5", "home_name": "farm", "enters_building": true},
+	{"name": "Lumberjack_01", "role": "lumberjack", "position": Vector2(3100, GROUND_TOP_Y), "home_position": Vector2(3100, GROUND_TOP_Y), "home_id": "lumberyard_1", "home_name": "lumberyard", "enters_building": true},
+	{"name": "Lumberjack_02", "role": "lumberjack", "position": Vector2(3340, GROUND_TOP_Y), "home_position": Vector2(3340, GROUND_TOP_Y), "home_id": "lumberyard_2", "home_name": "lumberyard", "enters_building": true},
+	{"name": "Lumberjack_03", "role": "lumberjack", "position": Vector2(3580, GROUND_TOP_Y), "home_position": Vector2(3580, GROUND_TOP_Y), "home_id": "lumberyard_3", "home_name": "lumberyard", "enters_building": true},
+	{"name": "Miner_01", "role": "miner", "position": Vector2(6050, GROUND_TOP_Y), "home_position": Vector2(6050, GROUND_TOP_Y), "home_id": "quarry_1", "home_name": "quarry", "enters_building": true},
+	{"name": "Miner_02", "role": "miner", "position": Vector2(6280, GROUND_TOP_Y), "home_position": Vector2(6280, GROUND_TOP_Y), "home_id": "quarry_2", "home_name": "quarry", "enters_building": true},
+	{"name": "Miner_03", "role": "miner", "position": Vector2(6510, GROUND_TOP_Y), "home_position": Vector2(6510, GROUND_TOP_Y), "home_id": "quarry_3", "home_name": "quarry", "enters_building": true},
+	{"name": "SmithVillager_01", "role": "villager", "position": Vector2(7100, GROUND_TOP_Y), "home_position": Vector2(7100, GROUND_TOP_Y), "home_id": "blacksmith_1", "home_name": "blacksmith", "enters_building": true},
+	{"name": "SmithVillager_02", "role": "villager", "position": Vector2(7330, GROUND_TOP_Y), "home_position": Vector2(7330, GROUND_TOP_Y), "home_id": "blacksmith_2", "home_name": "blacksmith", "enters_building": true},
+	{"name": "Warrior_01", "role": "warrior", "position": Vector2(650, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Warrior_02", "role": "warrior", "position": Vector2(710, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Warrior_03", "role": "warrior", "position": Vector2(770, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Warrior_04", "role": "warrior", "position": Vector2(830, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Warrior_05", "role": "warrior", "position": Vector2(890, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Warrior_06", "role": "warrior", "position": Vector2(8710, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Warrior_07", "role": "warrior", "position": Vector2(8770, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Warrior_08", "role": "warrior", "position": Vector2(8830, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Warrior_09", "role": "warrior", "position": Vector2(8890, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Warrior_10", "role": "warrior", "position": Vector2(8950, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Archer_01", "role": "archer", "position": Vector2(700, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Archer_02", "role": "archer", "position": Vector2(760, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Archer_03", "role": "archer", "position": Vector2(820, GROUND_TOP_Y), "patrol_side": "left", "patrol_anchor": Vector2(760, GROUND_TOP_Y)},
+	{"name": "Archer_04", "role": "archer", "position": Vector2(8780, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Archer_05", "role": "archer", "position": Vector2(8840, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+	{"name": "Archer_06", "role": "archer", "position": Vector2(8900, GROUND_TOP_Y), "patrol_side": "right", "patrol_anchor": Vector2(8840, GROUND_TOP_Y)},
+]
 
 const TRAINING := {
 	"shield_guard_cost": 25,
@@ -526,6 +721,17 @@ func travel_destination_display_name(terrain: String) -> String:
 	return str(travel_destination_value(terrain, "display_name", terrain))
 
 
+func river_merchant_alliance_npc_layout() -> Array:
+	var layout: Array = []
+	for definition in RIVER_MERCHANT_ALLIANCE_NPC_LAYOUT:
+		layout.append((definition as Dictionary).duplicate(true))
+	return layout
+
+
+func river_mirror_water_visual() -> Dictionary:
+	return RIVER_MIRROR_WATER_VISUAL.duplicate(true)
+
+
 func training_value(key: String, default_value = null):
 	return TRAINING.get(key, default_value)
 
@@ -536,6 +742,119 @@ func defense_value(key: String, default_value = null):
 
 func arrow_value(key: String, default_value = null):
 	return ARROW.get(key, default_value)
+
+
+func art_asset_path(category: String, asset_id: String) -> String:
+	var category_assets: Dictionary = ART_ASSETS.get(category, {})
+	var filename := str(category_assets.get(asset_id, ""))
+	if filename == "":
+		return ""
+	return "%s/%s/%s" % [ART_ASSET_ROOT, category, filename]
+
+
+func art_asset_texture(category: String, asset_id: String) -> Texture2D:
+	var path := art_asset_path(category, asset_id)
+	if path == "":
+		return null
+	return load(path) as Texture2D
+
+
+func art_asset_visible_rect(category: String, asset_id: String) -> Rect2:
+	var cache_key := "%s:%s" % [category, asset_id]
+	if _art_asset_visible_rect_cache.has(cache_key):
+		return _art_asset_visible_rect_cache[cache_key]
+
+	var texture := art_asset_texture(category, asset_id)
+	if texture == null:
+		return Rect2()
+
+	var texture_size := Vector2(float(texture.get_width()), float(texture.get_height()))
+	var image := texture.get_image()
+	if image == null:
+		var full_rect := Rect2(Vector2.ZERO, texture_size)
+		_art_asset_visible_rect_cache[cache_key] = full_rect
+		return full_rect
+	if image.is_compressed():
+		image.decompress()
+
+	var min_x := int(texture_size.x)
+	var min_y := int(texture_size.y)
+	var max_x := -1
+	var max_y := -1
+	for y in range(int(texture_size.y)):
+		for x in range(int(texture_size.x)):
+			if image.get_pixel(x, y).a <= 0.01:
+				continue
+			min_x = mini(min_x, x)
+			min_y = mini(min_y, y)
+			max_x = maxi(max_x, x)
+			max_y = maxi(max_y, y)
+
+	var visible_rect := Rect2(Vector2.ZERO, texture_size)
+	if max_x >= min_x and max_y >= min_y:
+		visible_rect = Rect2(
+			Vector2(float(min_x), float(min_y)),
+			Vector2(float(max_x - min_x + 1), float(max_y - min_y + 1))
+		)
+	_art_asset_visible_rect_cache[cache_key] = visible_rect
+	return visible_rect
+
+
+func building_body_size(definition: Dictionary) -> Vector2:
+	var target_size: Vector2 = definition.get("size", Vector2.ZERO)
+	var building_id := str(definition.get("id", ""))
+	if target_size == Vector2.ZERO or building_id == "":
+		return target_size
+
+	var texture := art_asset_texture("buildings", building_id)
+	if texture == null:
+		return target_size
+
+	var canvas_size := Vector2(float(texture.get_width()), float(texture.get_height()))
+	var visible_rect := art_asset_visible_rect("buildings", building_id)
+	if canvas_size.x <= 0.0 or canvas_size.y <= 0.0 or visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0:
+		return target_size
+
+	var scale_factor := minf(
+		target_size.x / maxf(1.0, canvas_size.x),
+		target_size.y / maxf(1.0, canvas_size.y)
+	)
+	return visible_rect.size * scale_factor
+
+
+func art_asset_root() -> String:
+	return ART_ASSET_ROOT
+
+
+func terrain_asset_root() -> String:
+	return TERRAIN_ASSET_ROOT
+
+
+func terrain_asset_path(asset_id: String) -> String:
+	var relative_path := str(TERRAIN_ASSETS.get(asset_id, ""))
+	if relative_path == "":
+		return ""
+	return "%s/%s" % [TERRAIN_ASSET_ROOT, relative_path]
+
+
+func terrain_asset_texture(asset_id: String) -> Texture2D:
+	var path := terrain_asset_path(asset_id)
+	if path == "":
+		return null
+	return load(path) as Texture2D
+
+
+func terrain_set(set_id := "main_grass") -> Dictionary:
+	var terrain_data: Dictionary = TERRAIN_SETS.get(set_id, {})
+	return terrain_data.duplicate(true)
+
+
+func terrain_tile_size() -> Vector2:
+	return TERRAIN_TILE_SIZE
+
+
+func visual_chunk_width() -> float:
+	return float(VISUAL_CHUNK_WIDTH)
 
 
 func has_building_upgrade(building_id: String, target_level: int) -> bool:
@@ -641,6 +960,42 @@ func blacksmith_craft_requirements(blacksmith_level: int) -> Dictionary:
 	return requirements.duplicate(true)
 
 
+func scaled_building_definition(definition: Dictionary) -> Dictionary:
+	var scaled_definition := definition.duplicate(true)
+	if str(scaled_definition.get("id", "")) == "cityhall":
+		return scaled_definition
+	if scaled_definition.has("size"):
+		var base_size: Vector2 = scaled_definition.get("size", Vector2.ZERO)
+		scaled_definition.size = base_size * NON_CITYHALL_BUILDING_SIZE_MULTIPLIER
+	return scaled_definition
+
+
+func scaled_building_definitions(definitions: Array) -> Array:
+	var scaled_definitions: Array = []
+	for definition in definitions:
+		if definition is Dictionary:
+			scaled_definitions.append(scaled_building_definition(definition))
+	return scaled_definitions
+
+
+func building_orientation_rule(building_id: String) -> Dictionary:
+	var rule: Dictionary = BUILDING_ORIENTATION_RULES.get(building_id, {})
+	return rule.duplicate(true)
+
+
+func oriented_building_scale(
+	building_id: String,
+	building_position: Vector2,
+	city_hall_position: Vector2,
+	base_scale := Vector2.ONE
+) -> Vector2:
+	var oriented_scale := Vector2(absf(base_scale.x), absf(base_scale.y))
+	var rule := building_orientation_rule(building_id)
+	if bool(rule.get("mirror_right_of_cityhall", false)) and building_position.x > city_hall_position.x:
+		oriented_scale.x = -absf(base_scale.x)
+	return oriented_scale
+
+
 func terrain_building_ids(terrain: String) -> Array:
 	var ids: Array = []
 	for definition in TERRAIN_BUILDINGS.get(terrain, []):
@@ -652,12 +1007,12 @@ func terrain_building_definitions(terrain := "") -> Array:
 	var definitions: Array = []
 	if terrain != "":
 		for definition in TERRAIN_BUILDINGS.get(terrain, []):
-			definitions.append((definition as Dictionary).duplicate(true))
+			definitions.append(scaled_building_definition(definition))
 		return definitions
 
 	for terrain_id in TERRAIN_BUILDINGS.keys():
 		for definition in TERRAIN_BUILDINGS[terrain_id]:
-			definitions.append((definition as Dictionary).duplicate(true))
+			definitions.append(scaled_building_definition(definition))
 	return definitions
 
 
@@ -669,27 +1024,33 @@ func terrain_building_definition(building_id: String) -> Dictionary:
 
 
 func quarry_value(key: String, default_value = null):
+	if key == "size":
+		return quarry_definition().get("size", default_value)
 	return QUARRY.get(key, default_value)
 
 
 func quarry_definition() -> Dictionary:
-	return QUARRY.duplicate(true)
+	return scaled_building_definition(QUARRY)
 
 
 func farm_value(key: String, default_value = null):
+	if key == "size":
+		return farm_definition().get("size", default_value)
 	return FARM.get(key, default_value)
 
 
 func farm_definition() -> Dictionary:
-	return FARM.duplicate(true)
+	return scaled_building_definition(FARM)
 
 
 func lumberyard_value(key: String, default_value = null):
+	if key == "size":
+		return lumberyard_definition().get("size", default_value)
 	return LUMBERYARD.get(key, default_value)
 
 
 func lumberyard_definition() -> Dictionary:
-	return LUMBERYARD.duplicate(true)
+	return scaled_building_definition(LUMBERYARD)
 
 
 func resource_value(resource_kind: String, key: String, default_value = null):

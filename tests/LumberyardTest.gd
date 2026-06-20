@@ -1,6 +1,7 @@
 extends SceneTree
 
 const NPCFactory = preload("res://scripts/NPCFactory.gd")
+const GameData = preload("res://scripts/GameData.gd")
 const WINDOW_DARK := Color(0.08, 0.1, 0.13, 1)
 const WINDOW_LIT := Color(1.0, 0.82, 0.24, 1)
 
@@ -106,6 +107,8 @@ func _init() -> void:
 
 		root.free()
 
+		_test_lumberjack_dispatch_range_is_doubled(build_manager_script, npc_manager_script)
+
 	if failures == 0:
 		print("LumberyardTest: PASS")
 	else:
@@ -126,6 +129,74 @@ func _test_lumberyard_grows_trees(build_manager: Node2D, source_position: Vector
 			continue
 		var node: Node2D = entity.node
 		_assert_true(node.global_position.distance_to(source_position) <= 420.0, "grown tree is near lumberyard")
+
+
+func _test_lumberjack_dispatch_range_is_doubled(build_manager_script: Script, npc_manager_script: Script) -> void:
+	var root := Node2D.new()
+
+	var buildings := Node2D.new()
+	buildings.name = "Buildings"
+	root.add_child(buildings)
+
+	var npcs := Node2D.new()
+	npcs.name = "NPCs"
+	root.add_child(npcs)
+
+	var build_manager: Node2D = build_manager_script.new()
+	build_manager.name = "BuildManager"
+	root.add_child(build_manager)
+	build_manager.buildings_container = buildings
+
+	var npc_manager: Node2D = npc_manager_script.new()
+	npc_manager.name = "NPCManager"
+	root.add_child(npc_manager)
+	npc_manager.npc_container = npcs
+
+	var lumberyard_position := Vector2(3000, 472)
+	var lumberyard := _make_building("lumberyard_range_test", lumberyard_position)
+	buildings.add_child(lumberyard)
+	build_manager._track_placed_entity(
+		lumberyard,
+		Rect2(Vector2(2900, 342), Vector2(200, 130)),
+		true,
+		"Lumberyard",
+		"building",
+		true,
+		"lumberyard"
+	)
+
+	var far_tree_position := lumberyard_position + Vector2(GameData.LUMBERYARD_TREE_RADIUS * 2.0 - 40.0, 0)
+	var far_tree := Node2D.new()
+	far_tree.name = "FarRangeTree"
+	far_tree.global_position = far_tree_position
+	buildings.add_child(far_tree)
+	build_manager._track_placed_entity(
+		far_tree,
+		Rect2(far_tree_position - Vector2(GameData.TREE_SIZE.x * 0.5, GameData.TREE_SIZE.y), GameData.TREE_SIZE),
+		true,
+		"Tree",
+		"tree",
+		false,
+		"tree",
+		"tree"
+	)
+
+	var factory := NPCFactory.new()
+	var villager: Node2D = factory.create_homeless(lumberyard_position, Vector2(4800, 472))
+	villager.name = "Villager_Range"
+	villager.interact()
+	npcs.add_child(villager)
+
+	npc_manager._assign_workplace_to_villager(villager)
+	villager.global_position = lumberyard_position
+	npc_manager._finish_arriving_workers()
+
+	build_manager._update_lumberyards(0.0)
+	_assert_equal(build_manager.tree_chop_tasks.size(), 1, "lumberjack can target a tree inside doubled range")
+	if build_manager.tree_chop_tasks.size() > 0:
+		_assert_equal(build_manager.tree_chop_tasks[0].task_id, "FarRangeTree", "doubled range dispatch targets the farther tree")
+
+	root.free()
 
 
 func _tree_count(build_manager: Node2D) -> int:

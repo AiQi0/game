@@ -1,0 +1,2946 @@
+{
+  "pack_id": "medieval_pixel_pack_v3_no_outline",
+  "status": "applied_aseprite_no_outline_pixel_redraw",
+  "style": "medieval fairy-tale refined pixel art, no added outline stroke, transparent PNG",
+  "source_pack": "assets/medieval_pixel_pack_v2",
+  "source_generation": "assets/medieval_pixel_pack_v2/_raw original image_gen atlases",
+  "single_asset_regenerations": [
+    "farm",
+    "lumberyard",
+    "post_station",
+    "quarry",
+    "wall"
+  ],
+  "runtime_application": "applied through GameData.ART_ASSET_ROOT and scene texture references",
+  "generated_at": "2026-06-20 13:11:44",
+  "assets": [
+    {
+      "category": "buildings",
+      "slug": "cityhall",
+      "display_name": "City Hall",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/cityhall.png",
+      "size": {
+        "width": 420,
+        "height": 340
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          58,
+          19,
+          375,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          0,
+          418,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          66,
+          27,
+          367,
+          306
+        ],
+        "target_size": [
+          420,
+          340
+        ],
+        "resized_subject_size": [
+          367,
+          340
+        ],
+        "placement": [
+          26,
+          0
+        ],
+        "scale": 1.2186379928315412,
+        "final_bbox": [
+          32,
+          3,
+          387,
+          340
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "blacksmith",
+      "display_name": "Blacksmith",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/blacksmith.png",
+      "size": {
+        "width": 220,
+        "height": 160
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 2,
+        "bbox_after_chroma": [
+          31,
+          53,
+          394,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          418,
+          0,
+          836,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          39,
+          61,
+          386,
+          309
+        ],
+        "target_size": [
+          220,
+          160
+        ],
+        "resized_subject_size": [
+          220,
+          157
+        ],
+        "placement": [
+          0,
+          3
+        ],
+        "scale": 0.6340057636887608,
+        "final_bbox": [
+          0,
+          5,
+          217,
+          160
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "wall",
+      "display_name": "Wall",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/wall.png",
+      "size": {
+        "width": 140,
+        "height": 120
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/wall_side_view_regenerated_20260620_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          242,
+          102,
+          1006,
+          1138
+        ]
+      },
+      "source_pack": "single_image_gen_replacement",
+      "regenerated_from_single_raw": true,
+      "aseprite_pixel_pass": {
+        "source_file": "assets/medieval_pixel_pack_v3_no_outline/_raw/wall_side_view_regenerated_20260620_raw.png",
+        "source_bbox_after_chroma": [
+          242,
+          102,
+          1006,
+          1138
+        ],
+        "target_size": [
+          140,
+          120
+        ],
+        "resized_subject_size": [
+          88,
+          120
+        ],
+        "placement": [
+          26,
+          0
+        ],
+        "scale": 0.11583011583011583,
+        "final_bbox": [
+          29,
+          0,
+          111,
+          120
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true,
+        "single_asset_regeneration": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "farm",
+      "display_name": "Farm",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/farm.png",
+      "size": {
+        "width": 240,
+        "height": 80
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/farm_field_focused_regenerated_20260620_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          156,
+          128,
+          2009,
+          627
+        ]
+      },
+      "source_pack": "single_image_gen_replacement",
+      "regenerated_from_single_raw": true,
+      "aseprite_pixel_pass": {
+        "source_file": "assets/medieval_pixel_pack_v3_no_outline/_raw/farm_field_focused_regenerated_20260620_raw.png",
+        "source_bbox_after_chroma": [
+          156,
+          128,
+          2009,
+          627
+        ],
+        "target_size": [
+          240,
+          80
+        ],
+        "resized_subject_size": [
+          240,
+          65
+        ],
+        "placement": [
+          0,
+          15
+        ],
+        "scale": 0.12951969778737182,
+        "final_bbox": [
+          3,
+          17,
+          237,
+          80
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true,
+        "single_asset_regeneration": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "tavern",
+      "display_name": "Tavern",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/tavern.png",
+      "size": {
+        "width": 220,
+        "height": 170
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 1,
+        "bbox_after_chroma": [
+          47,
+          45,
+          390,
+          273
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          313,
+          418,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          55,
+          53,
+          382,
+          265
+        ],
+        "target_size": [
+          220,
+          170
+        ],
+        "resized_subject_size": [
+          220,
+          143
+        ],
+        "placement": [
+          0,
+          27
+        ],
+        "scale": 0.672782874617737,
+        "final_bbox": [
+          3,
+          29,
+          220,
+          170
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "post_station",
+      "display_name": "Post Station",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/post_station.png",
+      "size": {
+        "width": 230,
+        "height": 160
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/post_station_hd_regenerated_20260620_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          51,
+          51,
+          1502,
+          933
+        ]
+      },
+      "source_pack": "single_image_gen_replacement",
+      "regenerated_from_single_raw": true,
+      "aseprite_pixel_pass": {
+        "source_file": "assets/medieval_pixel_pack_v3_no_outline/_raw/post_station_hd_regenerated_20260620_raw.png",
+        "source_bbox_after_chroma": [
+          51,
+          51,
+          1502,
+          933
+        ],
+        "target_size": [
+          230,
+          160
+        ],
+        "resized_subject_size": [
+          230,
+          140
+        ],
+        "placement": [
+          0,
+          20
+        ],
+        "scale": 0.15851137146795313,
+        "final_bbox": [
+          4,
+          26,
+          226,
+          160
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true,
+        "single_asset_regeneration": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "lumberyard",
+      "display_name": "Lumberyard",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/lumberyard.png",
+      "size": {
+        "width": 220,
+        "height": 160
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/lumberyard_regenerated_20260620_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          130,
+          140,
+          1471,
+          838
+        ]
+      },
+      "source_pack": "single_image_gen_replacement",
+      "regenerated_from_single_raw": true,
+      "aseprite_pixel_pass": {
+        "source_file": "assets/medieval_pixel_pack_v3_no_outline/_raw/lumberyard_regenerated_20260620_raw.png",
+        "source_bbox_after_chroma": [
+          130,
+          140,
+          1471,
+          838
+        ],
+        "target_size": [
+          220,
+          160
+        ],
+        "resized_subject_size": [
+          220,
+          115
+        ],
+        "placement": [
+          0,
+          45
+        ],
+        "scale": 0.16405667412378822,
+        "final_bbox": [
+          3,
+          47,
+          216,
+          160
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true,
+        "single_asset_regeneration": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "quarry",
+      "display_name": "Quarry",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/quarry.png",
+      "size": {
+        "width": 220,
+        "height": 140
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/quarry_regenerated_20260620_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          136,
+          109,
+          1456,
+          852
+        ]
+      },
+      "source_pack": "single_image_gen_replacement",
+      "regenerated_from_single_raw": true,
+      "aseprite_pixel_pass": {
+        "source_file": "assets/medieval_pixel_pack_v3_no_outline/_raw/quarry_regenerated_20260620_raw.png",
+        "source_bbox_after_chroma": [
+          136,
+          109,
+          1456,
+          852
+        ],
+        "target_size": [
+          220,
+          140
+        ],
+        "resized_subject_size": [
+          220,
+          124
+        ],
+        "placement": [
+          0,
+          16
+        ],
+        "scale": 0.16666666666666666,
+        "final_bbox": [
+          3,
+          18,
+          215,
+          140
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true,
+        "single_asset_regeneration": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "barracks",
+      "display_name": "Barracks",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/barracks.png",
+      "size": {
+        "width": 240,
+        "height": 170
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 1,
+        "bbox_after_chroma": [
+          50,
+          16,
+          385,
+          252
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          626,
+          418,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          58,
+          24,
+          377,
+          244
+        ],
+        "target_size": [
+          240,
+          170
+        ],
+        "resized_subject_size": [
+          240,
+          166
+        ],
+        "placement": [
+          0,
+          4
+        ],
+        "scale": 0.7523510971786834,
+        "final_bbox": [
+          3,
+          7,
+          240,
+          170
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "river_port",
+      "display_name": "River Port",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/river_port.png",
+      "size": {
+        "width": 240,
+        "height": 160
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 2,
+        "bbox_after_chroma": [
+          26,
+          25,
+          418,
+          256
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          418,
+          626,
+          836,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          34,
+          33,
+          418,
+          248
+        ],
+        "target_size": [
+          240,
+          160
+        ],
+        "resized_subject_size": [
+          240,
+          134
+        ],
+        "placement": [
+          0,
+          26
+        ],
+        "scale": 0.625,
+        "final_bbox": [
+          0,
+          28,
+          240,
+          160
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "beacon_tower",
+      "display_name": "Beacon Tower",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/beacon_tower.png",
+      "size": {
+        "width": 160,
+        "height": 220
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 3,
+        "bbox_after_chroma": [
+          0,
+          0,
+          418,
+          256
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          836,
+          626,
+          1254,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          0,
+          0,
+          418,
+          248
+        ],
+        "target_size": [
+          160,
+          220
+        ],
+        "resized_subject_size": [
+          160,
+          95
+        ],
+        "placement": [
+          0,
+          125
+        ],
+        "scale": 0.3827751196172249,
+        "final_bbox": [
+          0,
+          127,
+          160,
+          220
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "buildings",
+      "slug": "iron_mine",
+      "display_name": "Iron Mine",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/buildings/iron_mine.png",
+      "size": {
+        "width": 220,
+        "height": 150
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/buildings_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 4,
+        "bbox_after_chroma": [
+          0,
+          11,
+          318,
+          257
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1254,
+          626,
+          1672,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          0,
+          19,
+          310,
+          249
+        ],
+        "target_size": [
+          220,
+          150
+        ],
+        "resized_subject_size": [
+          202,
+          150
+        ],
+        "placement": [
+          9,
+          0
+        ],
+        "scale": 0.6521739130434783,
+        "final_bbox": [
+          11,
+          3,
+          208,
+          150
+        ],
+        "color_budget": 64,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "player",
+      "display_name": "Player",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/player.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          250,
+          18,
+          441,
+          289
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          0,
+          557,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          258,
+          26,
+          433,
+          281
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          60,
+          87
+        ],
+        "placement": [
+          2,
+          7
+        ],
+        "scale": 0.34285714285714286,
+        "final_bbox": [
+          4,
+          9,
+          60,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "villager",
+      "display_name": "Villager",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/villager.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 2,
+        "bbox_after_chroma": [
+          199,
+          22,
+          349,
+          289
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          557,
+          0,
+          1114,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          207,
+          30,
+          341,
+          281
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          49,
+          92
+        ],
+        "placement": [
+          7,
+          2
+        ],
+        "scale": 0.3665338645418327,
+        "final_bbox": [
+          9,
+          4,
+          54,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "homeless",
+      "display_name": "Homeless",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/homeless.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 3,
+        "bbox_after_chroma": [
+          82,
+          15,
+          245,
+          289
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1114,
+          0,
+          1671,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          90,
+          23,
+          237,
+          281
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          52,
+          92
+        ],
+        "placement": [
+          6,
+          2
+        ],
+        "scale": 0.35658914728682173,
+        "final_bbox": [
+          8,
+          5,
+          56,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "farmer",
+      "display_name": "Farmer",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/farmer.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 1,
+        "bbox_after_chroma": [
+          259,
+          0,
+          469,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          313,
+          557,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          267,
+          1,
+          461,
+          313
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          57,
+          92
+        ],
+        "placement": [
+          3,
+          2
+        ],
+        "scale": 0.2948717948717949,
+        "final_bbox": [
+          5,
+          4,
+          55,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "lumberjack",
+      "display_name": "Lumberjack",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/lumberjack.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 2,
+        "bbox_after_chroma": [
+          133,
+          0,
+          396,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          557,
+          313,
+          1114,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          141,
+          0,
+          388,
+          313
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          60,
+          76
+        ],
+        "placement": [
+          2,
+          18
+        ],
+        "scale": 0.242914979757085,
+        "final_bbox": [
+          5,
+          20,
+          59,
+          81
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "miner",
+      "display_name": "Miner",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/miner.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 3,
+        "bbox_after_chroma": [
+          43,
+          4,
+          282,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1114,
+          313,
+          1671,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          52,
+          12,
+          274,
+          313
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          60,
+          81
+        ],
+        "placement": [
+          2,
+          13
+        ],
+        "scale": 0.2702702702702703,
+        "final_bbox": [
+          4,
+          15,
+          60,
+          80
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "warrior",
+      "display_name": "Warrior",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/warrior.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 1,
+        "bbox_after_chroma": [
+          213,
+          0,
+          486,
+          280
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          626,
+          557,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          221,
+          0,
+          477,
+          272
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          60,
+          64
+        ],
+        "placement": [
+          2,
+          30
+        ],
+        "scale": 0.234375,
+        "final_bbox": [
+          4,
+          32,
+          60,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "archer",
+      "display_name": "Archer",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/archer.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 2,
+        "bbox_after_chroma": [
+          129,
+          0,
+          366,
+          280
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          557,
+          626,
+          1114,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          137,
+          0,
+          358,
+          272
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          60,
+          74
+        ],
+        "placement": [
+          2,
+          20
+        ],
+        "scale": 0.27149321266968324,
+        "final_bbox": [
+          4,
+          22,
+          60,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "npcs",
+      "slug": "monster",
+      "display_name": "Monster",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/npcs/monster.png",
+      "size": {
+        "width": 64,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/npcs_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 3,
+        "bbox_after_chroma": [
+          41,
+          0,
+          344,
+          280
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1114,
+          626,
+          1671,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          49,
+          0,
+          336,
+          272
+        ],
+        "target_size": [
+          64,
+          96
+        ],
+        "resized_subject_size": [
+          60,
+          57
+        ],
+        "placement": [
+          2,
+          37
+        ],
+        "scale": 0.20905923344947736,
+        "final_bbox": [
+          4,
+          39,
+          58,
+          92
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "wooden_sword",
+      "display_name": "Wooden Sword",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/wooden_sword.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          119,
+          51,
+          325,
+          275
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          0,
+          418,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          127,
+          59,
+          317,
+          266
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          55,
+          60
+        ],
+        "placement": [
+          4,
+          2
+        ],
+        "scale": 0.2898550724637681,
+        "final_bbox": [
+          6,
+          4,
+          57,
+          59
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "wooden_axe",
+      "display_name": "Wooden Axe",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/wooden_axe.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 2,
+        "bbox_after_chroma": [
+          94,
+          47,
+          319,
+          279
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          418,
+          0,
+          836,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          102,
+          55,
+          311,
+          271
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          58,
+          60
+        ],
+        "placement": [
+          3,
+          2
+        ],
+        "scale": 0.2777777777777778,
+        "final_bbox": [
+          5,
+          5,
+          59,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "wooden_sickle",
+      "display_name": "Wooden Sickle",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/wooden_sickle.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 3,
+        "bbox_after_chroma": [
+          116,
+          55,
+          278,
+          275
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          836,
+          0,
+          1254,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          124,
+          63,
+          270,
+          267
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          43,
+          60
+        ],
+        "placement": [
+          10,
+          2
+        ],
+        "scale": 0.29411764705882354,
+        "final_bbox": [
+          12,
+          4,
+          48,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "bow",
+      "display_name": "Bow",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/bow.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 4,
+        "bbox_after_chroma": [
+          83,
+          43,
+          215,
+          283
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1254,
+          0,
+          1672,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          91,
+          51,
+          207,
+          275
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          31,
+          60
+        ],
+        "placement": [
+          16,
+          2
+        ],
+        "scale": 0.26785714285714285,
+        "final_bbox": [
+          18,
+          5,
+          45,
+          59
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_sword",
+      "display_name": "Stone Sword",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_sword.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 1,
+        "bbox_after_chroma": [
+          116,
+          39,
+          317,
+          263
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          313,
+          418,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          124,
+          47,
+          309,
+          255
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          53,
+          60
+        ],
+        "placement": [
+          5,
+          2
+        ],
+        "scale": 0.28846153846153844,
+        "final_bbox": [
+          7,
+          4,
+          56,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_pickaxe",
+      "display_name": "Stone Pickaxe",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_pickaxe.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 2,
+        "bbox_after_chroma": [
+          105,
+          42,
+          308,
+          260
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          418,
+          313,
+          836,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          113,
+          50,
+          300,
+          252
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          56,
+          60
+        ],
+        "placement": [
+          4,
+          2
+        ],
+        "scale": 0.297029702970297,
+        "final_bbox": [
+          7,
+          4,
+          57,
+          59
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_sickle",
+      "display_name": "Stone Sickle",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_sickle.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 3,
+        "bbox_after_chroma": [
+          119,
+          42,
+          284,
+          260
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          836,
+          313,
+          1254,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          127,
+          50,
+          276,
+          252
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          44,
+          60
+        ],
+        "placement": [
+          10,
+          2
+        ],
+        "scale": 0.297029702970297,
+        "final_bbox": [
+          12,
+          4,
+          50,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "stone_arrowhead",
+      "display_name": "Stone Arrowhead",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_arrowhead.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 4,
+        "bbox_after_chroma": [
+          80,
+          46,
+          215,
+          251
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1254,
+          313,
+          1672,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          88,
+          54,
+          207,
+          243
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          38,
+          60
+        ],
+        "placement": [
+          13,
+          2
+        ],
+        "scale": 0.31746031746031744,
+        "final_bbox": [
+          15,
+          5,
+          49,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_sword",
+      "display_name": "Iron Sword",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_sword.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 1,
+        "bbox_after_chroma": [
+          108,
+          18,
+          304,
+          245
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          626,
+          418,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          116,
+          26,
+          296,
+          237
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          51,
+          60
+        ],
+        "placement": [
+          6,
+          2
+        ],
+        "scale": 0.2843601895734597,
+        "final_bbox": [
+          8,
+          4,
+          55,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_pickaxe",
+      "display_name": "Iron Pickaxe",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_pickaxe.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 2,
+        "bbox_after_chroma": [
+          105,
+          26,
+          308,
+          245
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          418,
+          626,
+          836,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          113,
+          34,
+          300,
+          237
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          55,
+          60
+        ],
+        "placement": [
+          4,
+          2
+        ],
+        "scale": 0.2955665024630542,
+        "final_bbox": [
+          6,
+          4,
+          56,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_sickle",
+      "display_name": "Iron Sickle",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_sickle.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 3,
+        "bbox_after_chroma": [
+          116,
+          22,
+          278,
+          245
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          836,
+          626,
+          1254,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          124,
+          30,
+          270,
+          237
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          42,
+          60
+        ],
+        "placement": [
+          11,
+          2
+        ],
+        "scale": 0.2898550724637681,
+        "final_bbox": [
+          13,
+          4,
+          50,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "tools",
+      "slug": "iron_arrowhead",
+      "display_name": "Iron Arrowhead",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_arrowhead.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/tools_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 4,
+        "bbox_after_chroma": [
+          77,
+          31,
+          206,
+          241
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1254,
+          626,
+          1672,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          85,
+          39,
+          198,
+          233
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          35,
+          60
+        ],
+        "placement": [
+          14,
+          2
+        ],
+        "scale": 0.30927835051546393,
+        "final_bbox": [
+          17,
+          6,
+          47,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "tree",
+      "display_name": "Tree",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/tree.png",
+      "size": {
+        "width": 96,
+        "height": 128
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          162,
+          24,
+          422,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          0,
+          557,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          170,
+          32,
+          414,
+          313
+        ],
+        "target_size": [
+          96,
+          128
+        ],
+        "resized_subject_size": [
+          92,
+          106
+        ],
+        "placement": [
+          2,
+          20
+        ],
+        "scale": 0.3770491803278688,
+        "final_bbox": [
+          5,
+          23,
+          91,
+          124
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "mother_tree",
+      "display_name": "Mother Tree",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/mother_tree.png",
+      "size": {
+        "width": 240,
+        "height": 260
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 2,
+        "bbox_after_chroma": [
+          72,
+          12,
+          472,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          557,
+          0,
+          1114,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          80,
+          20,
+          464,
+          313
+        ],
+        "target_size": [
+          240,
+          260
+        ],
+        "resized_subject_size": [
+          238,
+          182
+        ],
+        "placement": [
+          1,
+          77
+        ],
+        "scale": 0.6197916666666666,
+        "final_bbox": [
+          3,
+          79,
+          237,
+          257
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "stone",
+      "display_name": "Stone",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/stone.png",
+      "size": {
+        "width": 120,
+        "height": 80
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 3,
+        "bbox_after_chroma": [
+          99,
+          158,
+          372,
+          313
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1114,
+          0,
+          1671,
+          313
+        ],
+        "source_bbox_after_chroma": [
+          107,
+          166,
+          364,
+          313
+        ],
+        "target_size": [
+          120,
+          80
+        ],
+        "resized_subject_size": [
+          118,
+          67
+        ],
+        "placement": [
+          1,
+          12
+        ],
+        "scale": 0.4591439688715953,
+        "final_bbox": [
+          4,
+          14,
+          115,
+          77
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "water",
+      "display_name": "Water",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/water.png",
+      "size": {
+        "width": 240,
+        "height": 80
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 1,
+        "bbox_after_chroma": [
+          74,
+          0,
+          501,
+          225
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          313,
+          557,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          82,
+          0,
+          493,
+          217
+        ],
+        "target_size": [
+          240,
+          80
+        ],
+        "resized_subject_size": [
+          148,
+          78
+        ],
+        "placement": [
+          46,
+          1
+        ],
+        "scale": 0.35944700460829493,
+        "final_bbox": [
+          48,
+          62,
+          192,
+          77
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "short_bridge",
+      "display_name": "Short Bridge",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/short_bridge.png",
+      "size": {
+        "width": 240,
+        "height": 80
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 2,
+        "bbox_after_chroma": [
+          57,
+          0,
+          491,
+          225
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          557,
+          313,
+          1114,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          65,
+          0,
+          483,
+          217
+        ],
+        "target_size": [
+          240,
+          80
+        ],
+        "resized_subject_size": [
+          150,
+          78
+        ],
+        "placement": [
+          45,
+          1
+        ],
+        "scale": 0.35944700460829493,
+        "final_bbox": [
+          48,
+          53,
+          192,
+          77
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "moon",
+      "display_name": "Moon",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/moon.png",
+      "size": {
+        "width": 96,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 3,
+        "bbox_after_chroma": [
+          162,
+          0,
+          331,
+          245
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1114,
+          313,
+          1671,
+          626
+        ],
+        "source_bbox_after_chroma": [
+          170,
+          0,
+          323,
+          237
+        ],
+        "target_size": [
+          96,
+          96
+        ],
+        "resized_subject_size": [
+          59,
+          92
+        ],
+        "placement": [
+          18,
+          2
+        ],
+        "scale": 0.3881856540084388,
+        "final_bbox": [
+          20,
+          31,
+          73,
+          92
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "sun",
+      "display_name": "Sun",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/sun.png",
+      "size": {
+        "width": 96,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/environment_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 1,
+        "bbox_after_chroma": [
+          168,
+          13,
+          404,
+          249
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          626,
+          557,
+          939
+        ],
+        "source_bbox_after_chroma": [
+          176,
+          21,
+          396,
+          241
+        ],
+        "target_size": [
+          96,
+          96
+        ],
+        "resized_subject_size": [
+          92,
+          92
+        ],
+        "placement": [
+          2,
+          2
+        ],
+        "scale": 0.41818181818181815,
+        "final_bbox": [
+          5,
+          5,
+          91,
+          91
+        ],
+        "color_budget": 48,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "gold",
+      "display_name": "Gold",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/gold.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 1,
+        "bbox_after_chroma": [
+          184,
+          71,
+          402,
+          290
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          0,
+          512,
+          341
+        ],
+        "source_bbox_after_chroma": [
+          192,
+          79,
+          394,
+          282
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          60,
+          60
+        ],
+        "placement": [
+          2,
+          2
+        ],
+        "scale": 0.2955665024630542,
+        "final_bbox": [
+          4,
+          4,
+          60,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "build",
+      "display_name": "Build",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/build.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 2,
+        "bbox_after_chroma": [
+          122,
+          54,
+          353,
+          296
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          512,
+          0,
+          1024,
+          341
+        ],
+        "source_bbox_after_chroma": [
+          130,
+          62,
+          345,
+          288
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          57,
+          60
+        ],
+        "placement": [
+          3,
+          2
+        ],
+        "scale": 0.26548672566371684,
+        "final_bbox": [
+          5,
+          4,
+          58,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "upgrade",
+      "display_name": "Upgrade",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/upgrade.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 1,
+        "col": 3,
+        "bbox_after_chroma": [
+          101,
+          67,
+          317,
+          295
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1024,
+          0,
+          1536,
+          341
+        ],
+        "source_bbox_after_chroma": [
+          109,
+          75,
+          309,
+          287
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          57,
+          60
+        ],
+        "placement": [
+          3,
+          2
+        ],
+        "scale": 0.2830188679245283,
+        "final_bbox": [
+          5,
+          4,
+          58,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "repair",
+      "display_name": "Repair",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/repair.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 1,
+        "bbox_after_chroma": [
+          169,
+          35,
+          420,
+          267
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          341,
+          512,
+          682
+        ],
+        "source_bbox_after_chroma": [
+          177,
+          43,
+          412,
+          259
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          60,
+          55
+        ],
+        "placement": [
+          2,
+          4
+        ],
+        "scale": 0.2553191489361702,
+        "final_bbox": [
+          4,
+          7,
+          60,
+          57
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "demolish",
+      "display_name": "Demolish",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/demolish.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 2,
+        "bbox_after_chroma": [
+          147,
+          55,
+          340,
+          253
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          512,
+          341,
+          1024,
+          682
+        ],
+        "source_bbox_after_chroma": [
+          155,
+          63,
+          332,
+          245
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          58,
+          60
+        ],
+        "placement": [
+          3,
+          2
+        ],
+        "scale": 0.32967032967032966,
+        "final_bbox": [
+          5,
+          4,
+          59,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "travel",
+      "display_name": "Travel",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/travel.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 2,
+        "col": 3,
+        "bbox_after_chroma": [
+          65,
+          33,
+          310,
+          282
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1024,
+          341,
+          1536,
+          682
+        ],
+        "source_bbox_after_chroma": [
+          73,
+          41,
+          302,
+          274
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          59,
+          60
+        ],
+        "placement": [
+          2,
+          2
+        ],
+        "scale": 0.2575107296137339,
+        "final_bbox": [
+          5,
+          4,
+          58,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "diplomacy",
+      "display_name": "Diplomacy",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/diplomacy.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 1,
+        "bbox_after_chroma": [
+          169,
+          16,
+          419,
+          263
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          0,
+          682,
+          512,
+          1023
+        ],
+        "source_bbox_after_chroma": [
+          177,
+          24,
+          411,
+          255
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          60,
+          59
+        ],
+        "placement": [
+          2,
+          2
+        ],
+        "scale": 0.2564102564102564,
+        "final_bbox": [
+          4,
+          4,
+          60,
+          59
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "train",
+      "display_name": "Train",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/train.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 2,
+        "bbox_after_chroma": [
+          108,
+          14,
+          393,
+          257
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          512,
+          682,
+          1024,
+          1023
+        ],
+        "source_bbox_after_chroma": [
+          116,
+          22,
+          385,
+          249
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          60,
+          51
+        ],
+        "placement": [
+          2,
+          6
+        ],
+        "scale": 0.22304832713754646,
+        "final_bbox": [
+          4,
+          8,
+          60,
+          55
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "ui",
+      "slug": "death",
+      "display_name": "Death Popup",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/ui/death.png",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/ui_raw.png",
+      "source_cell": {
+        "row": 3,
+        "col": 3,
+        "bbox_after_chroma": [
+          95,
+          19,
+          288,
+          243
+        ]
+      },
+      "source_pack": "assets/medieval_pixel_pack_v2",
+      "aseprite_pixel_pass": {
+        "source_cell_box": [
+          1024,
+          682,
+          1536,
+          1023
+        ],
+        "source_bbox_after_chroma": [
+          103,
+          27,
+          280,
+          235
+        ],
+        "target_size": [
+          64,
+          64
+        ],
+        "resized_subject_size": [
+          51,
+          60
+        ],
+        "placement": [
+          6,
+          2
+        ],
+        "scale": 0.28846153846153844,
+        "final_bbox": [
+          8,
+          4,
+          55,
+          60
+        ],
+        "color_budget": 32,
+        "added_outline": false,
+        "exterior_fringe_trim": true
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "river_background",
+      "display_name": "River Background",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/river_background.png",
+      "size": {
+        "width": 1920,
+        "height": 520
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/river_ground_background_20260620_raw.png",
+      "source_cell": {
+        "type": "scene_layer_crop",
+        "crop_box_after_1920x1080_resize": [
+          0,
+          0,
+          1920,
+          620
+        ]
+      },
+      "source_pack": "single_image_gen_scene_layer",
+      "aseprite_pixel_pass": {
+        "source_raw": "assets/medieval_pixel_pack_v3_no_outline/_raw/river_ground_background_20260620_raw.png",
+        "target_size": [
+          1920,
+          520
+        ],
+        "color_budget": 128,
+        "added_outline": false,
+        "exterior_fringe_trim": false,
+        "notes": "HD pixel-inspired river scene layer cropped from a generated full-scene raw image."
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "river_ground",
+      "display_name": "River Ground",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/river_ground.png",
+      "size": {
+        "width": 1920,
+        "height": 96
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/river_ground_background_20260620_raw.png",
+      "source_cell": {
+        "type": "scene_layer_crop",
+        "crop_box_after_1920x1080_resize": [
+          0,
+          610,
+          1920,
+          720
+        ]
+      },
+      "source_pack": "single_image_gen_scene_layer",
+      "aseprite_pixel_pass": {
+        "source_raw": "assets/medieval_pixel_pack_v3_no_outline/_raw/river_ground_background_20260620_raw.png",
+        "target_size": [
+          1920,
+          96
+        ],
+        "color_budget": 128,
+        "added_outline": false,
+        "exterior_fringe_trim": false,
+        "notes": "HD pixel-inspired river scene layer cropped from a generated full-scene raw image."
+      }
+    },
+    {
+      "category": "environment",
+      "slug": "foreground_water",
+      "display_name": "Foreground Water",
+      "file": "assets/medieval_pixel_pack_v3_no_outline/environment/foreground_water.png",
+      "size": {
+        "width": 1920,
+        "height": 560
+      },
+      "source_sheet": "assets/medieval_pixel_pack_v3_no_outline/_raw/river_ground_background_20260620_raw.png",
+      "source_cell": {
+        "type": "scene_layer_crop",
+        "crop_box_after_1920x1080_resize": [
+          0,
+          720,
+          1920,
+          1080
+        ]
+      },
+      "source_pack": "single_image_gen_scene_layer",
+      "aseprite_pixel_pass": {
+        "source_raw": "assets/medieval_pixel_pack_v3_no_outline/_raw/river_ground_background_20260620_raw.png",
+        "target_size": [
+          1920,
+          560
+        ],
+        "color_budget": 128,
+        "added_outline": false,
+        "exterior_fringe_trim": false,
+        "notes": "HD pixel-inspired river scene layer cropped from a generated full-scene raw image."
+      }
+    }
+  ],
+  "scene_layer_assets": [
+    "river_background",
+    "river_ground",
+    "foreground_water"
+  ]
+}

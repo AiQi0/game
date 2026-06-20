@@ -34,13 +34,15 @@ func _test_bridge_and_farm_data(data) -> void:
 	_assert_equal(data.world_value("bridge_count"), 5, "world data defines five short bridges")
 	_assert_equal(data.world_value("bridge_size"), Vector2(260, 16), "bridge deck is long and shallow enough to sit flush in ground")
 	_assert_equal(data.world_value("bridge_water_size"), Vector2(220, 56), "bridge water keeps a shorter span than the deck")
+	_assert_equal(data.world_value("city_hall_resource_inner_radius"), 1000.0, "bridge inner city hall radius is data-driven")
+	_assert_equal(data.world_value("city_hall_resource_outer_radius"), 2000.0, "bridge outer city hall radius is data-driven")
 	_assert_equal(data.economy_value("bridge_farm_cost"), 5, "bridge farm cost is data-driven")
 	_assert_true(data.has_method("farm_definition"), "GameData exposes farm definition outside build bar")
 	if data.has_method("farm_definition"):
 		var farm: Dictionary = data.farm_definition()
 		_assert_equal(farm.get("id", ""), "farm", "farm definition keeps farm id")
 		_assert_equal(farm.get("cost", 0), 5, "farm built on bridge costs five gold")
-		_assert_equal(farm.get("size", Vector2.ZERO), Vector2(220, 60), "farm keeps existing footprint size")
+		_assert_equal(farm.get("size", Vector2.ZERO), Vector2(440, 120), "farm footprint is doubled outside the build bar")
 
 
 func _test_farm_removed_from_build_bar(catalog) -> void:
@@ -69,12 +71,14 @@ func _test_bridge_spawn_and_farm_build(build_manager_script) -> void:
 	var bridge_entities := _entities_for_kind(manager, "bridge")
 	_assert_equal(bridge_entities.size(), 5, "world spawns five bridge entities")
 
-	var near_city_hall := false
+	var city_hall_distances := []
 	var bridge_size: Vector2 = manager.game_data.world_value("bridge_size")
+	var city_hall_inner_radius: float = manager.game_data.world_value("city_hall_resource_inner_radius", 1000.0)
+	var city_hall_outer_radius: float = manager.game_data.world_value("city_hall_resource_outer_radius", 2000.0)
 	for entity in bridge_entities:
 		var node: Node2D = entity.node
 		if is_instance_valid(node):
-			near_city_hall = near_city_hall or absf(node.global_position.x - city_hall.global_position.x) <= 650.0
+			city_hall_distances.append(absf(node.global_position.x - city_hall.global_position.x))
 			var water := node.get_node_or_null("Water") as Polygon2D
 			var deck := node.get_node_or_null("Deck") as Polygon2D
 			_assert_true(water != null, "bridge has water below it")
@@ -86,7 +90,9 @@ func _test_bridge_spawn_and_farm_build(build_manager_script) -> void:
 				_assert_equal(deck_bounds.position.y, 0.0, "bridge deck starts at ground level after being lowered")
 				_assert_equal(deck_bounds.position.y + deck_bounds.size.y, bridge_size.y, "bridge deck is lowered by exactly one deck thickness")
 				_assert_equal(water_bounds.position.y, bridge_size.y, "bridge water starts below the lowered deck")
-	_assert_true(near_city_hall, "one bridge is close to city hall")
+	city_hall_distances.sort()
+	_assert_equal(_distance_count(city_hall_distances, 0.0, city_hall_inner_radius), 0, "no bridge spawns within 1000 of city hall")
+	_assert_equal(_distance_count(city_hall_distances, city_hall_inner_radius, city_hall_outer_radius), 1, "one bridge spawns between 1000 and 2000 of city hall")
 
 	var bridge_entity: Dictionary = bridge_entities[0]
 	var bridge_node: Node2D = bridge_entity.node
@@ -100,7 +106,7 @@ func _test_bridge_spawn_and_farm_build(build_manager_script) -> void:
 	_assert_equal(_work_site_count(manager, "farm"), 1, "bridge farm is a worker site")
 
 	var duplicate: bool = manager._try_build_farm_at_player_bridge()
-	_assert_true(duplicate, "pressing E on an already used bridge is handled")
+	_assert_false(duplicate, "already used bridge no longer intercepts E")
 	_assert_equal(_building_count(manager, "farm"), 1, "same bridge cannot build a second farm")
 
 	setup.root.free()
@@ -176,6 +182,14 @@ func _polygon_bounds(polygon: Polygon2D) -> Rect2:
 		max_y = maxf(max_y, point.y)
 
 	return Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
+
+
+func _distance_count(distances: Array, min_distance: float, max_distance: float) -> int:
+	var count := 0
+	for distance in distances:
+		if distance > min_distance and distance <= max_distance:
+			count += 1
+	return count
 
 
 func _assert_equal(actual, expected, message: String) -> void:

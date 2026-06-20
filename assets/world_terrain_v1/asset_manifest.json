@@ -1,0 +1,22 @@
+{
+  "asset_count": 18,
+  "tileable_horizontal": [
+    "ground/grass_ground_tile.png",
+    "ground/grass_ground_variant_01.png",
+    "ground/grass_ground_variant_02.png",
+    "ground/ground_fill.png",
+    "water/water_tile.png",
+    "backgrounds/sky_gradient.png",
+    "backgrounds/far_hills_loop.png",
+    "backgrounds/far_forest_loop.png",
+    "backgrounds/cloud_loop_01.png",
+    "backgrounds/cloud_loop_02.png"
+  ],
+  "style": "medieval fairytale pixel art terrain loop assets for the main side-scrolling world",
+  "redraw_date": "2026-06-20",
+  "rules": {
+    "hard_pixel_edges": true,
+    "nearest_scaled_backgrounds": true,
+    "no_gameplay_changes": true
+  }
+}

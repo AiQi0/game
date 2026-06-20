@@ -6,6 +6,7 @@ const BuildRules = preload("res://scripts/BuildRules.gd")
 const TreeFactory = preload("res://scripts/TreeFactory.gd")
 const MonsterRules = preload("res://scripts/MonsterRules.gd")
 const GameData = preload("res://scripts/GameData.gd")
+const SaveGameManager = preload("res://scripts/SaveGameManager.gd")
 
 const GROUND_MIN_X := GameData.GROUND_MIN_X
 const GROUND_MAX_X := GameData.GROUND_MAX_X
@@ -27,17 +28,23 @@ const STONE_COUNT := GameData.STONE_COUNT
 const STONE_RANDOM_SEED := GameData.STONE_RANDOM_SEED
 const BRIDGE_COUNT := GameData.BRIDGE_COUNT
 const BRIDGE_RANDOM_SEED := GameData.BRIDGE_RANDOM_SEED
-const BRIDGE_NEAR_CITY_HALL_OFFSET := GameData.BRIDGE_NEAR_CITY_HALL_OFFSET
-const BRIDGE_NEAR_CITY_HALL_MAX_DISTANCE := GameData.BRIDGE_NEAR_CITY_HALL_MAX_DISTANCE
+const CITY_HALL_RESOURCE_INNER_RADIUS := GameData.CITY_HALL_RESOURCE_INNER_RADIUS
+const CITY_HALL_RESOURCE_OUTER_RADIUS := GameData.CITY_HALL_RESOURCE_OUTER_RADIUS
+const BRIDGE_CITY_HALL_RING_OFFSET := GameData.BRIDGE_CITY_HALL_RING_OFFSET
+const MOTHER_TREE_CITY_HALL_RING_OFFSET := GameData.MOTHER_TREE_CITY_HALL_RING_OFFSET
+const STONE_CITY_HALL_RING_OFFSET := GameData.STONE_CITY_HALL_RING_OFFSET
 const STARTING_GOLD := GameData.STARTING_GOLD
 const FARM_INCOME_SECONDS := GameData.FARM_INCOME_SECONDS
 const LUMBERYARD_TREE_INTERVAL_SECONDS := GameData.LUMBERYARD_TREE_INTERVAL_SECONDS
 const LUMBERYARD_TREE_BATCH_COUNT := GameData.LUMBERYARD_TREE_BATCH_COUNT
 const LUMBERYARD_TREE_RADIUS := GameData.LUMBERYARD_TREE_RADIUS
+const LUMBERJACK_TREE_SEARCH_RADIUS := GameData.LUMBERJACK_TREE_SEARCH_RADIUS
+const MOTHER_TREE_LUMBERJACK_SEARCH_RADIUS := GameData.MOTHER_TREE_LUMBERJACK_SEARCH_RADIUS
 const PLAYER_TREE_CHOP_SECONDS := GameData.PLAYER_TREE_CHOP_SECONDS
 const TOOL_CRAFT_SECONDS := GameData.TOOL_CRAFT_SECONDS
 const TOOL_CRAFT_COST := GameData.TOOL_CRAFT_COST
 const BLACKSMITH_TOOL_LIMIT := GameData.BLACKSMITH_TOOL_LIMIT
+const AUTOSAVE_SECONDS := GameData.AUTOSAVE_SECONDS
 const INFO_PANEL_SIZE := Vector2(430, 460)
 const VALID_PREVIEW_COLOR := Color(0.25, 1.0, 0.3, 0.45)
 const INVALID_PREVIEW_COLOR := Color(1.0, 0.15, 0.1, 0.45)
@@ -63,6 +70,7 @@ var trade_treaty_active := false
 var horse_count := 0
 var selected_index := 0
 var preview: Node2D
+var preview_building_id := ""
 var preview_valid := false
 var player: CharacterBody2D
 var buildings_container: Node2D
@@ -85,9 +93,18 @@ var death_canvas: CanvasLayer
 var test_panel: Control
 var test_gold_amount_spinbox: SpinBox
 var test_monster_count_spinbox: SpinBox
+var save_manager = SaveGameManager.new()
+var autosave_elapsed := 0.0
+var pause_canvas: CanvasLayer
+var pause_panel: Control
+
+
+func _init() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	player = get_parent().get_node_or_null("Player")
 	buildings_container = get_parent().get_node_or_null("Buildings")
 	_refresh_building_choices()
@@ -95,15 +112,19 @@ func _ready() -> void:
 	_seed_existing_buildings()
 	_spawn_bridges()
 	_spawn_mother_trees()
-	_spawn_trees()
 	_spawn_stones()
+	_spawn_trees()
 	_create_ui()
 	_recreate_preview()
 	_refresh_ui()
 	_update_preview()
+	_apply_pending_save_on_ready()
 
 
 func _process(delta: float) -> void:
+	if _is_tree_paused():
+		return
+
 	if demolition_target_index != -1 and not _player_inside_demolition_target():
 		_cancel_demolition()
 	if info_panel != null and player != null and not _player_inside_info_panel_entity():
@@ -115,6 +136,7 @@ func _process(delta: float) -> void:
 	_update_lumberyards(delta)
 	_assign_waiting_tree_choppers()
 	_update_player_tree_chop(delta)
+	_update_autosave(delta)
 	_update_preview()
 
 
@@ -124,6 +146,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	var key_event := event as InputEventKey
 	if not key_event.pressed or key_event.echo:
+		return
+
+	if key_event.keycode == KEY_ESCAPE:
+		_toggle_pause_menu()
+		return
+
+	if _is_tree_paused():
 		return
 
 	if _handle_info_panel_input(key_event.keycode):
@@ -187,29 +216,46 @@ func _spawn_bridges() -> void:
 	if buildings_container == null:
 		return
 
-	var positions: Array = []
-	var near_city_hall := _city_hall_position() + Vector2(BRIDGE_NEAR_CITY_HALL_OFFSET, 0)
-	near_city_hall.x = clampf(
-		near_city_hall.x,
-		GROUND_MIN_X + BRIDGE_SIZE.x * 0.5,
-		GROUND_MAX_X - BRIDGE_SIZE.x * 0.5
-	)
-	near_city_hall.y = GROUND_TOP_Y
-	positions.append(near_city_hall)
-	_spawn_bridge_at(near_city_hall)
+	if BRIDGE_COUNT > 0:
+		_spawn_bridge_at(_city_hall_resource_position(BRIDGE_CITY_HALL_RING_OFFSET, BRIDGE_SIZE))
 
+	var bridge_blocked_footprints := placed_footprints.duplicate()
+	bridge_blocked_footprints.append(_city_hall_resource_exclusion_footprint(CITY_HALL_RESOURCE_OUTER_RADIUS, BRIDGE_SIZE))
 	var random_positions: Array = rules.random_tree_positions(
 		BRIDGE_RANDOM_SEED,
-		maxi(0, BRIDGE_COUNT - positions.size()),
+		maxi(0, BRIDGE_COUNT - 1),
 		GROUND_MIN_X,
 		GROUND_MAX_X,
 		GROUND_TOP_Y,
 		BRIDGE_SIZE,
-		placed_footprints
+		bridge_blocked_footprints
 	)
 	for position in random_positions:
-		positions.append(position)
 		_spawn_bridge_at(position)
+
+
+func _city_hall_resource_position(offset: float, resource_size: Vector2) -> Vector2:
+	var city_hall_position := _city_hall_position()
+	return Vector2(
+		clampf(
+			city_hall_position.x + offset,
+			GROUND_MIN_X + resource_size.x * 0.5,
+			GROUND_MAX_X - resource_size.x * 0.5
+		),
+		GROUND_TOP_Y
+	)
+
+
+func _city_hall_resource_exclusion_footprint(radius: float, resource_size: Vector2) -> Rect2:
+	var city_hall_position := _city_hall_position()
+	var width := maxf(0.0, radius * 2.0 - resource_size.x)
+	return Rect2(
+		Vector2(
+			city_hall_position.x - radius + resource_size.x * 0.5,
+			GROUND_TOP_Y - resource_size.y
+		),
+		Vector2(width, resource_size.y)
+	)
 
 
 func _spawn_bridge_at(position: Vector2) -> Node2D:
@@ -280,14 +326,19 @@ func _spawn_mother_trees() -> void:
 	if buildings_container == null:
 		return
 
+	if MOTHER_TREE_COUNT > 0:
+		_spawn_mother_tree_at(_city_hall_resource_position(MOTHER_TREE_CITY_HALL_RING_OFFSET, MOTHER_TREE_SIZE))
+
+	var mother_tree_blocked_footprints := placed_footprints.duplicate()
+	mother_tree_blocked_footprints.append(_city_hall_resource_exclusion_footprint(CITY_HALL_RESOURCE_OUTER_RADIUS, MOTHER_TREE_SIZE))
 	var positions: Array = rules.random_tree_positions(
 		MOTHER_TREE_RANDOM_SEED,
-		MOTHER_TREE_COUNT,
+		maxi(0, MOTHER_TREE_COUNT - 1),
 		GROUND_MIN_X,
 		GROUND_MAX_X,
 		GROUND_TOP_Y,
 		MOTHER_TREE_SIZE,
-		placed_footprints
+		mother_tree_blocked_footprints
 	)
 
 	for position in positions:
@@ -357,14 +408,19 @@ func _spawn_stones() -> void:
 	if buildings_container == null:
 		return
 
+	if STONE_COUNT > 0:
+		_spawn_stone_at(_city_hall_resource_position(STONE_CITY_HALL_RING_OFFSET, STONE_SIZE))
+
+	var stone_blocked_footprints := placed_footprints.duplicate()
+	stone_blocked_footprints.append(_city_hall_resource_exclusion_footprint(CITY_HALL_RESOURCE_OUTER_RADIUS, STONE_SIZE))
 	var positions: Array = rules.random_tree_positions(
 		STONE_RANDOM_SEED,
-		STONE_COUNT,
+		maxi(0, STONE_COUNT - 1),
 		GROUND_MIN_X,
 		GROUND_MAX_X,
 		GROUND_TOP_Y,
 		STONE_SIZE,
-		placed_footprints
+		stone_blocked_footprints
 	)
 
 	for position in positions:
@@ -390,10 +446,23 @@ func _recreate_preview() -> void:
 	if selected_index == -1:
 		return
 
-	preview = visual_factory.create_building_visual(buildings[selected_index])
+	_ensure_preview_for_definition(buildings[selected_index])
+
+
+func _ensure_preview_for_definition(definition: Dictionary) -> void:
+	var building_id := str(definition.get("id", ""))
+	if preview != null and preview_building_id == building_id:
+		return
+
+	_clear_preview()
+	if definition.is_empty():
+		return
+
+	preview = visual_factory.create_building_visual(definition)
 	preview.name = "BuildPreview"
 	preview.z_index = 4
 	preview.modulate = VALID_PREVIEW_COLOR
+	preview_building_id = building_id
 	add_child(preview)
 
 
@@ -401,6 +470,7 @@ func _clear_preview() -> void:
 	if preview != null:
 		preview.queue_free()
 		preview = null
+	preview_building_id = ""
 
 
 func _update_preview() -> void:
@@ -422,6 +492,16 @@ func _update_preview() -> void:
 		status_label.text = "Q 拆除 / E 取消"
 		return
 
+	var resource_preview := _resource_build_preview_for_player()
+	if not resource_preview.is_empty():
+		_update_build_preview(
+			resource_preview.get("definition", {}),
+			resource_preview.get("position", Vector2.ZERO),
+			bool(resource_preview.get("valid", false)),
+			str(resource_preview.get("prompt", ""))
+		)
+		return
+
 	var quarry_prompt := _quarry_prompt_for_player()
 	if quarry_prompt != "":
 		preview_valid = false
@@ -441,25 +521,32 @@ func _update_preview() -> void:
 		return
 
 	if selected_index == -1:
+		_clear_preview()
 		preview_valid = false
 		var tree_task_id := _tree_task_for_player()
 		status_label.text = "E 砍树 / 1-0 选择建筑" if tree_task_id != "" else "1-0 选择建筑 / Q 拆除"
 		return
 
-	if player == null or preview == null:
+	if player == null:
 		return
 
 	var definition: Dictionary = buildings[selected_index]
+	_ensure_preview_for_definition(definition)
+	if preview == null:
+		return
+
 	var unavailable_reason := _building_unavailable_reason(definition)
+	var footprint_size := _building_footprint_size(definition)
 	var build_position := rules.build_position_for_player(
 		player.global_position,
 		_get_player_facing_direction(),
-		definition.size,
+		footprint_size,
 		GROUND_TOP_Y
 	)
-	var footprint := rules.footprint_for_position(build_position, definition.size)
+	var footprint := rules.footprint_for_position(build_position, footprint_size)
 
 	preview.global_position = build_position
+	_apply_building_orientation(preview, str(definition.get("id", "")), build_position)
 	preview_valid = not rules.has_overlap(footprint, placed_footprints) and unavailable_reason == ""
 	preview.modulate = VALID_PREVIEW_COLOR if preview_valid else INVALID_PREVIEW_COLOR
 	if preview_valid:
@@ -468,6 +555,100 @@ func _update_preview() -> void:
 		status_label.text = unavailable_reason
 	else:
 		status_label.text = "位置重叠，无法建造"
+
+
+func _update_build_preview(definition: Dictionary, build_position: Vector2, is_valid: bool, text: String) -> void:
+	_ensure_preview_for_definition(definition)
+	if preview == null:
+		return
+
+	preview.global_position = build_position
+	preview_valid = is_valid
+	preview.modulate = VALID_PREVIEW_COLOR if preview_valid else INVALID_PREVIEW_COLOR
+	status_label.text = text
+
+
+func _resource_build_preview_for_player() -> Dictionary:
+	if player == null:
+		return {}
+
+	var stone_index := _stone_entity_index_containing_point(player.global_position)
+	if stone_index != -1:
+		return {
+			"definition": game_data.quarry_definition(),
+			"position": _resource_build_position(stone_index),
+			"valid": _can_preview_quarry_at_stone(stone_index),
+			"prompt": _quarry_prompt_for_player(),
+		}
+
+	if selected_index != -1:
+		return {}
+
+	var mother_tree_index := _mother_tree_entity_index_containing_point(player.global_position)
+	if mother_tree_index != -1:
+		return {
+			"definition": game_data.lumberyard_definition(),
+			"position": _resource_build_position(mother_tree_index),
+			"valid": _can_preview_lumberyard_at_mother_tree(mother_tree_index),
+			"prompt": _mother_tree_lumberyard_prompt_for_player(),
+		}
+
+	var bridge_index := _bridge_entity_index_containing_point(player.global_position)
+	if bridge_index != -1:
+		return {
+			"definition": game_data.farm_definition(),
+			"position": _resource_build_position(bridge_index),
+			"valid": _can_preview_farm_at_bridge(bridge_index),
+			"prompt": _bridge_farm_prompt_for_player(),
+		}
+
+	return {}
+
+
+func _resource_build_position(entity_index: int) -> Vector2:
+	if entity_index < 0 or entity_index >= placed_buildings.size():
+		return Vector2.ZERO
+
+	var entity: Dictionary = placed_buildings[entity_index]
+	var node = entity.get("node", null)
+	if node is Node2D and is_instance_valid(node):
+		return (node as Node2D).global_position
+
+	var footprint: Rect2 = entity.get("footprint", Rect2())
+	return Vector2(
+		footprint.position.x + footprint.size.x * 0.5,
+		footprint.position.y + footprint.size.y
+	)
+
+
+func _can_preview_quarry_at_stone(stone_index: int) -> bool:
+	if stone_index == -1:
+		return false
+
+	var stone_entity: Dictionary = placed_buildings[stone_index]
+	if bool(stone_entity.get("has_quarry", false)):
+		return false
+
+	var cost := int(game_data.quarry_value("cost", 0))
+	return building_level_for_id("cityhall") >= 2 and gold >= cost
+
+
+func _can_preview_lumberyard_at_mother_tree(mother_tree_index: int) -> bool:
+	if mother_tree_index == -1:
+		return false
+
+	var mother_tree_entity: Dictionary = placed_buildings[mother_tree_index]
+	var cost := int(game_data.lumberyard_value("cost", 0))
+	return not bool(mother_tree_entity.get("has_lumberyard", false)) and gold >= cost
+
+
+func _can_preview_farm_at_bridge(bridge_index: int) -> bool:
+	if bridge_index == -1:
+		return false
+
+	var bridge_entity: Dictionary = placed_buildings[bridge_index]
+	var cost := int(game_data.farm_definition().get("cost", game_data.economy_value("bridge_farm_cost", 0)))
+	return not bool(bridge_entity.get("farm_built", false)) and gold >= cost
 
 
 func _try_build() -> void:
@@ -486,11 +667,12 @@ func _try_build() -> void:
 	var building := visual_factory.create_building_visual(definition)
 	building.name = "%s_%d" % [definition.id, placed_footprints.size()]
 	building.position = buildings_container.to_local(preview.global_position)
+	_apply_building_orientation(building, str(definition.get("id", "")), preview.global_position)
 	buildings_container.add_child(building)
 
 	_track_placed_entity(
 		building,
-		rules.footprint_for_position(preview.global_position, definition.size),
+		rules.footprint_for_position(preview.global_position, _building_footprint_size(definition)),
 		true,
 		definition.display_name,
 		"building",
@@ -611,13 +793,6 @@ func _build_quarry_on_stone(stone_index: int, definition: Dictionary) -> void:
 
 	var build_position := stone_node.global_position
 	gold -= int(definition.get("cost", 0))
-	if is_instance_valid(stone_node):
-		if stone_node.is_inside_tree():
-			stone_node.queue_free()
-		else:
-			stone_node.free()
-	_remove_placed_footprint(stone_entity.footprint)
-	placed_buildings.remove_at(stone_index)
 
 	var quarry := visual_factory.create_building_visual(definition)
 	quarry.name = "quarry_%d" % placed_footprints.size()
@@ -625,13 +800,14 @@ func _build_quarry_on_stone(stone_index: int, definition: Dictionary) -> void:
 	buildings_container.add_child(quarry)
 	_track_placed_entity(
 		quarry,
-		rules.footprint_for_position(build_position, definition.get("size", GameData.QUARRY_SIZE)),
+		rules.footprint_for_position(build_position, _building_footprint_size(definition)),
 		true,
 		definition.get("display_name", "采石场"),
 		"building",
 		bool(definition.get("requires_worker", true)),
 		"quarry"
 	)
+	_set_stone_quarry_state(stone_index, quarry.name, true)
 	_refresh_gold_ui()
 	_refresh_ui()
 	_update_preview()
@@ -641,6 +817,8 @@ func _stone_entity_index_containing_point(point: Vector2) -> int:
 	for i in range(placed_buildings.size()):
 		var entity: Dictionary = placed_buildings[i]
 		if entity.get("resource_kind", "") != "stone":
+			continue
+		if bool(entity.get("has_quarry", false)):
 			continue
 
 		var footprint: Rect2 = entity.footprint
@@ -669,6 +847,8 @@ func _bridge_entity_index_containing_point(point: Vector2) -> int:
 	for i in range(placed_buildings.size()):
 		var entity: Dictionary = placed_buildings[i]
 		if entity.get("entity_kind", "") != "bridge":
+			continue
+		if bool(entity.get("farm_built", false)):
 			continue
 
 		var footprint: Rect2 = entity.footprint
@@ -736,7 +916,7 @@ func _try_build_farm_at_player_bridge() -> bool:
 
 	_track_placed_entity(
 		farm,
-		rules.footprint_for_position(build_position, definition.get("size", Vector2(220, 60))),
+		rules.footprint_for_position(build_position, _building_footprint_size(definition)),
 		true,
 		definition.get("display_name", "农田"),
 		"building",
@@ -756,6 +936,8 @@ func _mother_tree_entity_index_containing_point(point: Vector2) -> int:
 	for i in range(placed_buildings.size()):
 		var entity: Dictionary = placed_buildings[i]
 		if entity.get("entity_kind", "") != "mother_tree":
+			continue
+		if bool(entity.get("has_lumberyard", false)):
 			continue
 
 		var footprint: Rect2 = entity.footprint
@@ -822,7 +1004,7 @@ func _try_build_lumberyard_at_player_mother_tree() -> bool:
 	buildings_container.add_child(lumberyard)
 	_track_placed_entity(
 		lumberyard,
-		rules.footprint_for_position(build_position, definition.get("size", Vector2(200, 130))),
+		rules.footprint_for_position(build_position, _building_footprint_size(definition)),
 		true,
 		definition.get("display_name", "伐木场"),
 		"building",
@@ -1713,7 +1895,25 @@ func _spawn_tool_at_building(entity: Dictionary, tool_id: String) -> Node2D:
 	return tool
 
 
-func _create_tool_visual(tool_id: String) -> Polygon2D:
+func _create_tool_visual(tool_id: String) -> Node2D:
+	var texture := game_data.art_asset_texture("tools", tool_id)
+	if texture != null:
+		var sprite := Sprite2D.new()
+		sprite.name = "ToolVisual"
+		sprite.texture = texture
+		sprite.centered = false
+		var target_size := Vector2(40, 40)
+		var scale_factor = minf(
+			target_size.x / maxf(1.0, float(texture.get_width())),
+			target_size.y / maxf(1.0, float(texture.get_height()))
+		)
+		sprite.scale = Vector2(scale_factor, scale_factor)
+		sprite.position = Vector2(
+			-float(texture.get_width()) * scale_factor * 0.5,
+			-float(texture.get_height()) * scale_factor
+		)
+		return sprite
+
 	var polygon := Polygon2D.new()
 	polygon.name = "ToolVisual"
 	polygon.color = _tool_color(tool_id)
@@ -1891,6 +2091,7 @@ func _demolish_target() -> void:
 
 	_clear_bridge_farm_for_entity(entity)
 	_clear_mother_tree_lumberyard_for_entity(entity)
+	_clear_stone_quarry_for_entity(entity)
 
 	if is_instance_valid(target):
 		target.queue_free()
@@ -1956,6 +2157,70 @@ func _clear_mother_tree_lumberyard_for_entity(entity: Dictionary) -> void:
 		return
 
 
+func _clear_stone_quarry_for_entity(entity: Dictionary) -> void:
+	if entity.get("building_id", "") != "quarry":
+		return
+
+	var quarry_node_name := ""
+	var quarry_node: Node2D = entity.get("node", null)
+	if is_instance_valid(quarry_node):
+		quarry_node_name = quarry_node.name
+
+	var quarry_footprint: Rect2 = entity.get("footprint", Rect2())
+	for i in range(placed_buildings.size()):
+		var stone_entity: Dictionary = placed_buildings[i]
+		if stone_entity.get("resource_kind", "") != "stone":
+			continue
+
+		var matches_name: bool = quarry_node_name != "" and str(stone_entity.get("quarry_node_name", "")) == quarry_node_name
+		var stone_footprint: Rect2 = stone_entity.get("footprint", Rect2())
+		var matches_footprint: bool = rules.has_overlap(stone_footprint, [quarry_footprint])
+		if not matches_name and not matches_footprint:
+			continue
+
+		_set_stone_quarry_state(i, "", false)
+		return
+
+
+func _set_stone_quarry_state(stone_index: int, quarry_node_name: String, occupied: bool) -> void:
+	if stone_index < 0 or stone_index >= placed_buildings.size():
+		return
+
+	var stone_entity: Dictionary = placed_buildings[stone_index]
+	if stone_entity.get("resource_kind", "") != "stone":
+		return
+
+	stone_entity.has_quarry = occupied
+	stone_entity.quarry_node_name = quarry_node_name if occupied else ""
+	stone_entity.demolishable = not occupied
+	var stone_node: Node2D = stone_entity.get("node", null)
+	if is_instance_valid(stone_node):
+		stone_node.visible = not occupied
+	placed_buildings[stone_index] = stone_entity
+
+
+func _mark_stone_quarry_for_entity(entity: Dictionary) -> void:
+	if entity.get("building_id", "") != "quarry":
+		return
+
+	var quarry_node: Node2D = entity.get("node", null)
+	if not is_instance_valid(quarry_node):
+		return
+
+	var quarry_footprint: Rect2 = entity.get("footprint", Rect2())
+	for i in range(placed_buildings.size()):
+		var stone_entity: Dictionary = placed_buildings[i]
+		if stone_entity.get("resource_kind", "") != "stone":
+			continue
+
+		var stone_footprint: Rect2 = stone_entity.get("footprint", Rect2())
+		if not rules.has_overlap(stone_footprint, [quarry_footprint]):
+			continue
+
+		_set_stone_quarry_state(i, quarry_node.name, true)
+		return
+
+
 func _player_inside_demolition_target() -> bool:
 	if demolition_target_index == -1 or player == null:
 		return false
@@ -2000,6 +2265,8 @@ func _track_placed_entity(
 		"craft_elapsed": 0.0,
 		"craft_queue": [],
 		"lumberyard_tree_elapsed": 0.0,
+		"has_quarry": false,
+		"quarry_node_name": "",
 	})
 	placed_footprints.append(footprint)
 	if is_workplace:
@@ -2067,6 +2334,8 @@ func occupy_work_site(workplace_id: String, worker_id: String) -> bool:
 		if entity.get("damaged", false):
 			return false
 		if entity.get("worker_id", "") != worker_id:
+			return false
+		if entity.get("worker_inside", false):
 			return false
 		if not _worker_can_use_work_site(entity, worker_id):
 			return false
@@ -2251,10 +2520,11 @@ func travel_to_terrain(terrain: String) -> bool:
 	if not can_travel_to_terrain(terrain):
 		return false
 
-	set_city_context(terrain, terrain_is_occupied(terrain))
 	var scene_path := travel_scene_path_for_terrain(terrain)
-	if scene_path != "":
-		_request_travel_scene_change(scene_path)
+	if scene_path != "" and _request_travel_scene_change(scene_path):
+		return true
+
+	set_city_context(terrain, terrain_is_occupied(terrain))
 	return true
 
 
@@ -2262,15 +2532,24 @@ func travel_scene_path_for_terrain(terrain: String) -> String:
 	return game_data.travel_destination_scene_path(terrain)
 
 
-func _request_travel_scene_change(scene_path: String) -> void:
+func _request_travel_scene_change(scene_path: String) -> bool:
 	if scene_path == "" or not is_inside_tree():
-		return
+		return false
 
 	var tree := get_tree()
 	if tree == null or tree.current_scene == null:
-		return
+		return false
+
+	var game_session := tree.root.get_node_or_null("GameSession")
+	if (
+		game_session != null
+		and game_session.has_method("switch_to_scene_preserving_current")
+		and game_session.switch_to_scene_preserving_current(tree, scene_path, true)
+	):
+		return true
 
 	tree.call_deferred("change_scene_to_file", scene_path)
+	return true
 
 
 func launch_expedition(terrain: String) -> Dictionary:
@@ -2298,6 +2577,8 @@ func building_definition_for_id(building_id: String) -> Dictionary:
 		return game_data.farm_definition()
 	if building_id == "lumberyard":
 		return game_data.lumberyard_definition()
+	if building_id == "quarry":
+		return game_data.quarry_definition()
 	for definition in catalog.get_buildings():
 		if definition.get("id", "") == building_id:
 			return definition.duplicate(true)
@@ -2492,6 +2773,8 @@ func _upgrade_button_text(entity_index: int) -> String:
 func add_gold(amount: int) -> void:
 	gold += amount
 	_refresh_gold_ui()
+	_refresh_ui()
+	_update_preview()
 
 
 func set_trade_treaty_active(active: bool) -> void:
@@ -2545,6 +2828,373 @@ func train_nearest_shield_guard() -> bool:
 		return false
 
 	return npc_manager.train_nearest_shield_guard_candidate(_city_hall_position())
+
+
+func autosave_game(reason := "interval", scene_path := GameData.MAIN_SCENE_PATH) -> bool:
+	if save_manager == null:
+		return false
+
+	return save_manager.record_autosave(
+		scene_path,
+		_autosave_snapshot(),
+		reason
+	)
+
+
+func load_last_save() -> bool:
+	if save_manager == null:
+		return false
+
+	return apply_save_data(save_manager.read_last_save())
+
+
+func apply_save_data(save_data: Dictionary) -> bool:
+	if save_data.is_empty():
+		return false
+
+	var snapshot: Dictionary = save_data.get("snapshot", {})
+	if snapshot.is_empty():
+		return false
+
+	if snapshot.has("gold"):
+		gold = int(snapshot.get("gold", gold))
+	if snapshot.has("player_dead"):
+		player_dead = bool(snapshot.get("player_dead", player_dead))
+	if snapshot.has("city_terrain"):
+		city_terrain = str(snapshot.get("city_terrain", city_terrain))
+	if snapshot.has("city_player_controlled"):
+		city_player_controlled = bool(snapshot.get("city_player_controlled", city_player_controlled))
+	if snapshot.has("horse_count"):
+		horse_count = int(snapshot.get("horse_count", horse_count))
+	if snapshot.has("resources"):
+		_apply_resources_snapshot(snapshot.get("resources", []))
+	if snapshot.has("buildings"):
+		_apply_buildings_snapshot(snapshot.get("buildings", []))
+	if snapshot.has("npcs"):
+		_apply_npcs_snapshot(snapshot.get("npcs", []))
+
+	var saved_position = snapshot.get("player_position", [])
+	if player != null and saved_position is Array and saved_position.size() >= 2:
+		player.global_position = Vector2(float(saved_position[0]), float(saved_position[1]))
+
+	_refresh_building_choices()
+	_refresh_gold_ui()
+	_refresh_ui()
+	_update_preview()
+	if player_dead:
+		_show_death_overlay()
+	elif death_canvas != null:
+		death_canvas.queue_free()
+		death_canvas = null
+	return true
+
+
+func _apply_pending_save_on_ready() -> bool:
+	if not is_inside_tree():
+		return false
+
+	var game_session := get_tree().root.get_node_or_null("GameSession")
+	if game_session == null or not game_session.has_method("consume_pending_save_data"):
+		return false
+
+	var save_data: Dictionary = game_session.consume_pending_save_data()
+	if save_data.is_empty() or not save_data.has("snapshot"):
+		return false
+
+	return apply_save_data(save_data)
+
+
+func _update_autosave(delta: float) -> void:
+	if delta <= 0.0:
+		return
+
+	autosave_elapsed += delta
+	while autosave_elapsed >= AUTOSAVE_SECONDS:
+		autosave_elapsed -= AUTOSAVE_SECONDS
+		autosave_game("interval")
+
+
+func _autosave_snapshot() -> Dictionary:
+	var player_position := Vector2.ZERO
+	if player != null:
+		player_position = player.global_position
+
+	return {
+		"gold": gold,
+		"player_dead": player_dead,
+		"player_position": [player_position.x, player_position.y],
+		"city_terrain": city_terrain,
+		"city_player_controlled": city_player_controlled,
+		"horse_count": horse_count,
+		"placed_entity_count": placed_buildings.size(),
+		"resources": _resources_save_snapshot(),
+		"buildings": _buildings_save_snapshot(),
+		"npcs": _npcs_save_snapshot(),
+	}
+
+
+func _resources_save_snapshot() -> Array:
+	var saved_resources := []
+	for entity in placed_buildings:
+		var entity_kind := str(entity.get("entity_kind", ""))
+		if not ["tree", "stone", "mother_tree", "bridge"].has(entity_kind):
+			continue
+
+		var node: Node2D = entity.get("node")
+		if not is_instance_valid(node):
+			continue
+
+		var footprint: Rect2 = entity.get("footprint", Rect2())
+		var saved_resource := {
+			"node_name": node.name,
+			"entity_kind": entity_kind,
+			"resource_kind": str(entity.get("resource_kind", entity_kind)),
+			"display_name": str(entity.get("display_name", "")),
+			"demolishable": bool(entity.get("demolishable", false)),
+			"position": [node.global_position.x, node.global_position.y],
+			"footprint_position": [footprint.position.x, footprint.position.y],
+			"footprint_size": [footprint.size.x, footprint.size.y],
+			"visible": node.visible,
+		}
+		for key in ["has_quarry", "quarry_node_name", "has_lumberyard", "lumberyard_node_name", "farm_built", "farm_node_name"]:
+			if entity.has(key):
+				saved_resource[key] = entity.get(key)
+		saved_resources.append(saved_resource)
+	return saved_resources
+
+
+func _buildings_save_snapshot() -> Array:
+	var saved_buildings := []
+	for entity in placed_buildings:
+		var entity_kind := str(entity.get("entity_kind", ""))
+		if entity_kind != "building" and entity_kind != "cityhall":
+			continue
+
+		var node: Node2D = entity.get("node")
+		if not is_instance_valid(node):
+			continue
+
+		var footprint: Rect2 = entity.get("footprint", Rect2())
+		saved_buildings.append({
+			"node_name": node.name,
+			"building_id": str(entity.get("building_id", "")),
+			"entity_kind": entity_kind,
+			"display_name": str(entity.get("display_name", "")),
+			"level": int(entity.get("level", 1)),
+			"damaged": bool(entity.get("damaged", false)),
+			"demolishable": bool(entity.get("demolishable", true)),
+			"is_workplace": bool(entity.get("is_workplace", true)),
+			"worker_id": str(entity.get("worker_id", "")),
+			"worker_inside": bool(entity.get("worker_inside", false)),
+			"farm_income_elapsed": float(entity.get("farm_income_elapsed", 0.0)),
+			"quarry_income_elapsed": float(entity.get("quarry_income_elapsed", 0.0)),
+			"lumberyard_tree_elapsed": float(entity.get("lumberyard_tree_elapsed", 0.0)),
+			"source_mother_tree_name": str(entity.get("source_mother_tree_name", "")),
+			"position": [node.global_position.x, node.global_position.y],
+			"footprint_position": [footprint.position.x, footprint.position.y],
+			"footprint_size": [footprint.size.x, footprint.size.y],
+		})
+	return saved_buildings
+
+
+func _npcs_save_snapshot() -> Array:
+	var npc_manager := _npc_manager()
+	if npc_manager != null and npc_manager.has_method("save_snapshot"):
+		return npc_manager.save_snapshot()
+	return []
+
+
+func _apply_resources_snapshot(saved_resources) -> void:
+	if not (saved_resources is Array):
+		return
+
+	_remove_restorable_resources()
+	for saved_resource in saved_resources:
+		if saved_resource is Dictionary:
+			_restore_resource_snapshot(saved_resource)
+
+
+func _apply_buildings_snapshot(saved_buildings) -> void:
+	if not (saved_buildings is Array):
+		return
+
+	_remove_restorable_buildings()
+	for saved_building in saved_buildings:
+		if not saved_building is Dictionary:
+			continue
+
+		var building_id := str(saved_building.get("building_id", ""))
+		var entity_kind := str(saved_building.get("entity_kind", "building"))
+		if building_id == "cityhall" or entity_kind == "cityhall":
+			_apply_cityhall_snapshot(saved_building)
+		else:
+			_restore_building_snapshot(saved_building)
+
+
+func _apply_npcs_snapshot(saved_npcs) -> void:
+	var npc_manager := _npc_manager()
+	if npc_manager != null and npc_manager.has_method("apply_snapshot"):
+		npc_manager.apply_snapshot(saved_npcs)
+
+
+func _remove_restorable_resources() -> void:
+	for i in range(placed_buildings.size() - 1, -1, -1):
+		var entity: Dictionary = placed_buildings[i]
+		if not ["tree", "stone", "mother_tree", "bridge"].has(str(entity.get("entity_kind", ""))):
+			continue
+
+		_remove_placed_footprint(entity.get("footprint", Rect2()))
+		var node: Node2D = entity.get("node")
+		if is_instance_valid(node):
+			var node_parent := node.get_parent()
+			if node_parent != null:
+				node_parent.remove_child(node)
+			node.free()
+		placed_buildings.remove_at(i)
+
+
+func _restore_resource_snapshot(saved_resource: Dictionary) -> void:
+	if buildings_container == null:
+		return
+
+	var entity_kind := str(saved_resource.get("entity_kind", ""))
+	var resource_kind := str(saved_resource.get("resource_kind", entity_kind))
+	var position := _vector2_from_save(saved_resource.get("position", []), Vector2.ZERO)
+	var node: Node2D = null
+	match entity_kind:
+		"bridge":
+			node = _spawn_bridge_at(position)
+		"mother_tree":
+			node = _spawn_mother_tree_at(position)
+		"stone":
+			node = _spawn_stone_at(position)
+		"tree":
+			node = _spawn_tree_at(position)
+		_:
+			return
+	if not is_instance_valid(node):
+		return
+
+	var saved_name := str(saved_resource.get("node_name", ""))
+	if saved_name != "":
+		node.name = saved_name
+	node.visible = bool(saved_resource.get("visible", true))
+
+	var index := placed_buildings.size() - 1
+	var entity: Dictionary = placed_buildings[index]
+	var saved_footprint := _rect2_from_save(
+		saved_resource.get("footprint_position", []),
+		saved_resource.get("footprint_size", []),
+		entity.get("footprint", Rect2())
+	)
+	_replace_placed_footprint(entity.get("footprint", Rect2()), saved_footprint)
+	entity.footprint = saved_footprint
+	entity.entity_kind = entity_kind
+	entity.resource_kind = resource_kind
+	entity.display_name = str(saved_resource.get("display_name", entity.get("display_name", "")))
+	entity.demolishable = bool(saved_resource.get("demolishable", entity.get("demolishable", false)))
+	for key in ["has_quarry", "quarry_node_name", "has_lumberyard", "lumberyard_node_name", "farm_built", "farm_node_name"]:
+		if saved_resource.has(key):
+			entity[key] = saved_resource.get(key)
+	placed_buildings[index] = entity
+
+	if resource_kind == "stone":
+		_set_stone_quarry_state(
+			index,
+			str(saved_resource.get("quarry_node_name", "")),
+			bool(saved_resource.get("has_quarry", false))
+		)
+
+
+func _remove_restorable_buildings() -> void:
+	for i in range(placed_buildings.size() - 1, -1, -1):
+		var entity: Dictionary = placed_buildings[i]
+		if str(entity.get("entity_kind", "")) != "building":
+			continue
+
+		_clear_stone_quarry_for_entity(entity)
+		_remove_placed_footprint(entity.get("footprint", Rect2()))
+		var node: Node2D = entity.get("node")
+		if is_instance_valid(node):
+			var node_parent := node.get_parent()
+			if node_parent != null:
+				node_parent.remove_child(node)
+			node.free()
+		placed_buildings.remove_at(i)
+
+
+func _apply_cityhall_snapshot(saved_building: Dictionary) -> void:
+	for i in range(placed_buildings.size()):
+		var entity: Dictionary = placed_buildings[i]
+		if str(entity.get("building_id", "")) != "cityhall":
+			continue
+
+		entity.level = max(1, int(saved_building.get("level", 1)))
+		entity.damaged = bool(saved_building.get("damaged", false))
+		placed_buildings[i] = entity
+		return
+
+
+func _restore_building_snapshot(saved_building: Dictionary) -> void:
+	if buildings_container == null:
+		return
+
+	var building_id := str(saved_building.get("building_id", ""))
+	var definition := building_definition_for_id(building_id)
+	if definition.is_empty():
+		return
+
+	var position := _vector2_from_save(saved_building.get("position", []), Vector2.ZERO)
+	var footprint := rules.footprint_for_position(position, _building_footprint_size(definition))
+	var building := visual_factory.create_building_visual(definition)
+	building.name = str(saved_building.get("node_name", ""))
+	if building.name == "":
+		building.name = "%s_loaded_%d" % [building_id, placed_buildings.size()]
+	building.position = buildings_container.to_local(position)
+	_apply_building_orientation(building, building_id, position)
+	buildings_container.add_child(building)
+
+	_track_placed_entity(
+		building,
+		footprint,
+		bool(saved_building.get("demolishable", true)),
+		str(saved_building.get("display_name", definition.get("display_name", building_id))),
+		"building",
+		bool(saved_building.get("is_workplace", definition.get("is_workplace", true))),
+		building_id
+	)
+	var index := placed_buildings.size() - 1
+	var entity: Dictionary = placed_buildings[index]
+	entity.level = max(1, int(saved_building.get("level", 1)))
+	entity.damaged = bool(saved_building.get("damaged", false))
+	entity.worker_id = str(saved_building.get("worker_id", ""))
+	entity.worker_inside = bool(saved_building.get("worker_inside", false))
+	entity.farm_income_elapsed = float(saved_building.get("farm_income_elapsed", 0.0))
+	entity.quarry_income_elapsed = float(saved_building.get("quarry_income_elapsed", 0.0))
+	entity.lumberyard_tree_elapsed = float(saved_building.get("lumberyard_tree_elapsed", 0.0))
+	if saved_building.has("source_mother_tree_name"):
+		entity.source_mother_tree_name = str(saved_building.get("source_mother_tree_name", ""))
+	if building_id == "lumberyard":
+		entity.display_name = game_data.lumberyard_display_name(int(entity.get("level", 1)))
+	placed_buildings[index] = entity
+	if bool(entity.get("worker_inside", false)):
+		visual_factory.set_occupied(building, true)
+	_mark_stone_quarry_for_entity(entity)
+
+
+func _vector2_from_save(value, default_value: Vector2) -> Vector2:
+	if value is Array and value.size() >= 2:
+		return Vector2(float(value[0]), float(value[1]))
+	return default_value
+
+
+func _rect2_from_save(position_value, size_value, default_value: Rect2) -> Rect2:
+	if position_value is Array and position_value.size() >= 2 and size_value is Array and size_value.size() >= 2:
+		return Rect2(
+			Vector2(float(position_value[0]), float(position_value[1])),
+			Vector2(float(size_value[0]), float(size_value[1]))
+		)
+	return default_value
 
 
 func apply_player_monster_hit() -> Dictionary:
@@ -2760,6 +3410,7 @@ func get_warrior_patrol_anchors() -> Dictionary:
 
 func _set_player_dead() -> void:
 	player_dead = true
+	autosave_game("death")
 	_show_death_overlay()
 
 
@@ -2803,7 +3454,7 @@ func _show_death_overlay() -> void:
 	panel.add_child(title)
 
 	_add_death_button(panel, "ReviveButton", "复活", Vector2(50, 72), Callable(self, "revive_player"))
-	_add_death_button(panel, "MainMenuButton", "退出到主菜单", Vector2(50, 116), Callable(self, "_return_to_main_menu"))
+	_add_death_button(panel, "MainMenuButton", "保存并退出", Vector2(50, 116), Callable(self, "_return_to_main_menu"))
 	_add_death_button(panel, "QuitGameButton", "退出游戏", Vector2(50, 160), Callable(self, "_quit_game"))
 
 
@@ -2818,13 +3469,125 @@ func _add_death_button(parent_control: Control, button_name: String, text: Strin
 
 
 func _return_to_main_menu() -> void:
-	if get_tree() != null:
-		get_tree().reload_current_scene()
+	autosave_game("manual")
+	resume_game()
+	if not is_inside_tree():
+		return
+
+	var tree := get_tree()
+
+	var game_session := tree.root.get_node_or_null("GameSession")
+	if game_session != null and game_session.has_method("clear_cached_main_scene"):
+		game_session.clear_cached_main_scene()
+	tree.change_scene_to_file(GameData.MAIN_MENU_SCENE_PATH)
 
 
 func _quit_game() -> void:
-	if get_tree() != null:
+	autosave_game("quit")
+	if is_inside_tree():
 		get_tree().quit()
+
+
+func _toggle_pause_menu() -> void:
+	if pause_panel != null:
+		resume_game()
+	else:
+		_show_pause_menu()
+
+
+func _is_tree_paused() -> bool:
+	return is_inside_tree() and get_tree().paused
+
+
+func _show_pause_menu() -> void:
+	if pause_panel != null:
+		return
+
+	if is_inside_tree():
+		get_tree().paused = true
+
+	pause_canvas = CanvasLayer.new()
+	pause_canvas.name = "PauseCanvas"
+	pause_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(pause_canvas)
+
+	var overlay := ColorRect.new()
+	overlay.name = "PauseOverlay"
+	overlay.anchor_right = 1.0
+	overlay.anchor_bottom = 1.0
+	overlay.color = Color(0.0, 0.0, 0.0, 0.48)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	pause_canvas.add_child(overlay)
+
+	pause_panel = Panel.new()
+	pause_panel.name = "PausePanel"
+	pause_panel.anchor_left = 0.5
+	pause_panel.anchor_top = 0.5
+	pause_panel.anchor_right = 0.5
+	pause_panel.anchor_bottom = 0.5
+	pause_panel.offset_left = -180.0
+	pause_panel.offset_top = -150.0
+	pause_panel.offset_right = 180.0
+	pause_panel.offset_bottom = 150.0
+	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	pause_canvas.add_child(pause_panel)
+
+	var title := Label.new()
+	title.name = "PauseTitle"
+	title.text = "暂停"
+	title.position = Vector2(28, 20)
+	title.size = Vector2(304, 34)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 22)
+	pause_panel.add_child(title)
+
+	_add_pause_button("ResumeButton", "继续", Vector2(60, 72), Callable(self, "resume_game"))
+	_add_pause_button("LoadButton", "读取", Vector2(60, 120), Callable(self, "load_game_from_pause"))
+	_add_pause_button("SaveButton", "存档", Vector2(60, 168), Callable(self, "save_game_from_pause"))
+	_add_pause_button("PauseMainMenuButton", "保存并退出", Vector2(60, 216), Callable(self, "return_to_main_menu_from_pause"))
+
+
+func _add_pause_button(button_name: String, text: String, position: Vector2, callback: Callable) -> Button:
+	var button := Button.new()
+	button.name = button_name
+	button.text = text
+	button.position = position
+	button.size = Vector2(240, 36)
+	_configure_always_clickable_button(button)
+	button.pressed.connect(callback)
+	pause_panel.add_child(button)
+	return button
+
+
+func resume_game() -> void:
+	if is_inside_tree():
+		get_tree().paused = false
+	_clear_pause_menu()
+
+
+func save_game_from_pause() -> bool:
+	return autosave_game("manual")
+
+
+func load_game_from_pause() -> bool:
+	if not load_last_save():
+		return false
+
+	resume_game()
+	return true
+
+
+func return_to_main_menu_from_pause() -> void:
+	resume_game()
+	_return_to_main_menu()
+
+
+func _clear_pause_menu() -> void:
+	if pause_canvas != null:
+		pause_canvas.queue_free()
+	pause_canvas = null
+	pause_panel = null
 
 
 func _clear_all_monsters() -> void:
@@ -3074,20 +3837,9 @@ func _spawn_stone_at(stone_position: Vector2) -> Node2D:
 	if buildings_container == null:
 		return null
 
-	var stone := Node2D.new()
+	var stone := tree_factory.create_stone_visual()
 	stone.name = _next_stone_name()
 	stone.position = buildings_container.to_local(stone_position)
-	var visual := Polygon2D.new()
-	visual.name = "StoneVisual"
-	visual.color = Color(0.48, 0.5, 0.52, 1)
-	visual.polygon = PackedVector2Array([
-		Vector2(-34, 0),
-		Vector2(-24, -42),
-		Vector2(6, -58),
-		Vector2(34, -28),
-		Vector2(28, 0),
-	])
-	stone.add_child(visual)
 	buildings_container.add_child(stone)
 	_track_placed_entity(
 		stone,
@@ -3182,6 +3934,13 @@ func _lumberyard_growth_radius(lumberyard: Dictionary) -> float:
 	return LUMBERYARD_TREE_RADIUS
 
 
+func _lumberjack_search_radius(lumberyard: Dictionary) -> float:
+	if str(lumberyard.get("source_mother_tree_name", "")) != "":
+		return MOTHER_TREE_LUMBERJACK_SEARCH_RADIUS
+
+	return LUMBERJACK_TREE_SEARCH_RADIUS
+
+
 func _is_resource_entity(entity: Dictionary) -> bool:
 	var resource_kind: String = entity.get("resource_kind", "")
 	return resource_kind == "tree" or resource_kind == "stone"
@@ -3197,7 +3956,7 @@ func _nearest_tree_index_near_lumberyard(lumberyard_index: int) -> int:
 		return -1
 	var resource_kind := _lumberyard_resource_kind(lumberyard)
 	var source_position := _lumberyard_growth_source_position(lumberyard, lumberyard_node.global_position)
-	var growth_radius := _lumberyard_growth_radius(lumberyard)
+	var search_radius := _lumberjack_search_radius(lumberyard)
 
 	var nearest_index := -1
 	var nearest_distance := INF
@@ -3213,7 +3972,7 @@ func _nearest_tree_index_near_lumberyard(lumberyard_index: int) -> int:
 			continue
 
 		var distance := source_position.distance_to(tree_node.global_position)
-		if distance > growth_radius:
+		if distance > search_radius:
 			continue
 		if distance < nearest_distance:
 			nearest_index = i
@@ -3509,6 +4268,21 @@ func _remove_placed_footprint(footprint: Rect2) -> void:
 		placed_footprints.remove_at(footprint_index)
 
 
+func _replace_placed_footprint(old_footprint: Rect2, new_footprint: Rect2) -> void:
+	var footprint_index := placed_footprints.find(old_footprint)
+	if footprint_index != -1:
+		placed_footprints[footprint_index] = new_footprint
+	else:
+		placed_footprints.append(new_footprint)
+
+
+func _npc_manager() -> Node:
+	var parent := get_parent()
+	if parent == null:
+		return null
+	return parent.get_node_or_null("NPCManager")
+
+
 func _release_worker_from_demolished_entity(entity: Dictionary) -> void:
 	var parent := get_parent()
 	if parent == null:
@@ -3581,6 +4355,24 @@ func _cancel_worker_assignment_from_demolished_entity(entity: Dictionary) -> voi
 		return
 
 	npc_manager.cancel_worker_assignment_from_demolished_building(entity.worker_id)
+
+
+func _apply_building_orientation(building: Node2D, building_id: String, building_position: Vector2) -> void:
+	if building == null:
+		return
+
+	building.scale = game_data.oriented_building_scale(
+		building_id,
+		building_position,
+		_city_hall_position(),
+		building.scale
+	)
+
+
+func _building_footprint_size(definition: Dictionary) -> Vector2:
+	if game_data.has_method("building_body_size"):
+		return game_data.building_body_size(definition)
+	return definition.get("size", Vector2.ZERO)
 
 
 func _get_player_facing_direction() -> int:
@@ -3709,9 +4501,10 @@ func _refresh_ui() -> void:
 		slot.text = "%d %s %d金" % [i + 1, definition.display_name, int(definition.get("cost", 0))]
 		if i == selected_index:
 			slot.text = "[%s]" % slot.text
-			slot.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45, 1))
-		elif not can_build_definition(definition):
+		if not can_build_definition(definition):
 			slot.add_theme_color_override("font_color", Color(0.52, 0.56, 0.55, 1))
+		elif i == selected_index:
+			slot.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45, 1))
 		else:
 			slot.add_theme_color_override("font_color", Color(0.92, 0.95, 0.94, 1))
 

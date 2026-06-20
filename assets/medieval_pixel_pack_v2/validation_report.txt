@@ -1,0 +1,72 @@
+Medieval Pixel Pack V2 Validation Report
+Generated: 2026-06-20 10:02:32
+Pack: assets/medieval_pixel_pack_v2
+Scope: final asset PNGs in buildings/npcs/tools/environment/ui; _raw contains source image_gen atlas sheets.
+
+[buildings]
+OK cityhall.png size=420x340 alpha=(0, 255) bbox=(48, 20, 373, 322)
+OK blacksmith.png size=220x160 alpha=(0, 255) bbox=(10, 11, 210, 155)
+OK wall.png size=140x120 alpha=(0, 255) bbox=(5, 67, 135, 115)
+OK farm.png size=240x80 alpha=(0, 255) bbox=(56, 3, 184, 78)
+OK tavern.png size=220x170 alpha=(0, 255) bbox=(10, 31, 210, 163)
+OK post_station.png size=230x160 alpha=(0, 255) bbox=(10, 39, 183, 153)
+OK lumberyard.png size=220x160 alpha=(0, 255) bbox=(8, 45, 212, 135)
+OK quarry.png size=220x140 alpha=(0, 255) bbox=(19, 8, 199, 134)
+OK barracks.png size=240x170 alpha=(0, 255) bbox=(11, 10, 227, 163)
+OK river_port.png size=240x160 alpha=(0, 255) bbox=(11, 25, 231, 153)
+OK beacon_tower.png size=160x220 alpha=(0, 255) bbox=(43, 121, 94, 213)
+OK iron_mine.png size=220x150 alpha=(0, 255) bbox=(20, 7, 198, 143)
+
+[npcs]
+OK player.png size=64x96 alpha=(0, 255) bbox=(3, 15, 61, 92)
+OK villager.png size=64x96 alpha=(0, 255) bbox=(7, 8, 56, 94)
+OK homeless.png size=64x96 alpha=(0, 255) bbox=(6, 8, 58, 94)
+OK farmer.png size=64x96 alpha=(0, 255) bbox=(3, 9, 61, 94)
+OK lumberjack.png size=64x96 alpha=(0, 255) bbox=(3, 25, 61, 94)
+OK miner.png size=64x96 alpha=(0, 255) bbox=(3, 20, 61, 94)
+OK warrior.png size=64x96 alpha=(0, 255) bbox=(3, 35, 61, 94)
+OK archer.png size=64x96 alpha=(0, 255) bbox=(3, 26, 61, 92)
+OK monster.png size=64x96 alpha=(0, 255) bbox=(3, 40, 61, 94)
+
+[tools]
+OK wooden_sword.png size=64x64 alpha=(0, 255) bbox=(8, 6, 55, 57)
+OK wooden_axe.png size=64x64 alpha=(0, 255) bbox=(7, 6, 57, 57)
+OK wooden_sickle.png size=64x64 alpha=(0, 255) bbox=(13, 6, 51, 57)
+OK bow.png size=64x64 alpha=(0, 255) bbox=(17, 6, 46, 57)
+OK stone_sword.png size=64x64 alpha=(0, 255) bbox=(9, 6, 55, 57)
+OK stone_pickaxe.png size=64x64 alpha=(0, 255) bbox=(8, 6, 56, 57)
+OK stone_sickle.png size=64x64 alpha=(0, 255) bbox=(12, 6, 51, 57)
+OK stone_arrowhead.png size=64x64 alpha=(0, 255) bbox=(15, 6, 49, 57)
+OK iron_sword.png size=64x64 alpha=(0, 255) bbox=(9, 6, 54, 57)
+OK iron_pickaxe.png size=64x64 alpha=(0, 255) bbox=(8, 6, 56, 57)
+OK iron_sickle.png size=64x64 alpha=(0, 255) bbox=(13, 6, 51, 57)
+OK iron_arrowhead.png size=64x64 alpha=(0, 255) bbox=(16, 6, 48, 57)
+
+[environment]
+OK tree.png size=96x128 alpha=(0, 255) bbox=(3, 24, 93, 124)
+OK mother_tree.png size=240x260 alpha=(0, 255) bbox=(11, 87, 229, 251)
+OK stone.png size=120x80 alpha=(0, 255) bbox=(5, 15, 113, 78)
+OK water.png size=240x80 alpha=(0, 255) bbox=(51, 54, 189, 78)
+OK short_bridge.png size=240x80 alpha=(0, 255) bbox=(50, 46, 190, 78)
+OK moon.png size=96x96 alpha=(0, 255) bbox=(17, 27, 79, 93)
+OK sun.png size=96x96 alpha=(0, 255) bbox=(5, 3, 91, 93)
+
+[ui]
+OK gold.png size=64x64 alpha=(0, 255) bbox=(6, 6, 57, 57)
+OK build.png size=64x64 alpha=(0, 255) bbox=(7, 6, 56, 57)
+OK upgrade.png size=64x64 alpha=(0, 255) bbox=(7, 6, 56, 57)
+OK repair.png size=64x64 alpha=(0, 255) bbox=(6, 8, 57, 56)
+OK demolish.png size=64x64 alpha=(0, 255) bbox=(7, 6, 57, 57)
+OK travel.png size=64x64 alpha=(0, 255) bbox=(6, 6, 57, 57)
+OK diplomacy.png size=64x64 alpha=(0, 255) bbox=(6, 6, 57, 57)
+OK train.png size=64x64 alpha=(0, 255) bbox=(6, 10, 57, 52)
+OK death.png size=64x64 alpha=(0, 255) bbox=(9, 6, 54, 57)
+
+Summary
+Requested final asset PNGs: 49
+Readable transparent final PNGs: 49/49
+Raw source atlas PNGs in _raw: 5
+Unexpected final PNGs: 0
+Godot .import files in pack before cleanup: 0
+Failures: 0
+PASS

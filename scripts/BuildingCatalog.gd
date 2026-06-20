@@ -60,7 +60,7 @@ var game_data := GameData.new()
 
 
 func get_buildings() -> Array:
-	var definitions := BUILDINGS.duplicate(true)
+	var definitions := game_data.scaled_building_definitions(BUILDINGS.duplicate(true))
 	definitions.append_array(game_data.terrain_building_definitions())
 	return definitions
 

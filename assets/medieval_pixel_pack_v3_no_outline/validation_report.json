@@ -1,0 +1,1429 @@
+{
+  "pack_id": "medieval_pixel_pack_v3_no_outline",
+  "source_pack": "assets/medieval_pixel_pack_v2",
+  "asset_count": 52,
+  "failure_count": 0,
+  "rules": {
+    "uses_original_generated_raw_atlases": true,
+    "uses_single_generated_raw_replacements": true,
+    "adds_outline_stroke": false,
+    "hard_alpha_only": true,
+    "manifest_sizes_preserved": true
+  },
+  "single_asset_regenerations": [
+    "farm",
+    "lumberyard",
+    "post_station",
+    "quarry",
+    "wall"
+  ],
+  "validation": [
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/cityhall.png",
+      "size": [
+        420,
+        340
+      ],
+      "expected_size": [
+        420,
+        340
+      ],
+      "size_ok": true,
+      "visible_pixels": 76177,
+      "transparent_pixels": 66623,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 60,
+      "final_bbox": [
+        32,
+        3,
+        387,
+        340
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/blacksmith.png",
+      "size": [
+        220,
+        160
+      ],
+      "expected_size": [
+        220,
+        160
+      ],
+      "size_ok": true,
+      "visible_pixels": 21286,
+      "transparent_pixels": 13914,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 59,
+      "final_bbox": [
+        0,
+        5,
+        217,
+        160
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/wall.png",
+      "size": [
+        140,
+        120
+      ],
+      "expected_size": [
+        140,
+        120
+      ],
+      "size_ok": true,
+      "visible_pixels": 6780,
+      "transparent_pixels": 10020,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 61,
+      "final_bbox": [
+        29,
+        0,
+        111,
+        120
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/farm.png",
+      "size": [
+        240,
+        80
+      ],
+      "expected_size": [
+        240,
+        80
+      ],
+      "size_ok": true,
+      "visible_pixels": 9591,
+      "transparent_pixels": 9609,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 60,
+      "final_bbox": [
+        3,
+        17,
+        237,
+        80
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/tavern.png",
+      "size": [
+        220,
+        170
+      ],
+      "expected_size": [
+        220,
+        170
+      ],
+      "size_ok": true,
+      "visible_pixels": 21230,
+      "transparent_pixels": 16170,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 61,
+      "final_bbox": [
+        3,
+        29,
+        220,
+        170
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/post_station.png",
+      "size": [
+        230,
+        160
+      ],
+      "expected_size": [
+        230,
+        160
+      ],
+      "size_ok": true,
+      "visible_pixels": 20072,
+      "transparent_pixels": 16728,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 60,
+      "final_bbox": [
+        4,
+        26,
+        226,
+        160
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/lumberyard.png",
+      "size": [
+        220,
+        160
+      ],
+      "expected_size": [
+        220,
+        160
+      ],
+      "size_ok": true,
+      "visible_pixels": 16245,
+      "transparent_pixels": 18955,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 61,
+      "final_bbox": [
+        3,
+        47,
+        216,
+        160
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/quarry.png",
+      "size": [
+        220,
+        140
+      ],
+      "expected_size": [
+        220,
+        140
+      ],
+      "size_ok": true,
+      "visible_pixels": 16575,
+      "transparent_pixels": 14225,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 60,
+      "final_bbox": [
+        3,
+        18,
+        215,
+        140
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/barracks.png",
+      "size": [
+        240,
+        170
+      ],
+      "expected_size": [
+        240,
+        170
+      ],
+      "size_ok": true,
+      "visible_pixels": 24968,
+      "transparent_pixels": 15832,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 58,
+      "final_bbox": [
+        3,
+        7,
+        240,
+        170
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/river_port.png",
+      "size": [
+        240,
+        160
+      ],
+      "expected_size": [
+        240,
+        160
+      ],
+      "size_ok": true,
+      "visible_pixels": 19302,
+      "transparent_pixels": 19098,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 59,
+      "final_bbox": [
+        0,
+        28,
+        240,
+        160
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/beacon_tower.png",
+      "size": [
+        160,
+        220
+      ],
+      "expected_size": [
+        160,
+        220
+      ],
+      "size_ok": true,
+      "visible_pixels": 2931,
+      "transparent_pixels": 32269,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 60,
+      "final_bbox": [
+        0,
+        127,
+        160,
+        220
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/buildings/iron_mine.png",
+      "size": [
+        220,
+        150
+      ],
+      "expected_size": [
+        220,
+        150
+      ],
+      "size_ok": true,
+      "visible_pixels": 18466,
+      "transparent_pixels": 14534,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 61,
+      "final_bbox": [
+        11,
+        3,
+        208,
+        150
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/player.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 2631,
+      "transparent_pixels": 3513,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 30,
+      "final_bbox": [
+        4,
+        9,
+        60,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/villager.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 2576,
+      "transparent_pixels": 3568,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 30,
+      "final_bbox": [
+        9,
+        4,
+        54,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/homeless.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 2951,
+      "transparent_pixels": 3193,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 29,
+      "final_bbox": [
+        8,
+        5,
+        56,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/farmer.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 2064,
+      "transparent_pixels": 4080,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 25,
+      "final_bbox": [
+        5,
+        4,
+        55,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/lumberjack.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 1672,
+      "transparent_pixels": 4472,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 27,
+      "final_bbox": [
+        5,
+        20,
+        59,
+        81
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/miner.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 1675,
+      "transparent_pixels": 4469,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 30,
+      "final_bbox": [
+        4,
+        15,
+        60,
+        80
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/warrior.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 2069,
+      "transparent_pixels": 4075,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 31,
+      "final_bbox": [
+        4,
+        32,
+        60,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/archer.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 2212,
+      "transparent_pixels": 3932,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 29,
+      "final_bbox": [
+        4,
+        22,
+        60,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/npcs/monster.png",
+      "size": [
+        64,
+        96
+      ],
+      "expected_size": [
+        64,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 1434,
+      "transparent_pixels": 4710,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 29,
+      "final_bbox": [
+        4,
+        39,
+        58,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/wooden_sword.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 607,
+      "transparent_pixels": 3489,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 27,
+      "final_bbox": [
+        6,
+        4,
+        57,
+        59
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/wooden_axe.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 945,
+      "transparent_pixels": 3151,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 28,
+      "final_bbox": [
+        5,
+        5,
+        59,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/wooden_sickle.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 546,
+      "transparent_pixels": 3550,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 27,
+      "final_bbox": [
+        12,
+        4,
+        48,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/bow.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 292,
+      "transparent_pixels": 3804,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 24,
+      "final_bbox": [
+        18,
+        5,
+        45,
+        59
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_sword.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 751,
+      "transparent_pixels": 3345,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 26,
+      "final_bbox": [
+        7,
+        4,
+        56,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_pickaxe.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 740,
+      "transparent_pixels": 3356,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 30,
+      "final_bbox": [
+        7,
+        4,
+        57,
+        59
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_sickle.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 596,
+      "transparent_pixels": 3500,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 28,
+      "final_bbox": [
+        12,
+        4,
+        50,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/stone_arrowhead.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1032,
+      "transparent_pixels": 3064,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 28,
+      "final_bbox": [
+        15,
+        5,
+        49,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_sword.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 616,
+      "transparent_pixels": 3480,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 27,
+      "final_bbox": [
+        8,
+        4,
+        55,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_pickaxe.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 640,
+      "transparent_pixels": 3456,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 24,
+      "final_bbox": [
+        6,
+        4,
+        56,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_sickle.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 544,
+      "transparent_pixels": 3552,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 27,
+      "final_bbox": [
+        13,
+        4,
+        50,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/tools/iron_arrowhead.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 852,
+      "transparent_pixels": 3244,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 28,
+      "final_bbox": [
+        17,
+        6,
+        47,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/tree.png",
+      "size": [
+        96,
+        128
+      ],
+      "expected_size": [
+        96,
+        128
+      ],
+      "size_ok": true,
+      "visible_pixels": 4665,
+      "transparent_pixels": 7623,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 40,
+      "final_bbox": [
+        5,
+        23,
+        91,
+        124
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/mother_tree.png",
+      "size": [
+        240,
+        260
+      ],
+      "expected_size": [
+        240,
+        260
+      ],
+      "size_ok": true,
+      "visible_pixels": 26029,
+      "transparent_pixels": 36371,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 42,
+      "final_bbox": [
+        3,
+        79,
+        237,
+        257
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/stone.png",
+      "size": [
+        120,
+        80
+      ],
+      "expected_size": [
+        120,
+        80
+      ],
+      "size_ok": true,
+      "visible_pixels": 4617,
+      "transparent_pixels": 4983,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 44,
+      "final_bbox": [
+        4,
+        14,
+        115,
+        77
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/water.png",
+      "size": [
+        240,
+        80
+      ],
+      "expected_size": [
+        240,
+        80
+      ],
+      "size_ok": true,
+      "visible_pixels": 1988,
+      "transparent_pixels": 17212,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 33,
+      "final_bbox": [
+        48,
+        62,
+        192,
+        77
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/short_bridge.png",
+      "size": [
+        240,
+        80
+      ],
+      "expected_size": [
+        240,
+        80
+      ],
+      "size_ok": true,
+      "visible_pixels": 1947,
+      "transparent_pixels": 17253,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 41,
+      "final_bbox": [
+        48,
+        53,
+        192,
+        77
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/moon.png",
+      "size": [
+        96,
+        96
+      ],
+      "expected_size": [
+        96,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 1201,
+      "transparent_pixels": 8015,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 17,
+      "final_bbox": [
+        20,
+        31,
+        73,
+        92
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/sun.png",
+      "size": [
+        96,
+        96
+      ],
+      "expected_size": [
+        96,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 3417,
+      "transparent_pixels": 5799,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 39,
+      "final_bbox": [
+        5,
+        5,
+        91,
+        91
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/gold.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 2480,
+      "transparent_pixels": 1616,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 29,
+      "final_bbox": [
+        4,
+        4,
+        60,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/build.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1162,
+      "transparent_pixels": 2934,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 30,
+      "final_bbox": [
+        5,
+        4,
+        58,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/upgrade.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1680,
+      "transparent_pixels": 2416,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 29,
+      "final_bbox": [
+        5,
+        4,
+        58,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/repair.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1142,
+      "transparent_pixels": 2954,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 29,
+      "final_bbox": [
+        4,
+        7,
+        60,
+        57
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/demolish.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1672,
+      "transparent_pixels": 2424,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 31,
+      "final_bbox": [
+        5,
+        4,
+        59,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/travel.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1727,
+      "transparent_pixels": 2369,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 28,
+      "final_bbox": [
+        5,
+        4,
+        58,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/diplomacy.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 2067,
+      "transparent_pixels": 2029,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 31,
+      "final_bbox": [
+        4,
+        4,
+        60,
+        59
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/train.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 1357,
+      "transparent_pixels": 2739,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 30,
+      "final_bbox": [
+        4,
+        8,
+        60,
+        55
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/ui/death.png",
+      "size": [
+        64,
+        64
+      ],
+      "expected_size": [
+        64,
+        64
+      ],
+      "size_ok": true,
+      "visible_pixels": 2109,
+      "transparent_pixels": 1987,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        0,
+        255
+      ],
+      "unique_visible_colors": 31,
+      "final_bbox": [
+        8,
+        4,
+        55,
+        60
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/river_background.png",
+      "size": [
+        1920,
+        520
+      ],
+      "expected_size": [
+        1920,
+        520
+      ],
+      "size_ok": true,
+      "visible_pixels": 998400,
+      "transparent_pixels": 0,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        255
+      ],
+      "unique_visible_colors": 127,
+      "final_bbox": [
+        0,
+        0,
+        1920,
+        520
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/river_ground.png",
+      "size": [
+        1920,
+        96
+      ],
+      "expected_size": [
+        1920,
+        96
+      ],
+      "size_ok": true,
+      "visible_pixels": 184320,
+      "transparent_pixels": 0,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        255
+      ],
+      "unique_visible_colors": 128,
+      "final_bbox": [
+        0,
+        0,
+        1920,
+        96
+      ],
+      "edge_magenta_pixels": 0
+    },
+    {
+      "path": "assets/medieval_pixel_pack_v3_no_outline/environment/foreground_water.png",
+      "size": [
+        1920,
+        560
+      ],
+      "expected_size": [
+        1920,
+        560
+      ],
+      "size_ok": true,
+      "visible_pixels": 1075200,
+      "transparent_pixels": 0,
+      "partial_alpha_pixels": 0,
+      "unique_alpha": [
+        255
+      ],
+      "unique_visible_colors": 128,
+      "final_bbox": [
+        0,
+        0,
+        1920,
+        560
+      ],
+      "edge_magenta_pixels": 0
+    }
+  ],
+  "failures": [],
+  "scene_layer_assets": [
+    "river_background",
+    "river_ground",
+    "foreground_water"
+  ]
+}

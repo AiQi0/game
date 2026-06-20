@@ -106,6 +106,7 @@ func interact() -> void:
 	set_process(true)
 	if body != null:
 		body.color = VILLAGER_COLOR
+	_set_generated_sprite_asset("villager")
 	_choose_new_target()
 
 
@@ -116,6 +117,7 @@ func become_lumberjack() -> void:
 	worker_role = "lumberjack"
 	if body != null:
 		body.color = LUMBERJACK_COLOR
+	_set_generated_sprite_asset("lumberjack")
 
 
 func become_farmer() -> void:
@@ -125,6 +127,7 @@ func become_farmer() -> void:
 	worker_role = "farmer"
 	if body != null:
 		body.color = FARMER_COLOR
+	_set_generated_sprite_asset("farmer")
 
 
 func become_miner() -> void:
@@ -134,6 +137,7 @@ func become_miner() -> void:
 	worker_role = "miner"
 	if body != null:
 		body.color = MINER_COLOR
+	_set_generated_sprite_asset("miner")
 
 
 func become_merchant() -> void:
@@ -143,6 +147,7 @@ func become_merchant() -> void:
 	worker_role = "merchant"
 	if body != null:
 		body.color = MERCHANT_COLOR
+	_set_generated_sprite_asset("merchant")
 
 
 func become_shield_guard() -> void:
@@ -167,6 +172,7 @@ func become_shield_guard() -> void:
 	set_process(true)
 	if body != null:
 		body.color = SHIELD_GUARD_COLOR
+	_set_generated_sprite_asset("shield_guard")
 
 
 func become_warrior() -> void:
@@ -191,6 +197,7 @@ func become_warrior() -> void:
 	set_process(true)
 	if body != null:
 		body.color = WARRIOR_COLOR
+	_set_generated_sprite_asset("warrior")
 
 
 func become_archer() -> void:
@@ -215,6 +222,7 @@ func become_archer() -> void:
 	set_process(true)
 	if body != null:
 		body.color = ARCHER_COLOR
+	_set_generated_sprite_asset("archer")
 
 
 func equip_tool(tool_id: String) -> void:
@@ -287,6 +295,7 @@ func drop_carried_tool() -> String:
 		wander_radius = 160.0
 		if body != null:
 			body.color = VILLAGER_COLOR
+		_set_generated_sprite_asset("villager")
 		_choose_new_target()
 	return tool_id
 
@@ -325,6 +334,7 @@ func become_homeless() -> void:
 	set_process(true)
 	if body != null:
 		body.color = HOMELESS_COLOR
+	_set_generated_sprite_asset("homeless")
 	_choose_new_target()
 
 
@@ -624,6 +634,29 @@ func _clear_wall_state() -> void:
 	wall_id = ""
 	if worker_role == "archer":
 		attack_range = ARCHER_ATTACK_RANGE
+
+
+func _set_generated_sprite_asset(asset_id: String) -> void:
+	var sprite := get_node_or_null("GeneratedSprite") as Sprite2D
+	if sprite == null:
+		return
+
+	var texture := game_data.art_asset_texture("npcs", asset_id)
+	if texture == null:
+		return
+
+	sprite.texture = texture
+	sprite.centered = false
+	var target_size := Vector2(64, 96)
+	var scale_factor = minf(
+		target_size.x / maxf(1.0, float(texture.get_width())),
+		target_size.y / maxf(1.0, float(texture.get_height()))
+	)
+	sprite.scale = Vector2(scale_factor, scale_factor)
+	sprite.position = Vector2(
+		-float(texture.get_width()) * scale_factor * 0.5,
+		-float(texture.get_height()) * scale_factor
+	)
 
 
 func _is_warrior_tool(tool_id: String) -> bool:

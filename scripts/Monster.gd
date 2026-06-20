@@ -67,6 +67,8 @@ func _create_visual() -> void:
 	])
 	add_child(eye)
 
+	_add_generated_sprite()
+
 
 func _update_loot_visual() -> void:
 	var old_loot := get_node_or_null("LootVisual")
@@ -94,6 +96,32 @@ func _update_loot_visual() -> void:
 			Vector2(-10, 10),
 		])
 	add_child(loot)
+
+
+func _add_generated_sprite() -> void:
+	var texture := game_data.art_asset_texture("npcs", "monster")
+	if texture == null:
+		return
+
+	for child in get_children():
+		if child is CanvasItem:
+			(child as CanvasItem).visible = false
+
+	var sprite := Sprite2D.new()
+	sprite.name = "GeneratedSprite"
+	sprite.texture = texture
+	sprite.centered = false
+	var target_size := Vector2(64, 96)
+	var scale_factor = minf(
+		target_size.x / maxf(1.0, float(texture.get_width())),
+		target_size.y / maxf(1.0, float(texture.get_height()))
+	)
+	sprite.scale = Vector2(scale_factor, scale_factor)
+	sprite.position = Vector2(
+		-float(texture.get_width()) * scale_factor * 0.5,
+		-float(texture.get_height()) * scale_factor
+	)
+	add_child(sprite)
 
 
 func _tool_color(tool_id: String) -> Color:
