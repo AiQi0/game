@@ -28,6 +28,10 @@ var ui_panel: ColorRect
 var status_label: Label
 var detail_label: Label
 var progress_bar: ProgressBar
+var codex_button: Button
+var last_catch_result := {}
+var fishing_start_position := Vector2.ZERO
+var has_fishing_start_position := false
 
 
 func _init() -> void:
@@ -46,6 +50,9 @@ func _process(delta: float) -> void:
 	if _should_cancel_for_context():
 		if state != IDLE:
 			cancel_fishing()
+		return
+	if _should_cancel_for_movement():
+		cancel_fishing()
 		return
 
 	match state:
@@ -87,12 +94,13 @@ func try_start_fishing() -> bool:
 	hook_elapsed = 0.0
 	reel_progress = 0.0
 	result_elapsed = 0.0
+	_store_fishing_start_position()
 	_refresh_ui()
 	return true
 
 
 func press_fishing_key() -> bool:
-	if state != IDLE and _should_cancel_for_context():
+	if state != IDLE and (_should_cancel_for_context() or _should_cancel_for_movement()):
 		cancel_fishing()
 		return false
 
@@ -117,6 +125,7 @@ func cancel_fishing() -> void:
 	hook_elapsed = 0.0
 	reel_progress = 0.0
 	result_elapsed = 0.0
+	has_fishing_start_position = false
 	_refresh_ui()
 
 
@@ -189,6 +198,26 @@ func _should_cancel_for_context() -> bool:
 		if player.get("player_dead") == true or player.get("dead") == true:
 			return true
 	return false
+
+
+func _store_fishing_start_position() -> void:
+	if player != null and is_instance_valid(player):
+		fishing_start_position = player.global_position
+		has_fishing_start_position = true
+	else:
+		has_fishing_start_position = false
+
+
+func _should_cancel_for_movement() -> bool:
+	if not is_fishing() or not has_fishing_start_position:
+		return false
+	if player == null or not is_instance_valid(player):
+		return false
+
+	var cancel_distance := _fishing_float("movement_cancel_distance")
+	if cancel_distance <= 0.0:
+		return false
+	return player.global_position.distance_to(fishing_start_position) > cancel_distance
 
 
 func _update_waiting_for_bite(delta: float) -> void:
@@ -267,6 +296,36 @@ func _grant_reward() -> void:
 	else:
 		push_warning("Fishing reward could not be granted because BuildManager.add_gold() is unavailable")
 
+	last_catch_result.clear()
+	if build_manager != null and is_instance_valid(build_manager) and build_manager.has_method("record_random_fishing_catch"):
+		last_catch_result = build_manager.record_random_fishing_catch(
+			rng.randf(),
+			rng.randf(),
+			rng.randf(),
+			rng.randf()
+		)
+
+
+func _success_detail_text() -> String:
+	var catch_data: Dictionary = last_catch_result.get("catch", {})
+	if catch_data.is_empty():
+		return "+%d 金币" % _fishing_int("reward_gold")
+
+	var detail := "%s %.2fkg  +%d 金币" % [
+		str(catch_data.get("display_name", "鱼")),
+		float(catch_data.get("weight", 0.0)),
+		_fishing_int("reward_gold"),
+	]
+	var seed_id := str(last_catch_result.get("seed_id", ""))
+	if seed_id != "":
+		detail += "  种子：%s" % seed_id
+	return detail
+
+
+func _open_fish_codex() -> void:
+	if build_manager != null and is_instance_valid(build_manager) and build_manager.has_method("toggle_fish_codex_panel"):
+		build_manager.toggle_fish_codex_panel()
+
 
 func _create_ui() -> void:
 	if ui_canvas != null and is_instance_valid(ui_canvas):
@@ -320,6 +379,15 @@ func _create_ui() -> void:
 	progress_bar.show_percentage = false
 	ui_panel.add_child(progress_bar)
 
+	codex_button = Button.new()
+	codex_button.name = "FishCodexButton"
+	codex_button.text = "鱼图鉴"
+	codex_button.position = Vector2(126, 88)
+	codex_button.size = Vector2(108, 28)
+	codex_button.focus_mode = Control.FOCUS_NONE
+	codex_button.pressed.connect(Callable(self, "_open_fish_codex"))
+	ui_panel.add_child(codex_button)
+
 	_refresh_ui()
 
 
@@ -333,24 +401,24 @@ func _refresh_ui() -> void:
 
 	match state:
 		WAITING_FOR_BITE:
-			status_label.text = "Fishing"
-			detail_label.text = "Waiting for a bite..."
+			status_label.text = "钓鱼中"
+			detail_label.text = "等待咬钩..."
 			progress_bar.value = 0.0
 		BITE_WINDOW:
-			status_label.text = "Bite!"
-			detail_label.text = "Press F to hook"
+			status_label.text = "咬钩了！"
+			detail_label.text = "按 F 收杆"
 			progress_bar.value = clampf(1.0 - hook_elapsed / maxf(_fishing_float("hook_window_seconds"), 0.001), 0.0, 1.0)
 		REELING:
-			status_label.text = "Reeling"
-			detail_label.text = "Tap F to fill the bar"
+			status_label.text = "收杆中"
+			detail_label.text = "连续按 F 填满进度条"
 			progress_bar.value = reel_progress
 		SUCCESS:
-			status_label.text = "Caught!"
-			detail_label.text = "+%d gold" % _fishing_int("reward_gold")
+			status_label.text = "钓到了！"
+			detail_label.text = _success_detail_text()
 			progress_bar.value = 1.0
 		FAILED:
-			status_label.text = "Fish escaped"
-			detail_label.text = "Try again"
+			status_label.text = "鱼跑掉了"
+			detail_label.text = "再试一次"
 			progress_bar.value = 0.0
 
 

@@ -12,7 +12,9 @@ func _init() -> void:
 		var rules = rules_script.new()
 		_test_spawn_interval(rules)
 		_test_spawn_roll(rules)
+		_test_spawn_roll_for_day(rules)
 		_test_spawn_count_range(rules)
+		_test_spawn_count_range_for_day(rules)
 		_test_spawn_positions(rules)
 		_test_nearest_available_work_site(rules)
 
@@ -35,11 +37,38 @@ func _test_spawn_roll(rules) -> void:
 	_assert_false(rules.should_spawn_from_roll(0.99), "high roll does not spawn")
 
 
+func _test_spawn_roll_for_day(rules) -> void:
+	_assert_true(rules.has_method("should_spawn_from_roll_for_day"), "rules expose day-based homeless spawn chance")
+	if not rules.has_method("should_spawn_from_roll_for_day"):
+		return
+
+	_assert_true(rules.should_spawn_from_roll_for_day(0.299, 1), "day one keeps 30 percent chance")
+	_assert_true(rules.should_spawn_from_roll_for_day(0.299, 3), "day three keeps 30 percent chance")
+	_assert_false(rules.should_spawn_from_roll_for_day(0.3, 3), "day three roll at 30 percent does not spawn")
+	_assert_true(rules.should_spawn_from_roll_for_day(0.149, 4), "day four uses reduced 15 percent chance")
+	_assert_false(rules.should_spawn_from_roll_for_day(0.15, 4), "day four roll at 15 percent does not spawn")
+
+
 func _test_spawn_count_range(rules) -> void:
 	for seed in range(16):
 		var count: int = rules.spawn_count_from_seed(seed)
 		_assert_true(count >= 2, "spawn count is at least two")
 		_assert_true(count <= 4, "spawn count is at most four")
+
+
+func _test_spawn_count_range_for_day(rules) -> void:
+	_assert_true(rules.has_method("spawn_count_from_seed_for_day"), "rules expose day-based homeless spawn count")
+	if not rules.has_method("spawn_count_from_seed_for_day"):
+		return
+
+	for seed in range(16):
+		var early_count: int = rules.spawn_count_from_seed_for_day(seed, 3)
+		_assert_true(early_count >= 2, "day three spawn count is at least two")
+		_assert_true(early_count <= 4, "day three spawn count is at most four")
+
+		var late_count: int = rules.spawn_count_from_seed_for_day(seed, 4)
+		_assert_true(late_count >= 1, "day four spawn count is at least one")
+		_assert_true(late_count <= 2, "day four spawn count is at most two")
 
 
 func _test_spawn_positions(rules) -> void:
@@ -103,17 +132,17 @@ func _test_nearest_available_work_site(rules) -> void:
 
 	sites[1].worker_id = "Farmer_01"
 	sites[1].worker_count = 1
-	sites[1].worker_capacity = 4
-	_assert_equal(
-		rules.nearest_available_work_site_index(Vector2(4880, 472), sites),
-		1,
-		"multi-worker farm stays available until capacity is full"
-	)
-	sites[1].worker_count = 4
+	sites[1].worker_capacity = 1
 	_assert_equal(
 		rules.nearest_available_work_site_index(Vector2(4880, 472), sites),
 		-1,
-		"multi-worker farm is unavailable when capacity is full"
+		"single-worker farm is unavailable once one worker is assigned"
+	)
+	sites[1].worker_count = 0
+	_assert_equal(
+		rules.nearest_available_work_site_index(Vector2(4880, 472), sites),
+		1,
+		"single-worker farm is available again when no worker is assigned"
 	)
 
 

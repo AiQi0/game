@@ -28,7 +28,6 @@ func _init() -> void:
 
 	if build_manager_script != null and npc_manager_script != null:
 		_test_warrior_patrol_balance(build_manager_script, npc_manager_script)
-
 	if monster_rules_script != null:
 		_test_monster_spawn_rules(monster_rules_script)
 	if monster_manager_script != null:
@@ -130,14 +129,25 @@ func _test_monster_manager_early_nights(monster_manager_script: Script) -> void:
 	root.add_child(manager)
 	manager.monsters_container = monsters
 
-	_assert_equal(manager.run_night_spawn(1), 2, "first night spawns one monster from each side")
-	_assert_equal(_monster_count_for_side(monsters, "left"), 1, "first night has one left monster")
-	_assert_equal(_monster_count_for_side(monsters, "right"), 1, "first night has one right monster")
+	_assert_equal(manager.run_night_spawn(1), 2, "first night schedules one monster from each side")
+	_assert_equal(monsters.get_child_count(), 0, "scheduled monsters do not appear immediately")
+	_assert_equal(manager.get("pending_spawn_queue").size(), 2, "first night queue contains two monsters")
+	manager._update_spawn_queue(0.99)
+	_assert_equal(monsters.get_child_count(), 0, "queued monsters wait one second before appearing")
+	manager._update_spawn_queue(0.01)
+	_assert_equal(monsters.get_child_count(), 1, "first queued monster appears after one second")
+	manager._update_spawn_queue(1.0)
+	_assert_equal(_monster_count_for_side(monsters, "left"), 1, "first night has one left monster after queue")
+	_assert_equal(_monster_count_for_side(monsters, "right"), 1, "first night has one right monster after queue")
 	_clear_children(monsters)
+	manager.set("pending_spawn_queue", [])
+	manager.set("spawn_queue_elapsed", 0.0)
 
-	_assert_equal(manager.run_night_spawn(2), 2, "second night spawns one monster from each side")
-	_assert_equal(_monster_count_for_side(monsters, "left"), 1, "second night has one left monster")
-	_assert_equal(_monster_count_for_side(monsters, "right"), 1, "second night has one right monster")
+	_assert_equal(manager.run_night_spawn(2), 2, "second night schedules one monster from each side")
+	_assert_equal(monsters.get_child_count(), 0, "second night scheduled monsters do not appear immediately")
+	manager._update_spawn_queue(2.0)
+	_assert_equal(_monster_count_for_side(monsters, "left"), 1, "second night has one left monster after queue")
+	_assert_equal(_monster_count_for_side(monsters, "right"), 1, "second night has one right monster after queue")
 	_clear_children(monsters)
 
 	manager.begin_safe_nights(3)

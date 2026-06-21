@@ -1,12 +1,14 @@
 extends RefCounted
 
-const SPAWN_INTERVAL_SECONDS := 300.0
-const HOMELESS_SPAWN_CHANCE := 0.3
-const MIN_HOMELESS_COUNT := 2
-const MAX_HOMELESS_COUNT := 4
-const STARTING_VILLAGER_COUNT := 3
-const STARTING_HOMELESS_COUNT := 5
-const STARTING_VILLAGER_SPACING := 48.0
+const GameData = preload("res://scripts/GameData.gd")
+
+const SPAWN_INTERVAL_SECONDS := GameData.HOMELESS_SPAWN.interval_seconds
+const HOMELESS_SPAWN_CHANCE := GameData.HOMELESS_SPAWN.early_spawn_chance
+const MIN_HOMELESS_COUNT := GameData.HOMELESS_SPAWN.early_count_range.x
+const MAX_HOMELESS_COUNT := GameData.HOMELESS_SPAWN.early_count_range.y
+const STARTING_VILLAGER_COUNT := GameData.HOMELESS_SPAWN.starting_villager_count
+const STARTING_HOMELESS_COUNT := GameData.HOMELESS_SPAWN.starting_homeless_count
+const STARTING_VILLAGER_SPACING := GameData.HOMELESS_SPAWN.starting_villager_spacing
 
 
 func spawn_interval_seconds() -> float:
@@ -35,10 +37,26 @@ func should_spawn_from_roll(roll: float) -> bool:
 	return roll < HOMELESS_SPAWN_CHANCE
 
 
+func should_spawn_from_roll_for_day(roll: float, day_number: int) -> bool:
+	return roll < _spawn_chance_for_day(day_number)
+
+
 func spawn_count_from_seed(seed: int) -> int:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	return rng.randi_range(MIN_HOMELESS_COUNT, MAX_HOMELESS_COUNT)
+
+
+func spawn_count_from_seed_for_day(seed: int, day_number: int) -> int:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var count_range := _spawn_count_range_for_day(day_number)
+	return rng.randi_range(count_range.x, count_range.y)
+
+
+func spawn_count_from_rng_for_day(rng: RandomNumberGenerator, day_number: int) -> int:
+	var count_range := _spawn_count_range_for_day(day_number)
+	return rng.randi_range(count_range.x, count_range.y)
 
 
 func spawn_positions_from_seed(
@@ -56,6 +74,20 @@ func spawn_positions_from_seed(
 		positions.append(Vector2(rng.randf_range(ground_min_x, ground_max_x), ground_y))
 
 	return positions
+
+
+func _spawn_chance_for_day(day_number: int) -> float:
+	if day_number >= int(GameData.HOMELESS_SPAWN.late_reduction_start_day):
+		return float(GameData.HOMELESS_SPAWN.late_spawn_chance)
+
+	return float(GameData.HOMELESS_SPAWN.early_spawn_chance)
+
+
+func _spawn_count_range_for_day(day_number: int) -> Vector2i:
+	if day_number >= int(GameData.HOMELESS_SPAWN.late_reduction_start_day):
+		return GameData.HOMELESS_SPAWN.late_count_range
+
+	return GameData.HOMELESS_SPAWN.early_count_range
 
 
 func nearest_available_work_site_index(origin: Vector2, sites: Array) -> int:

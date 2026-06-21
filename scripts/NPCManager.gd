@@ -3,6 +3,7 @@ extends Node2D
 const NPCRules = preload("res://scripts/NPCRules.gd")
 const NPCFactory = preload("res://scripts/NPCFactory.gd")
 const GameData = preload("res://scripts/GameData.gd")
+const DayNightRules = preload("res://scripts/DayNightRules.gd")
 
 const GROUND_MIN_X := GameData.GROUND_MIN_X
 const GROUND_MAX_X := GameData.GROUND_MAX_X
@@ -28,6 +29,7 @@ var starting_npcs_spawned := false
 var warrior_attack_timers := {}
 var archer_attack_timers := {}
 var game_data := GameData.new()
+var day_night_manager: Node
 
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_finish_arriving_tavern_homeless()
 	_finish_arriving_workers()
 	_finish_tool_pickup_travelers()
 	_finish_arriving_tree_choppers()
@@ -49,6 +52,7 @@ func _process(delta: float) -> void:
 	_update_warrior_attacks(delta)
 	_update_archer_attacks(delta)
 	_assign_idle_villagers_to_work()
+	_assign_homeless_to_taverns()
 
 	elapsed_since_check += delta
 	if elapsed_since_check < rules.spawn_interval_seconds():
@@ -126,6 +130,10 @@ func save_snapshot() -> Array:
 			"arrowhead_tool": str(npc.get("arrowhead_tool")),
 			"attack_power": int(npc.get("attack_power")),
 			"attack_range": float(npc.get("attack_range")),
+			"max_health": int(npc.get("max_health")),
+			"health": int(npc.get("health")),
+			"soldier_level": int(npc.get("soldier_level")),
+			"soldier_training_elapsed": float(npc.get("soldier_training_elapsed")),
 			"is_patrolling": bool(npc.get("is_patrolling")),
 			"patrol_side": str(npc.get("patrol_side")),
 			"patrol_anchor": _vector2_to_save(npc.get("patrol_anchor")),
@@ -375,6 +383,21 @@ func worker_role_for(worker_id: String) -> String:
 	return npc.get("worker_role")
 
 
+func apply_soldier_training_records(training_workers: Dictionary) -> void:
+	for worker_id in training_workers.keys():
+		var npc := _npc_by_name(str(worker_id))
+		if npc == null:
+			continue
+		if npc.get("worker_role") != "soldier":
+			continue
+		var record: Dictionary = training_workers.get(worker_id, {})
+		if npc.has_method("set_soldier_training"):
+			npc.set_soldier_training(float(record.get("elapsed", 0.0)))
+		else:
+			npc.set("soldier_training_elapsed", float(record.get("elapsed", 0.0)))
+			npc.set("soldier_level", int(record.get("level", 0)))
+
+
 func train_shield_guard(worker_id: String) -> bool:
 	var npc := _npc_by_name(worker_id)
 	if npc == null:
@@ -509,10 +532,11 @@ func _run_spawn_check() -> void:
 	if npc_container == null:
 		return
 
-	if not rules.should_spawn_from_roll(rng.randf()):
+	var day_number := _current_day_number()
+	if not rules.should_spawn_from_roll_for_day(rng.randf(), day_number):
 		return
 
-	var count := rng.randi_range(NPCRules.MIN_HOMELESS_COUNT, NPCRules.MAX_HOMELESS_COUNT)
+	var count := rules.spawn_count_from_rng_for_day(rng, day_number)
 	var positions: Array = rules.spawn_positions_from_seed(
 		rng.randi(),
 		count,
@@ -565,6 +589,98 @@ func _nearest_homeless() -> Node2D:
 			nearest = child
 			nearest_distance = distance
 
+	return nearest
+
+
+func _assign_homeless_to_taverns() -> void:
+	if npc_container == null:
+		return
+
+	var taverns := _tavern_attraction_sites()
+	if taverns.is_empty():
+		return
+
+	var capacity := int(game_data.tavern_attraction_value("homeless_capacity", 3))
+	for tavern in taverns:
+		var workplace_id := str(tavern.get("workplace_id", ""))
+		var assigned_count := _homeless_assigned_to_tavern_count(workplace_id)
+		while assigned_count < capacity:
+			var candidate := _nearest_idle_homeless_to(tavern.get("position", CITY_HALL_FRONT))
+			if candidate == null:
+				break
+			if candidate.has_method("travel_to_workplace"):
+				candidate.travel_to_workplace(
+					tavern.get("position", CITY_HALL_FRONT),
+					str(tavern.get("display_name", "酒馆")),
+					workplace_id
+				)
+			assigned_count += 1
+
+
+func _finish_arriving_tavern_homeless() -> void:
+	if npc_container == null:
+		return
+
+	var radius := float(game_data.tavern_attraction_value("wander_radius", 90.0))
+	for child in npc_container.get_children():
+		if child.get("npc_type") != "homeless":
+			continue
+		if child.get("is_traveling_to_workplace") != true:
+			continue
+		if not str(child.get("assigned_workplace_id")).begins_with("tavern"):
+			continue
+		if child.has_method("is_at_assigned_workplace") and not child.is_at_assigned_workplace():
+			continue
+
+		child.set_workplace(
+			child.get("home_center"),
+			str(child.get("assigned_workplace_name")),
+			str(child.get("assigned_workplace_id"))
+		)
+		child.set("wander_radius", radius)
+
+
+func _tavern_attraction_sites() -> Array:
+	var parent := get_parent()
+	if parent == null:
+		return []
+
+	var build_manager := parent.get_node_or_null("BuildManager")
+	if build_manager == null or not build_manager.has_method("get_work_sites"):
+		return []
+
+	var taverns := []
+	for site in build_manager.get_work_sites():
+		if str(site.get("building_id", "")) == "tavern":
+			taverns.append(site)
+	return taverns
+
+
+func _homeless_assigned_to_tavern_count(workplace_id: String) -> int:
+	var count := 0
+	for child in npc_container.get_children():
+		if child.get("npc_type") == "homeless" and str(child.get("assigned_workplace_id")) == workplace_id:
+			count += 1
+	return count
+
+
+func _nearest_idle_homeless_to(position: Vector2) -> Node2D:
+	var nearest: Node2D = null
+	var nearest_distance := INF
+	for child in npc_container.get_children():
+		if child.get("npc_type") != "homeless":
+			continue
+		if str(child.get("assigned_workplace_id")).begins_with("tavern"):
+			continue
+		if child.get("is_traveling_to_workplace") or child.get("is_traveling_to_tree_chop") or child.get("is_traveling_to_tool_pickup"):
+			continue
+		if child.get("is_chopping_tree") or child.get("is_inside_building"):
+			continue
+
+		var distance: float = child.global_position.distance_to(position)
+		if distance < nearest_distance:
+			nearest = child
+			nearest_distance = distance
 	return nearest
 
 
@@ -781,6 +897,9 @@ func _apply_work_role(npc: Node2D, work_role: String) -> void:
 		"merchant":
 			if npc.has_method("become_merchant"):
 				npc.become_merchant()
+		"soldier":
+			if npc.has_method("become_soldier"):
+				npc.become_soldier()
 
 
 func _is_warrior_tool(tool_id: String) -> bool:
@@ -971,6 +1090,17 @@ func _ensure_scene_references() -> void:
 		player = parent.get_node_or_null("Player")
 	if npc_container == null:
 		npc_container = parent.get_node_or_null("NPCs")
+	if day_night_manager == null:
+		day_night_manager = parent.get_node_or_null("DayNightManager")
+
+
+func _current_day_number() -> int:
+	if day_night_manager == null or not is_instance_valid(day_night_manager):
+		_ensure_scene_references()
+	if day_night_manager == null or not is_instance_valid(day_night_manager):
+		return 1
+
+	return int(floor(float(day_night_manager.get("elapsed_seconds")) / DayNightRules.CYCLE_SECONDS)) + 1
 
 
 func _clear_all_npcs() -> void:
@@ -997,6 +1127,8 @@ func _restore_npc_snapshot(saved_npc: Dictionary) -> void:
 
 	var worker_role := str(saved_npc.get("worker_role", "none"))
 	_apply_saved_worker_role(npc, worker_role)
+	if worker_role == "soldier" and npc.has_method("set_soldier_training"):
+		npc.set_soldier_training(float(saved_npc.get("soldier_training_elapsed", 0.0)))
 	var carried_tool := str(saved_npc.get("carried_tool", ""))
 	if carried_tool != "":
 		npc.equip_tool(carried_tool)
@@ -1011,6 +1143,10 @@ func _restore_npc_snapshot(saved_npc: Dictionary) -> void:
 	npc.set("arrowhead_tool", arrowhead_tool)
 	npc.set("attack_power", int(saved_npc.get("attack_power", npc.get("attack_power"))))
 	npc.set("attack_range", float(saved_npc.get("attack_range", npc.get("attack_range"))))
+	npc.set("max_health", int(saved_npc.get("max_health", npc.get("max_health"))))
+	npc.set("health", int(saved_npc.get("health", npc.get("health"))))
+	npc.set("soldier_level", int(saved_npc.get("soldier_level", npc.get("soldier_level"))))
+	npc.set("soldier_training_elapsed", float(saved_npc.get("soldier_training_elapsed", npc.get("soldier_training_elapsed"))))
 	npc.set("is_patrolling", bool(saved_npc.get("is_patrolling", npc.get("is_patrolling"))))
 	npc.set("patrol_side", str(saved_npc.get("patrol_side", npc.get("patrol_side"))))
 	npc.set("patrol_anchor", _vector2_from_save(saved_npc.get("patrol_anchor", []), npc.get("patrol_anchor")))
@@ -1054,6 +1190,9 @@ func _apply_saved_worker_role(npc: Node2D, worker_role: String) -> void:
 		"merchant":
 			if npc.has_method("become_merchant"):
 				npc.become_merchant()
+		"soldier":
+			if npc.has_method("become_soldier"):
+				npc.become_soldier()
 		"warrior":
 			if npc.has_method("become_warrior"):
 				npc.become_warrior()

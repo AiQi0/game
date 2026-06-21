@@ -9,6 +9,8 @@ var side := "left"
 var direction := 1
 var state := "advance"
 var charge_elapsed := 0.0
+var dash_remaining := 0.0
+var dash_start_position := Vector2.ZERO
 var attack_target: Node2D
 var carried_tool := ""
 var stolen_gold := 0
@@ -38,6 +40,7 @@ func begin_return(tool_id := "", gold_amount := 0) -> void:
 	state = "returning"
 	attack_target = null
 	charge_elapsed = 0.0
+	dash_remaining = 0.0
 	_update_loot_visual()
 
 

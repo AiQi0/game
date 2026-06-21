@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/Player.gd" id="1_player"]
 [ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/buildings/cityhall.png" id="2_cityhall"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/environment/river_background.png" id="11_river_background"]
 [ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/environment/river_ground.png" id="12_river_ground"]
 [ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/environment/foreground_water.png" id="13_foreground_water"]
+[ext_resource type="Texture2D" path="res://assets/medieval_pixel_pack_v3_no_outline/npcs/player.png" id="14_player_sprite"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(9600, 48)
@@ -827,8 +828,15 @@ position = Vector2(5350, 472)
 script = ExtResource("1_player")
 
 [node name="PlayerVisual" type="Polygon2D" parent="Player"]
+visible = false
 color = Color(0.95, 0.36, 0.22, 1)
 polygon = PackedVector2Array(-16, -64, 16, -64, 16, 0, -16, 0)
+
+[node name="GeneratedSprite" type="Sprite2D" parent="Player"]
+position = Vector2(-21.3333, -64)
+scale = Vector2(0.666667, 0.666667)
+centered = false
+texture = ExtResource("14_player_sprite")
 
 [node name="PlayerCollision" type="CollisionShape2D" parent="Player"]
 position = Vector2(0, -32)

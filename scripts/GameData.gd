@@ -1,7 +1,7 @@
 extends RefCounted
 
-const GROUND_MIN_X := 0.0
-const GROUND_MAX_X := 9600.0
+const GROUND_MIN_X := -4000.0
+const GROUND_MAX_X := 13600.0
 const GROUND_TOP_Y := 472.0
 const AIR_WALL_WIDTH := 96.0
 const AIR_WALL_HEIGHT := 1000.0
@@ -33,6 +33,7 @@ const STONE_CITY_HALL_RING_OFFSET := 1800.0
 const CITY_HALL_FRONT := Vector2(4800, 472)
 const MAIN_MENU_SCENE_PATH := "res://scenes/MainMenu.tscn"
 const MAIN_SCENE_PATH := "res://scenes/Main.tscn"
+const BUILDING_INTERIOR_SCENE_PATH := "res://scenes/BuildingInterior.tscn"
 const SAVE_DIRECTORY := "user://saves"
 const LAST_SAVE_FILENAME := "last_save.json"
 const AUTOSAVE_SECONDS := 60.0
@@ -51,6 +52,25 @@ const BUILDING_ORIENTATION_RULES := {
 }
 
 const STARTING_GOLD := 30
+const HOMELESS_SPAWN := {
+	"interval_seconds": 300.0,
+	"early_spawn_chance": 0.3,
+	"late_spawn_chance": 0.15,
+	"early_count_range": Vector2i(2, 4),
+	"late_count_range": Vector2i(1, 2),
+	"late_reduction_start_day": 4,
+	"starting_villager_count": 3,
+	"starting_homeless_count": 5,
+	"starting_villager_spacing": 48.0,
+}
+const TAVERN_ATTRACTION := {
+	"homeless_capacity": 3,
+	"wander_radius": 90.0,
+}
+const WALL_HEALTH_BY_LEVEL := {
+	1: 20,
+	2: 40,
+}
 const FARM_INCOME_SECONDS := 60.0
 const TOOL_CRAFT_SECONDS := 30.0
 const TOOL_CRAFT_COST := 3
@@ -75,6 +95,32 @@ const QUARRY_COST := 20
 const QUARRY_INCOME_SECONDS := 60.0
 const QUARRY_INCOME_GOLD := 3
 const BRIDGE_FARM_COST := 5
+const INTERIOR_PLAYER_SPEED := 240.0
+const INTERIOR_NPC_SPEED := 220.0
+const INTERIOR_DOOR_RANGE := 96.0
+const INTERIOR_AUTOSAVE_SECONDS := 60.0
+const INTERIOR_FARM_CYCLE_SECONDS := 300.0
+const INTERIOR_FARM_ACTION_SECONDS := 2.0
+const INTERIOR_SEED_DROP_CHANCE := 0.02
+const INTERIOR_WORKER_DEFAULT_POSITION := Vector2(360.0, 792.0)
+const INTERIOR_FARM_PLOT_ORIGIN := Vector2(260.0, 740.0)
+const INTERIOR_FARM_PLOT_SPACING_X := 150.0
+const INTERIOR_FARM_WORKER_OFFSET := Vector2(0.0, 8.0)
+const INTERIOR_RESOURCE_WORKER_Y := 792.0
+const BARRACKS_CAPACITY_BY_LEVEL := {
+	1: 10,
+	2: 15,
+	3: 20,
+}
+const BARRACKS_TRAINING_LEVELS := [
+	{"level": 1, "duration_seconds": 3600.0, "stat_multiplier": 2.0},
+	{"level": 2, "duration_seconds": 7200.0, "stat_multiplier": 3.0},
+	{"level": 3, "duration_seconds": 14400.0, "stat_multiplier": 4.0},
+]
+const BARRACKS_TRAINING_COLUMNS := 5
+const BARRACKS_TRAINING_ROWS := 4
+const BARRACKS_TRAINING_ORIGIN := Vector2(440.0, 460.0)
+const BARRACKS_TRAINING_SPACING := Vector2(150.0, 86.0)
 
 const NPC_SPEED := 52.0
 const NPC_ARRIVAL_DISTANCE := 6.0
@@ -87,11 +133,14 @@ const ARCHER_ATTACK_INTERVAL := 1.0
 
 const MONSTER_MAX_HEALTH := 3
 const MONSTER_SPAWN_EDGE_PADDING := 28.0
-const MONSTER_SPEED := 70.0
+const MONSTER_SPEED := 105.0
 const MONSTER_RETURN_SPEED := 110.0
 const MONSTER_DETECTION_RANGE := 86.0
 const MONSTER_HIT_RANGE := 44.0
+const MONSTER_DASH_DISTANCE := 132.0
+const MONSTER_DASH_SPEED_MULTIPLIER := 5.0
 const MONSTER_CHARGE_SECONDS := 1.0
+const MONSTER_SPAWN_INTERVAL_SECONDS := 1.0
 const MONSTER_RANDOM_SEED := 20260617
 
 const ARROW_FLIGHT_SECONDS := 0.8
@@ -125,6 +174,11 @@ const NPC_ROLES := {
 		"attack_power": 1,
 		"defense_power": 4,
 		"expedition_loss_reduction": 0.2,
+	},
+	"soldier": {
+		"color": Color(0.54, 0.48, 0.36, 1),
+		"attack_power": 2,
+		"max_health": 10,
 	},
 	"warrior": {
 		"color": Color(0.62, 0.18, 0.24, 1),
@@ -205,6 +259,15 @@ const TOOLS := {
 		"tool_class": "arrowhead",
 		"damage_multiplier": STONE_TOOL_EFFICIENCY_MULTIPLIER,
 	},
+	"stone_spear": {
+		"display_name": "stone spear",
+		"color": Color(0.58, 0.58, 0.54, 1),
+		"craft_text": "craft stone spear -3",
+		"tier": "stone",
+		"tool_class": "spear",
+		"soldier_attack_bonus": 0.3,
+		"soldier_health_bonus": 0.3,
+	},
 	"iron_sword": {
 		"display_name": "铁剑",
 		"color": Color(0.78, 0.78, 0.72, 1),
@@ -247,6 +310,17 @@ const TOOLS := {
 		"requires_blacksmith_level": 3,
 		"damage_multiplier": IRON_TOOL_EFFICIENCY_MULTIPLIER,
 	},
+	"iron_spear": {
+		"display_name": "iron spear",
+		"color": Color(0.72, 0.72, 0.66, 1),
+		"craft_text": "craft iron spear -3",
+		"tier": "iron",
+		"tool_class": "spear",
+		"requires_building": "iron_mine",
+		"requires_blacksmith_level": 3,
+		"soldier_attack_bonus": 0.5,
+		"soldier_health_bonus": 0.5,
+	},
 }
 
 const TOOL_ROLE_PRIORITY := {
@@ -255,12 +329,13 @@ const TOOL_ROLE_PRIORITY := {
 	"miner": ["iron_pickaxe", "stone_pickaxe"],
 	"farmer": ["iron_sickle", "stone_sickle", "sickle"],
 	"archer": ["iron_arrowhead", "stone_arrowhead"],
+	"soldier": ["iron_spear", "stone_spear"],
 }
 
 const BLACKSMITH_CRAFT_TOOLS_BY_LEVEL := {
 	1: ["sword", "axe", "sickle", "bow"],
-	2: ["stone_sword", "stone_pickaxe", "stone_sickle", "bow", "stone_arrowhead"],
-	3: ["iron_sword", "iron_pickaxe", "iron_sickle", "bow", "iron_arrowhead"],
+	2: ["stone_sword", "stone_pickaxe", "stone_sickle", "bow", "stone_arrowhead", "stone_spear"],
+	3: ["iron_sword", "iron_pickaxe", "iron_sickle", "bow", "iron_arrowhead", "iron_spear"],
 }
 
 const BLACKSMITH_CRAFT_REQUIREMENTS_BY_LEVEL := {
@@ -293,6 +368,7 @@ const ART_ASSETS := {
 		"miner": "miner.png",
 		"merchant": "villager.png",
 		"shield_guard": "warrior.png",
+		"soldier": "soldier.png",
 		"warrior": "warrior.png",
 		"archer": "archer.png",
 		"monster": "monster.png",
@@ -306,10 +382,58 @@ const ART_ASSETS := {
 		"stone_pickaxe": "stone_pickaxe.png",
 		"stone_sickle": "stone_sickle.png",
 		"stone_arrowhead": "stone_arrowhead.png",
+		"stone_spear": "stone_spear.png",
 		"iron_sword": "iron_sword.png",
 		"iron_pickaxe": "iron_pickaxe.png",
 		"iron_sickle": "iron_sickle.png",
 		"iron_arrowhead": "iron_arrowhead.png",
+		"iron_spear": "iron_spear.png",
+	},
+	"crops": {
+		"wheat_seeded": "wheat_seeded.png",
+		"wheat_growing": "wheat_growing.png",
+		"wheat_ready": "wheat_ready.png",
+		"carrot_seeded": "carrot_seeded.png",
+		"carrot_growing": "carrot_growing.png",
+		"carrot_ready": "carrot_ready.png",
+		"cabbage_seeded": "cabbage_seeded.png",
+		"cabbage_growing": "cabbage_growing.png",
+		"cabbage_ready": "cabbage_ready.png",
+		"pumpkin_seeded": "pumpkin_seeded.png",
+		"pumpkin_growing": "pumpkin_growing.png",
+		"pumpkin_ready": "pumpkin_ready.png",
+		"blueberry_seeded": "blueberry_seeded.png",
+		"blueberry_growing": "blueberry_growing.png",
+		"blueberry_ready": "blueberry_ready.png",
+		"moon_mushroom_seeded": "moon_mushroom_seeded.png",
+		"moon_mushroom_growing": "moon_mushroom_growing.png",
+		"moon_mushroom_ready": "moon_mushroom_ready.png",
+	},
+	"seeds": {
+		"wheat": "wheat_seed.png",
+		"carrot": "carrot_seed.png",
+		"cabbage": "cabbage_seed.png",
+		"pumpkin": "pumpkin_seed.png",
+		"blueberry": "blueberry_seed.png",
+		"moon_mushroom": "moon_mushroom_seed.png",
+	},
+	"fish": {
+		"silver_crucian": "silver_crucian.png",
+		"river_bass": "river_bass.png",
+		"mud_catfish": "mud_catfish.png",
+		"golden_trout": "golden_trout.png",
+		"crystal_eel": "crystal_eel.png",
+		"moon_kingfish": "moon_kingfish.png",
+		"silhouette": "fish_silhouette.png",
+	},
+	"interiors": {
+		"farm_background": "farm_background.png",
+		"lumberyard_background": "lumberyard_background.png",
+		"quarry_background": "quarry_background.png",
+		"shell_background": "shell_background.png",
+		"interior_tree": "interior_tree.png",
+		"interior_stone": "interior_stone.png",
+		"door": "interior_door.png",
 	},
 	"environment": {
 		"tree": "tree.png",
@@ -333,6 +457,9 @@ const ART_ASSETS := {
 		"diplomacy": "diplomacy.png",
 		"train": "train.png",
 		"death": "death.png",
+		"fish_codex": "fish_codex.png",
+		"crop_codex": "crop_codex.png",
+		"seed_notice": "seed_notice.png",
 	},
 }
 
@@ -411,6 +538,149 @@ const TERRAIN_SETS := {
 		},
 	},
 }
+
+const BUILDING_INTERIORS := {
+	"default": {
+		"layout": "shell",
+		"display_name": "室内",
+		"background_asset": "shell_background",
+	},
+	"farm": {
+		"layout": "farm",
+		"display_name": "农田室内",
+		"background_asset": "farm_background",
+		"worker_role": "farmer",
+		"plot_count": 6,
+		"cycle_seconds": INTERIOR_FARM_CYCLE_SECONDS,
+		"sow_action_seconds": INTERIOR_FARM_ACTION_SECONDS,
+		"harvest_action_seconds": INTERIOR_FARM_ACTION_SECONDS,
+		"reward_gold": 1,
+	},
+	"lumberyard": {
+		"layout": "lumberyard",
+		"display_name": "伐木场室内",
+		"background_asset": "lumberyard_background",
+		"worker_role": "lumberjack",
+		"resource_kind": "tree",
+		"spawn_seconds": LUMBERYARD_TREE_INTERVAL_SECONDS,
+		"spawn_count": LUMBERYARD_TREE_BATCH_COUNT,
+		"max_resources": 6,
+	},
+	"quarry": {
+		"layout": "quarry",
+		"display_name": "采石场室内",
+		"background_asset": "quarry_background",
+		"worker_role": "miner",
+		"resource_kind": "stone",
+		"spawn_seconds": 60.0,
+		"spawn_count": 1,
+		"max_resources": 3,
+	},
+	"barracks": {
+		"layout": "barracks",
+		"display_name": "barracks interior",
+		"background_asset": "shell_background",
+		"worker_role": "soldier",
+		"columns": BARRACKS_TRAINING_COLUMNS,
+		"rows": BARRACKS_TRAINING_ROWS,
+		"capacity_by_level": BARRACKS_CAPACITY_BY_LEVEL,
+	},
+}
+
+const CROPS := {
+	"wheat": {
+		"display_name": "小麦",
+		"seed_display_name": "小麦种子",
+		"reward_gold": 1,
+		"default_unlocked": true,
+	},
+	"carrot": {
+		"display_name": "胡萝卜",
+		"seed_display_name": "胡萝卜种子",
+		"reward_gold": 1,
+		"default_unlocked": false,
+	},
+	"cabbage": {
+		"display_name": "卷心菜",
+		"seed_display_name": "卷心菜种子",
+		"reward_gold": 1,
+		"default_unlocked": false,
+	},
+	"pumpkin": {
+		"display_name": "南瓜",
+		"seed_display_name": "南瓜种子",
+		"reward_gold": 1,
+		"default_unlocked": false,
+	},
+	"blueberry": {
+		"display_name": "蓝莓",
+		"seed_display_name": "蓝莓种子",
+		"reward_gold": 1,
+		"default_unlocked": false,
+	},
+	"moon_mushroom": {
+		"display_name": "月光蘑菇",
+		"seed_display_name": "月光蘑菇种子",
+		"reward_gold": 1,
+		"default_unlocked": false,
+	},
+}
+
+const SEED_DROP_RULES := {
+	"chance": INTERIOR_SEED_DROP_CHANCE,
+	"activities": ["harvest", "tree_chop", "stone_mine", "fishing"],
+}
+
+const FISH_SPECIES := [
+	{
+		"id": "silver_crucian",
+		"display_name": "银鳞鲫",
+		"rarity": "common",
+		"probability": 0.34,
+		"min_weight": 0.2,
+		"max_weight": 1.2,
+	},
+	{
+		"id": "river_bass",
+		"display_name": "河湾鲈",
+		"rarity": "common",
+		"probability": 0.30,
+		"min_weight": 0.4,
+		"max_weight": 2.0,
+	},
+	{
+		"id": "mud_catfish",
+		"display_name": "泥须鲶",
+		"rarity": "common",
+		"probability": 0.20,
+		"min_weight": 0.8,
+		"max_weight": 4.0,
+	},
+	{
+		"id": "golden_trout",
+		"display_name": "金鳟",
+		"rarity": "rare",
+		"probability": 0.08,
+		"min_weight": 1.0,
+		"max_weight": 3.5,
+	},
+	{
+		"id": "crystal_eel",
+		"display_name": "水晶鳗",
+		"rarity": "rare",
+		"probability": 0.06,
+		"min_weight": 0.5,
+		"max_weight": 2.5,
+	},
+	{
+		"id": "moon_kingfish",
+		"display_name": "月辉王鱼",
+		"rarity": "legendary",
+		"probability": 0.02,
+		"min_weight": 3.0,
+		"max_weight": 12.0,
+	},
+]
 
 const TERRAIN_BUILDINGS := {
 	"river": [
@@ -517,7 +787,7 @@ const FARM := {
 	"display_name": "农田",
 	"cost": BRIDGE_FARM_COST,
 	"size": Vector2(220, 60),
-	"worker_capacity": 4,
+	"worker_capacity": 1,
 	"base_color": Color(0.55, 0.34, 0.16, 1),
 	"accent_color": Color(0.38, 0.72, 0.24, 1),
 }
@@ -606,6 +876,10 @@ const BUILDING_UPGRADES := {
 			"cost": 45,
 			"requires": {"cityhall": 4},
 		},
+		3: {
+			"cost": 90,
+			"requires": {"cityhall": 4},
+		},
 	},
 }
 
@@ -666,6 +940,7 @@ const FISHING := {
 	"reel_decay_per_second": 0.18,
 	"result_visible_seconds": 1.2,
 	"reward_gold": 1,
+	"movement_cancel_distance": 4.0,
 }
 
 const TRADE := {
@@ -683,6 +958,8 @@ const TRAVEL_DESTINATIONS := {
 		"scene_path": "res://scenes/RiverMerchantAlliance.tscn",
 	},
 }
+
+const POST_STATION_PANEL_TRAVEL_DESTINATIONS := ["river"]
 
 const RIVER_MERCHANT_ALLIANCE_NPC_LAYOUT := [
 	{"name": "Farmer_01", "role": "farmer", "position": Vector2(1600, GROUND_TOP_Y), "home_position": Vector2(1600, GROUND_TOP_Y), "home_id": "farm_1", "home_name": "farm", "enters_building": true},
@@ -737,6 +1014,41 @@ func world_value(key: String, default_value = null):
 	return WORLD.get(key, default_value)
 
 
+func homeless_spawn_value(key: String, default_value = null):
+	return HOMELESS_SPAWN.get(key, default_value)
+
+
+func tavern_attraction_value(key: String, default_value = null):
+	return TAVERN_ATTRACTION.get(key, default_value)
+
+
+func wall_health_for_level(level: int) -> int:
+	var normalized_level := maxi(1, level)
+	var best_health := int(WALL_HEALTH_BY_LEVEL.get(1, 20))
+	for health_level in WALL_HEALTH_BY_LEVEL.keys():
+		var numeric_level := int(health_level)
+		if normalized_level >= numeric_level:
+			best_health = int(WALL_HEALTH_BY_LEVEL[health_level])
+	return best_health
+
+
+func monster_value(key: String, default_value = null):
+	var monster := {
+		"max_health": MONSTER_MAX_HEALTH,
+		"spawn_edge_padding": MONSTER_SPAWN_EDGE_PADDING,
+		"speed": MONSTER_SPEED,
+		"return_speed": MONSTER_RETURN_SPEED,
+		"detection_range": MONSTER_DETECTION_RANGE,
+		"hit_range": MONSTER_HIT_RANGE,
+		"dash_distance": MONSTER_DASH_DISTANCE,
+		"dash_speed_multiplier": MONSTER_DASH_SPEED_MULTIPLIER,
+		"charge_seconds": MONSTER_CHARGE_SECONDS,
+		"spawn_interval_seconds": MONSTER_SPAWN_INTERVAL_SECONDS,
+		"random_seed": MONSTER_RANDOM_SEED,
+	}
+	return monster.get(key, default_value)
+
+
 func economy_value(key: String, default_value = null):
 	return ECONOMY.get(key, default_value)
 
@@ -760,6 +1072,10 @@ func travel_destination_scene_path(terrain: String) -> String:
 
 func travel_destination_display_name(terrain: String) -> String:
 	return str(travel_destination_value(terrain, "display_name", terrain))
+
+
+func post_station_panel_travel_destinations() -> Array:
+	return POST_STATION_PANEL_TRAVEL_DESTINATIONS.duplicate()
 
 
 func river_merchant_alliance_npc_layout() -> Array:
@@ -900,6 +1216,143 @@ func terrain_tile_size() -> Vector2:
 
 func visual_chunk_width() -> float:
 	return float(VISUAL_CHUNK_WIDTH)
+
+
+func building_interior_scene_path() -> String:
+	return BUILDING_INTERIOR_SCENE_PATH
+
+
+func building_interior_definition(building_id: String) -> Dictionary:
+	var definition: Dictionary = BUILDING_INTERIORS.get(building_id, BUILDING_INTERIORS.get("default", {}))
+	return definition.duplicate(true)
+
+
+func building_interior_value(building_id: String, key: String, default_value = null):
+	var definition := building_interior_definition(building_id)
+	return definition.get(key, default_value)
+
+
+func interior_player_speed() -> float:
+	return INTERIOR_PLAYER_SPEED
+
+
+func interior_npc_speed() -> float:
+	return INTERIOR_NPC_SPEED
+
+
+func interior_door_range() -> float:
+	return INTERIOR_DOOR_RANGE
+
+
+func interior_autosave_seconds() -> float:
+	return INTERIOR_AUTOSAVE_SECONDS
+
+
+func interior_worker_default_position() -> Vector2:
+	return INTERIOR_WORKER_DEFAULT_POSITION
+
+
+func interior_farm_plot_position(plot_index: int) -> Vector2:
+	return INTERIOR_FARM_PLOT_ORIGIN + Vector2(float(plot_index) * INTERIOR_FARM_PLOT_SPACING_X, 0.0)
+
+
+func interior_farm_worker_position(plot_index: int) -> Vector2:
+	return interior_farm_plot_position(plot_index) + INTERIOR_FARM_WORKER_OFFSET
+
+
+func interior_resource_worker_position(resource_x: float) -> Vector2:
+	return Vector2(resource_x, INTERIOR_RESOURCE_WORKER_Y)
+
+
+func barracks_capacity_for_level(level: int) -> int:
+	var resolved_level := clampi(level, 1, 3)
+	return int(BARRACKS_CAPACITY_BY_LEVEL.get(resolved_level, BARRACKS_CAPACITY_BY_LEVEL.get(1, 10)))
+
+
+func barracks_training_level_for_elapsed(elapsed_seconds: float) -> int:
+	var accumulated := 0.0
+	var current_level := 0
+	for level_data in BARRACKS_TRAINING_LEVELS:
+		var duration := float(level_data.get("duration_seconds", 0.0))
+		accumulated += duration
+		if elapsed_seconds + 0.001 >= accumulated:
+			current_level = int(level_data.get("level", current_level))
+		else:
+			break
+	return current_level
+
+
+func barracks_stat_multiplier_for_level(level: int) -> float:
+	if level <= 0:
+		return 1.0
+	for level_data in BARRACKS_TRAINING_LEVELS:
+		if int(level_data.get("level", 0)) == level:
+			return float(level_data.get("stat_multiplier", 1.0))
+	return float(BARRACKS_TRAINING_LEVELS[BARRACKS_TRAINING_LEVELS.size() - 1].get("stat_multiplier", 1.0))
+
+
+func barracks_training_position(index: int) -> Vector2:
+	var columns := maxi(1, BARRACKS_TRAINING_COLUMNS)
+	return BARRACKS_TRAINING_ORIGIN + Vector2(
+		float(index % columns) * BARRACKS_TRAINING_SPACING.x,
+		float(index / columns) * BARRACKS_TRAINING_SPACING.y
+	)
+
+
+func barracks_training_rows() -> int:
+	return BARRACKS_TRAINING_ROWS
+
+
+func crop_ids() -> Array:
+	return CROPS.keys()
+
+
+func crop_definition(crop_id: String) -> Dictionary:
+	var definition: Dictionary = CROPS.get(crop_id, {})
+	return definition.duplicate(true)
+
+
+func crop_value(crop_id: String, key: String, default_value = null):
+	var definition: Dictionary = CROPS.get(crop_id, {})
+	return definition.get(key, default_value)
+
+
+func crop_stage_asset_id(crop_id: String, stage: String) -> String:
+	return "%s_%s" % [crop_id, stage]
+
+
+func default_unlocked_crops() -> Dictionary:
+	var unlocked := {}
+	for crop_id in CROPS.keys():
+		if bool(crop_value(crop_id, "default_unlocked", false)):
+			unlocked[crop_id] = true
+	return unlocked
+
+
+func seed_drop_chance() -> float:
+	return float(SEED_DROP_RULES.get("chance", 0.0))
+
+
+func seed_drop_activities() -> Array:
+	return (SEED_DROP_RULES.get("activities", []) as Array).duplicate()
+
+
+func fish_species() -> Array:
+	return FISH_SPECIES.duplicate(true)
+
+
+func fish_species_ids() -> Array:
+	var ids := []
+	for fish in FISH_SPECIES:
+		ids.append(str(fish.get("id", "")))
+	return ids
+
+
+func fish_species_definition(fish_id: String) -> Dictionary:
+	for fish in FISH_SPECIES:
+		if str(fish.get("id", "")) == fish_id:
+			return fish.duplicate(true)
+	return {}
 
 
 func has_building_upgrade(building_id: String, target_level: int) -> bool:

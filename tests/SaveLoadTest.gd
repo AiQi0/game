@@ -23,6 +23,7 @@ func _run() -> void:
 	if build_manager_script != null and save_manager_script != null:
 		_test_apply_save_snapshot(build_manager_script, save_manager_script)
 		_test_save_and_load_buildings_and_levels(build_manager_script, save_manager_script)
+		_test_save_and_load_damaged_building_state(build_manager_script, save_manager_script)
 		_test_load_last_save_applies_snapshot(build_manager_script, save_manager_script)
 		_test_escape_pause_menu_save_and_load(build_manager_script, save_manager_script)
 		_test_return_to_main_menu_saves_manual(build_manager_script, save_manager_script)
@@ -96,6 +97,39 @@ func _test_save_and_load_buildings_and_levels(build_manager_script: Script, save
 		_assert_true(is_instance_valid(blacksmith_node), "load recreates blacksmith node")
 		if is_instance_valid(blacksmith_node):
 			_assert_equal(blacksmith_node.global_position, Vector2(4300, 472), "load restores blacksmith position")
+
+	_cleanup_save_root(source_save_manager.save_root_path)
+	source.root.free()
+	_cleanup_save_root(target.save_manager.save_root_path)
+	target.root.free()
+
+
+func _test_save_and_load_damaged_building_state(build_manager_script: Script, save_manager_script: Script) -> void:
+	var source := _create_world(build_manager_script, save_manager_script, "damaged_source")
+	var source_manager: Node2D = source.manager
+	var source_save_manager = source.save_manager
+	_track_building(source_manager, source.buildings, "blacksmith_damaged", "blacksmith", Vector2(4300, 472), Vector2(180, 140), 2)
+	var source_index := _entity_index_for_building_id(source_manager, "blacksmith")
+	_assert_true(source_index != -1, "source blacksmith can be damaged before save")
+	if source_index != -1:
+		source_manager._damage_building(source_index)
+
+	_assert_true(source_manager.autosave_game("manual"), "manual save with damaged building succeeds")
+	var save_data: Dictionary = source_save_manager.read_last_save()
+	var saved_buildings: Array = save_data.get("snapshot", {}).get("buildings", [])
+	_assert_true(_saved_damaged_for(saved_buildings, "blacksmith"), "snapshot stores damaged building state")
+
+	var target := _create_world(build_manager_script, save_manager_script, "damaged_target")
+	var target_manager: Node2D = target.manager
+	_track_building(target_manager, target.buildings, "CityHall", "cityhall", Vector2(4800, 472), Vector2(400, 334), 1, false, "cityhall")
+	_assert_true(target_manager.apply_save_data(save_data), "damaged building save snapshot applies")
+
+	var loaded := _entity_for_building_id(target_manager, "blacksmith")
+	_assert_true(bool(loaded.get("damaged", false)), "load restores damaged building flag")
+	var loaded_node: Node2D = loaded.get("node", null)
+	_assert_true(is_instance_valid(loaded_node), "load recreates damaged building node")
+	if is_instance_valid(loaded_node):
+		_assert_equal(loaded_node.modulate, Color(0.48, 0.34, 0.34, 1), "load restores damaged building visual state")
 
 	_cleanup_save_root(source_save_manager.save_root_path)
 	source.root.free()
@@ -422,11 +456,25 @@ func _saved_level_for(saved_buildings: Array, building_id: String) -> int:
 	return 0
 
 
+func _saved_damaged_for(saved_buildings: Array, building_id: String) -> bool:
+	for building in saved_buildings:
+		if building is Dictionary and building.get("building_id", "") == building_id:
+			return bool(building.get("damaged", false))
+	return false
+
+
 func _entity_for_building_id(manager: Node2D, building_id: String) -> Dictionary:
 	for entity in manager.placed_buildings:
 		if entity.get("building_id", "") == building_id:
 			return entity
 	return {}
+
+
+func _entity_index_for_building_id(manager: Node2D, building_id: String) -> int:
+	for i in range(manager.placed_buildings.size()):
+		if manager.placed_buildings[i].get("building_id", "") == building_id:
+			return i
+	return -1
 
 
 func _entity_index_for_kind(manager: Node2D, entity_kind: String) -> int:

@@ -55,7 +55,7 @@ func _test_terrain_building_data(data) -> void:
 	_assert_equal(data.tool_display_name("iron_sword"), "铁剑", "iron sword is data-driven")
 	_assert_equal(data.tool_efficiency_multiplier("iron_pickaxe"), 3.0, "iron pickaxe is stronger than stone pickaxe")
 	_assert_equal(data.tool_damage_multiplier("iron_arrowhead"), 3.0, "iron arrowheads triple archer damage")
-	_assert_equal(data.blacksmith_craft_tool_ids(3), ["iron_sword", "iron_pickaxe", "iron_sickle", "bow", "iron_arrowhead"], "level 3 blacksmith crafts iron tools")
+	_assert_equal(data.blacksmith_craft_tool_ids(3), ["iron_sword", "iron_pickaxe", "iron_sickle", "bow", "iron_arrowhead", "iron_spear"], "level 3 blacksmith crafts iron tools and iron spear")
 
 
 func _test_mountain_city_builds_iron_mine(build_manager_script) -> void:

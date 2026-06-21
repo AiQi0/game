@@ -17,6 +17,7 @@ func _init() -> void:
 		var buildings: Array = catalog.get_buildings()
 
 		_assert_equal(manager.get("gold"), 30, "game starts with 30 gold")
+		_assert_equal(manager.get("selected_index"), -1, "game starts with no build bar slot selected")
 		_assert_true(manager.has_method("can_afford_building"), "BuildManager can check building affordability")
 		_assert_true(manager.has_method("spend_gold_for_building"), "BuildManager can spend gold for buildings")
 		_assert_true(manager.has_method("add_gold"), "BuildManager can add gold")
@@ -54,12 +55,12 @@ func _init() -> void:
 			)
 			_assert_true(manager.claim_work_site(0, "Villager_01"), "farm can be claimed")
 			_assert_true(manager.occupy_work_site("farm_1", "Villager_01"), "farm can be occupied")
-			_assert_true(manager.claim_work_site(0, "Villager_02"), "farm can accept a second villager")
-			_assert_true(manager.occupy_work_site("farm_1", "Villager_02"), "second villager can enter farm")
+			_assert_false(manager.claim_work_site(0, "Villager_02"), "farm cannot accept a second villager")
+			_assert_false(manager.occupy_work_site("farm_1", "Villager_02"), "second villager cannot enter farm")
 			manager._update_farm_income(59.0)
 			_assert_equal(manager.gold, 0, "occupied farm does not pay before one minute")
 			manager._update_farm_income(1.0)
-			_assert_equal(manager.gold, 2, "each occupied farm worker produces one gold per minute")
+			_assert_equal(manager.gold, 1, "single occupied farm worker produces one gold per minute")
 			farm.free()
 
 		manager.free()

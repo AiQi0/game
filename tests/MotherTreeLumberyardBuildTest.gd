@@ -93,16 +93,10 @@ func _test_mother_tree_spawn_and_lumberyard_build(build_manager_script) -> void:
 			lumberyard_node.global_position += Vector2(800, 0)
 		var before := _resource_count(manager, "tree")
 		manager._update_lumberyards(120.0)
-		_assert_equal(_resource_count(manager, "tree"), before + 3, "mother-tree lumberyard grows three trees every two minutes")
-		for entity in manager.placed_buildings:
-			if entity.get("resource_kind", "") != "tree":
-				continue
-			var node: Node2D = entity.node
-			if is_instance_valid(node):
-				_assert_true(
-					node.global_position.distance_to(mother_node.global_position) <= 520.0,
-					"grown tree is near the mother tree source"
-				)
+		_assert_equal(_resource_count(manager, "tree"), before, "mother-tree lumberyard no longer grows external trees")
+		_assert_equal(manager.tree_chop_tasks.size(), 0, "mother-tree lumberyard no longer creates external chop tasks")
+		_assert_equal(manager.game_data.building_interior_value("lumberyard", "resource_kind"), "tree", "lumberyard interior still owns tree production")
+		_assert_equal(manager.game_data.building_interior_value("lumberyard", "spawn_count"), 3, "lumberyard interior grows three trees per batch")
 
 	setup.root.free()
 

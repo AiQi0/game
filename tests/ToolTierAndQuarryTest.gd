@@ -45,7 +45,7 @@ func _test_tool_tier_data(data) -> void:
 	_assert_equal(data.tool_efficiency_multiplier("stone_pickaxe"), 2.0, "stone tools are one hundred percent faster")
 	_assert_equal(data.tool_damage_multiplier("stone_arrowhead"), 2.0, "stone arrowheads double archer damage")
 	_assert_equal(data.blacksmith_craft_tool_ids(1), ["sword", "axe", "sickle", "bow"], "level 1 blacksmith crafts wood tools and bow")
-	_assert_equal(data.blacksmith_craft_tool_ids(2), ["stone_sword", "stone_pickaxe", "stone_sickle", "bow", "stone_arrowhead"], "level 2 blacksmith crafts stone tools, bow, and stone arrowheads")
+	_assert_equal(data.blacksmith_craft_tool_ids(2), ["stone_sword", "stone_pickaxe", "stone_sickle", "bow", "stone_arrowhead", "stone_spear"], "level 2 blacksmith crafts stone tools, bow, stone arrowheads, and stone spear")
 	_assert_equal(data.blacksmith_craft_requirements(2), {"quarry": 1}, "level 2 blacksmith requires a quarry")
 	_assert_equal(data.lumberyard_display_name(2), "2级伐木场", "level 2 lumberyard keeps lumberyard identity")
 	_assert_equal(data.lumberyard_resource_kind(2), "tree", "level 2 lumberyard still grows trees")
@@ -149,8 +149,9 @@ func _test_level_two_lumberyard_stays_lumberyard(build_manager_script, npc_manag
 	var lumberyard := _track_building(manager, buildings, "lumberyard_1", "lumberyard", Vector2(3600, 472), Vector2(200, 130), 2)
 	var before_trees := _resource_count(manager, "tree")
 	manager._update_lumberyards(120.0)
-	_assert_equal(_resource_count(manager, "tree"), before_trees + 3, "level 2 lumberyard still generates three trees")
+	_assert_equal(_resource_count(manager, "tree"), before_trees, "level 2 lumberyard no longer generates external trees")
 	_assert_equal(_resource_count(manager, "stone"), 0, "level 2 lumberyard does not generate stones")
+	_assert_equal(manager.game_data.building_interior_value("lumberyard", "resource_kind"), "tree", "level 2 lumberyard interior still produces tree resources")
 
 	var worker := _make_villager("Lumberjack_01", lumberyard.global_position)
 	npcs.add_child(worker)
@@ -160,15 +161,8 @@ func _test_level_two_lumberyard_stays_lumberyard(build_manager_script, npc_manag
 	_assert_equal(worker.get("worker_role"), "lumberjack", "worker entering level 2 lumberyard remains lumberjack")
 
 	manager._update_lumberyards(0.0)
-	_assert_true(worker.get("is_traveling_to_tree_chop") == true, "lumberjack leaves level 2 lumberyard to chop nearby tree")
-	var task: Dictionary = manager.tree_chop_tasks[0]
-	_assert_equal(task.get("resource_kind", ""), "tree", "level 2 lumberyard dispatch creates a tree task")
-
-	worker.global_position = task.position
-	npc_manager._finish_arriving_tree_choppers()
-	manager.gold = 0
-	npc_manager._advance_tree_choppers(60.0)
-	_assert_equal(manager.gold, 1, "level 2 lumberyard chopping grants tree gold")
+	_assert_false(worker.get("is_traveling_to_tree_chop") == true, "lumberjack stays inside while interior scene owns production")
+	_assert_equal(manager.tree_chop_tasks.size(), 0, "level 2 lumberyard does not dispatch external tree tasks")
 
 	setup.root.free()
 

@@ -1,5 +1,7 @@
 extends SceneTree
 
+const GameData = preload("res://scripts/GameData.gd")
+
 var failures := 0
 
 
@@ -59,8 +61,8 @@ func _assert_starting_positions(npcs: Node2D) -> void:
 			_assert_true(absf(child.global_position.x - 4800.0) <= 80.0, "starting villager is in front of city hall")
 			_assert_equal(child.get("assigned_workplace_id"), "cityhall", "starting villager belongs to city hall")
 		elif child.get("npc_type") == "homeless":
-			_assert_true(child.global_position.x >= 0.0, "starting homeless is inside left map edge")
-			_assert_true(child.global_position.x <= 9600.0, "starting homeless is inside right map edge")
+			_assert_true(child.global_position.x >= GameData.GROUND_MIN_X, "starting homeless is inside left map edge")
+			_assert_true(child.global_position.x <= GameData.GROUND_MAX_X, "starting homeless is inside right map edge")
 			_assert_equal(child.global_position.y, 472.0, "starting homeless stands on ground")
 
 

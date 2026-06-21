@@ -14,7 +14,7 @@
 size = Vector2(96, 1000)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(9600, 48)
+size = Vector2(17600, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(32, 64)
@@ -42,13 +42,13 @@ z_index = 3
 [node name="AirWalls" type="Node2D" parent="." unique_id=671793530]
 
 [node name="LeftAirWall" type="StaticBody2D" parent="AirWalls" unique_id=2076072627]
-position = Vector2(-48, 0)
+position = Vector2(-4048, 0)
 
 [node name="LeftAirWallCollision" type="CollisionShape2D" parent="AirWalls/LeftAirWall" unique_id=2071202858]
 shape = SubResource("RectangleShape2D_air_wall")
 
 [node name="RightAirWall" type="StaticBody2D" parent="AirWalls" unique_id=1179938032]
-position = Vector2(9648, 0)
+position = Vector2(13648, 0)
 
 [node name="RightAirWallCollision" type="CollisionShape2D" parent="AirWalls/RightAirWall" unique_id=741177777]
 shape = SubResource("RectangleShape2D_air_wall")
@@ -114,7 +114,7 @@ position = Vector2(4800, 496)
 [node name="GroundVisual" type="Polygon2D" parent="Ground" unique_id=269140392]
 visible = false
 color = Color(0.25, 0.62, 0.34, 1)
-polygon = PackedVector2Array(-4800, -24, 4800, -24, 4800, 24, -4800, 24)
+polygon = PackedVector2Array(-8800, -24, 8800, -24, 8800, 24, -8800, 24)
 
 [node name="GroundCollision" type="CollisionShape2D" parent="Ground" unique_id=845760029]
 shape = SubResource("RectangleShape2D_ground")

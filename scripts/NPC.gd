@@ -11,8 +11,11 @@ const FARMER_COLOR := GameData.NPC_ROLES.farmer.color
 const MINER_COLOR := GameData.NPC_ROLES.miner.color
 const MERCHANT_COLOR := GameData.NPC_ROLES.merchant.color
 const SHIELD_GUARD_COLOR := GameData.NPC_ROLES.shield_guard.color
+const SOLDIER_COLOR := GameData.NPC_ROLES.soldier.color
 const WARRIOR_COLOR := GameData.NPC_ROLES.warrior.color
 const ARCHER_COLOR := GameData.NPC_ROLES.archer.color
+const SOLDIER_ATTACK_POWER := GameData.NPC_ROLES.soldier.attack_power
+const SOLDIER_MAX_HEALTH := GameData.NPC_ROLES.soldier.max_health
 const WARRIOR_ATTACK_POWER := GameData.NPC_ROLES.warrior.attack_power
 const ARCHER_ATTACK_POWER := GameData.NPC_ROLES.archer.attack_power
 const ARCHER_ATTACK_RANGE := GameData.NPC_ROLES.archer.attack_range
@@ -24,6 +27,10 @@ var carried_tool := ""
 var arrowhead_tool := ""
 var attack_power := 0
 var attack_range := 0.0
+var max_health := 0
+var health := 0
+var soldier_level := 0
+var soldier_training_elapsed := 0.0
 var is_patrolling := false
 var patrol_side := ""
 var patrol_anchor := Vector2.ZERO
@@ -86,6 +93,10 @@ func interact() -> void:
 	arrowhead_tool = ""
 	attack_power = 0
 	attack_range = 0.0
+	max_health = 0
+	health = 0
+	soldier_level = 0
+	soldier_training_elapsed = 0.0
 	is_patrolling = false
 	patrol_side = ""
 	patrol_anchor = Vector2.ZERO
@@ -175,6 +186,45 @@ func become_shield_guard() -> void:
 	_set_generated_sprite_asset("shield_guard")
 
 
+func become_soldier() -> void:
+	if npc_type != "villager":
+		return
+
+	worker_role = "soldier"
+	attack_range = 0.0
+	is_patrolling = false
+	patrol_side = ""
+	patrol_anchor = Vector2.ZERO
+	is_on_wall = false
+	wall_id = ""
+	is_inside_building = false
+	is_traveling_to_workplace = false
+	is_traveling_to_tree_chop = false
+	is_traveling_to_tool_pickup = false
+	is_chopping_tree = false
+	tree_chop_task_id = ""
+	wander_radius = 90.0
+	visible = true
+	set_process(true)
+	_apply_soldier_stats()
+	if body != null:
+		body.color = SOLDIER_COLOR
+	_set_generated_sprite_asset("soldier")
+
+
+func set_soldier_training(elapsed_seconds: float) -> void:
+	soldier_training_elapsed = maxf(0.0, elapsed_seconds)
+	soldier_level = game_data.barracks_training_level_for_elapsed(soldier_training_elapsed)
+	if worker_role == "soldier":
+		_apply_soldier_stats()
+
+
+func set_soldier_level(level: int) -> void:
+	soldier_level = clampi(level, 0, 3)
+	if worker_role == "soldier":
+		_apply_soldier_stats()
+
+
 func become_warrior() -> void:
 	if npc_type != "villager":
 		return
@@ -259,6 +309,8 @@ func equip_tool(tool_id: String) -> void:
 		become_archer()
 		if arrowhead_tool != "":
 			attack_power = int(round(float(ARCHER_ATTACK_POWER) * game_data.tool_damage_multiplier(arrowhead_tool)))
+	elif _is_spear_tool(tool_id) and worker_role == "soldier":
+		_apply_soldier_stats()
 
 	var held_tool := Polygon2D.new()
 	held_tool.name = "HeldTool"
@@ -297,6 +349,8 @@ func drop_carried_tool() -> String:
 			body.color = VILLAGER_COLOR
 		_set_generated_sprite_asset("villager")
 		_choose_new_target()
+	elif worker_role == "soldier":
+		_apply_soldier_stats()
 	return tool_id
 
 
@@ -312,6 +366,10 @@ func become_homeless() -> void:
 	wall_id = ""
 	carried_tool = ""
 	arrowhead_tool = ""
+	max_health = 0
+	health = 0
+	soldier_level = 0
+	soldier_training_elapsed = 0.0
 	var old_tool := get_node_or_null("HeldTool")
 	if old_tool != null:
 		old_tool.queue_free()
@@ -636,6 +694,21 @@ func _clear_wall_state() -> void:
 		attack_range = ARCHER_ATTACK_RANGE
 
 
+func _apply_soldier_stats() -> void:
+	var multiplier := game_data.barracks_stat_multiplier_for_level(soldier_level)
+	var base_attack := int(game_data.npc_role_value("soldier", "attack_power", SOLDIER_ATTACK_POWER))
+	var base_health := int(game_data.npc_role_value("soldier", "max_health", SOLDIER_MAX_HEALTH))
+	var attack_bonus := 0.0
+	var health_bonus := 0.0
+	if _is_spear_tool(carried_tool):
+		attack_bonus = float(game_data.tool_value(carried_tool, "soldier_attack_bonus", 0.0))
+		health_bonus = float(game_data.tool_value(carried_tool, "soldier_health_bonus", 0.0))
+	attack_power = int(round(float(base_attack) * multiplier * (1.0 + attack_bonus)))
+	max_health = int(round(float(base_health) * multiplier * (1.0 + health_bonus)))
+	if health <= 0 or health > max_health:
+		health = max_health
+
+
 func _set_generated_sprite_asset(asset_id: String) -> void:
 	var sprite := get_node_or_null("GeneratedSprite") as Sprite2D
 	if sprite == null:
@@ -665,6 +738,10 @@ func _is_warrior_tool(tool_id: String) -> bool:
 
 func _is_arrowhead_tool(tool_id: String) -> bool:
 	return tool_id.ends_with("_arrowhead")
+
+
+func _is_spear_tool(tool_id: String) -> bool:
+	return game_data.tool_class(tool_id) == "spear"
 
 
 func _tool_color(tool_id: String) -> Color:

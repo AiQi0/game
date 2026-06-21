@@ -13,7 +13,10 @@ const MONSTER_SPEED := GameData.MONSTER_SPEED
 const RETURN_SPEED := GameData.MONSTER_RETURN_SPEED
 const DETECTION_RANGE := GameData.MONSTER_DETECTION_RANGE
 const HIT_RANGE := GameData.MONSTER_HIT_RANGE
+const DASH_DISTANCE := GameData.MONSTER_DASH_DISTANCE
+const DASH_SPEED_MULTIPLIER := GameData.MONSTER_DASH_SPEED_MULTIPLIER
 const CHARGE_SECONDS := GameData.MONSTER_CHARGE_SECONDS
+const SPAWN_INTERVAL_SECONDS := GameData.MONSTER_SPAWN_INTERVAL_SECONDS
 const RANDOM_SEED := GameData.MONSTER_RANDOM_SEED
 
 var rules := MonsterRules.new()
@@ -29,6 +32,8 @@ var night_number := 0
 var safe_nights_remaining := 0
 var monster_sequence := 0
 var arrow_sequence := 0
+var pending_spawn_queue: Array = []
+var spawn_queue_elapsed := 0.0
 
 
 func _ready() -> void:
@@ -55,6 +60,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_update_night_spawn()
+	_update_spawn_queue(delta)
 	_update_monsters(delta)
 
 
@@ -77,7 +83,7 @@ func run_night_spawn(current_night: int) -> int:
 		if count <= 0:
 			continue
 
-		spawn_monsters(side, count)
+		_queue_monsters(side, count)
 		spawned += count
 
 	return spawned
@@ -86,6 +92,26 @@ func run_night_spawn(current_night: int) -> int:
 func spawn_monsters(spawn_side: String, count: int) -> void:
 	for i in range(count):
 		spawn_monster(spawn_side, i)
+
+
+func _queue_monsters(spawn_side: String, count: int) -> void:
+	for i in range(count):
+		pending_spawn_queue.append({
+			"side": spawn_side,
+			"lane_index": i,
+		})
+
+
+func _update_spawn_queue(delta: float) -> void:
+	if pending_spawn_queue.is_empty():
+		spawn_queue_elapsed = 0.0
+		return
+
+	spawn_queue_elapsed += delta
+	while spawn_queue_elapsed >= SPAWN_INTERVAL_SECONDS and not pending_spawn_queue.is_empty():
+		spawn_queue_elapsed -= SPAWN_INTERVAL_SECONDS
+		var item: Dictionary = pending_spawn_queue.pop_front()
+		spawn_monster(str(item.get("side", "left")), int(item.get("lane_index", 0)))
 
 
 func spawn_monster(spawn_side: String, lane_index := 0) -> Node2D:
@@ -175,6 +201,10 @@ func _update_monsters(delta: float) -> void:
 			_update_returning_monster(monster, delta)
 			continue
 
+		if monster.get("state") == "dashing":
+			_update_dashing_monster(monster, delta)
+			continue
+
 		_update_attacking_monster(monster, delta)
 
 
@@ -188,7 +218,15 @@ func _update_returning_monster(monster: Node2D, delta: float) -> void:
 
 
 func _update_attacking_monster(monster: Node2D, delta: float) -> void:
-	var target := _nearest_attack_target(monster.global_position)
+	if monster.get("state") == "dashing":
+		_update_dashing_monster(monster, delta)
+		return
+
+	var target: Node2D = null
+	if monster.get("state") == "charging":
+		target = monster.get("attack_target") as Node2D
+	if target == null or not is_instance_valid(target):
+		target = _nearest_attack_target(monster.global_position, int(monster.get("direction")))
 	if target == null:
 		monster.set("state", "advance")
 		monster.set("attack_target", null)
@@ -208,16 +246,47 @@ func _update_attacking_monster(monster: Node2D, delta: float) -> void:
 	if charge_elapsed < CHARGE_SECONDS:
 		return
 
-	if monster.global_position.distance_to(target.global_position) <= HIT_RANGE:
+	_begin_monster_dash(monster, target)
+
+
+func _begin_monster_dash(monster: Node2D, target: Node2D) -> void:
+	monster.set("state", "dashing")
+	monster.set("attack_target", target)
+	monster.set("dash_remaining", DASH_DISTANCE)
+	monster.set("dash_start_position", monster.global_position)
+
+
+func _update_dashing_monster(monster: Node2D, delta: float) -> void:
+	var direction := int(monster.get("direction"))
+	var dash_start := monster.global_position
+	var distance := minf(float(monster.get("dash_remaining")), MONSTER_SPEED * DASH_SPEED_MULTIPLIER * delta)
+	monster.global_position.x += direction * distance
+	monster.set("dash_remaining", float(monster.get("dash_remaining")) - distance)
+
+	var target := monster.get("attack_target") as Node2D
+
+	if is_instance_valid(target) and _dash_reaches_target(dash_start, monster.global_position, target.global_position, direction):
+		if _monster_target_is_wall(target):
+			_resolve_monster_wall_hit(monster, target)
+			return
 		if _monster_charge_blocked():
-			monster.set("state", "advance")
-			monster.set("attack_target", null)
-			monster.set("charge_elapsed", 0.0)
+			_reset_monster_attack(monster)
 			return
 		_resolve_monster_hit(monster, target)
-	else:
-		monster.global_position.x += int(monster.get("direction")) * MONSTER_SPEED * delta
+		return
+
+	if float(monster.get("dash_remaining")) <= 0.0:
+		_reset_monster_attack(monster)
 		_free_if_outside_far_edge(monster)
+
+
+func _dash_reaches_target(dash_start: Vector2, dash_end: Vector2, target_position: Vector2, direction: int) -> bool:
+	if absf(target_position.y - dash_start.y) > HIT_RANGE:
+		return false
+
+	if direction >= 0:
+		return target_position.x >= dash_start.x - HIT_RANGE and target_position.x <= dash_end.x + HIT_RANGE
+	return target_position.x <= dash_start.x + HIT_RANGE and target_position.x >= dash_end.x - HIT_RANGE
 
 
 func _resolve_monster_hit(monster: Node2D, target: Node2D) -> void:
@@ -234,9 +303,14 @@ func _resolve_monster_hit(monster: Node2D, target: Node2D) -> void:
 	monster.begin_return(loot.get("tool_id", ""), 0)
 
 
-func _nearest_attack_target(origin: Vector2) -> Node2D:
+func _nearest_attack_target(origin: Vector2, direction := 0) -> Node2D:
 	var nearest: Node2D = null
 	var nearest_distance := INF
+
+	if build_manager != null and build_manager.has_method("nearest_monster_blocking_wall"):
+		var wall: Node2D = build_manager.nearest_monster_blocking_wall(origin, direction, DETECTION_RANGE)
+		if wall != null:
+			return wall
 
 	if player != null and not _player_is_dead():
 		var player_distance := origin.distance_to(player.global_position)
@@ -257,6 +331,23 @@ func _nearest_attack_target(origin: Vector2) -> Node2D:
 				nearest_distance = distance
 
 	return nearest
+
+
+func _monster_target_is_wall(target: Node2D) -> bool:
+	return build_manager != null and build_manager.has_method("is_monster_blocking_wall") and build_manager.is_monster_blocking_wall(target)
+
+
+func _resolve_monster_wall_hit(monster: Node2D, wall: Node2D) -> void:
+	if build_manager != null and build_manager.has_method("damage_wall_by_monster"):
+		build_manager.damage_wall_by_monster(wall.name, 1)
+	_reset_monster_attack(monster)
+
+
+func _reset_monster_attack(monster: Node2D) -> void:
+	monster.set("state", "advance")
+	monster.set("attack_target", null)
+	monster.set("charge_elapsed", 0.0)
+	monster.set("dash_remaining", 0.0)
 
 
 func _monster_charge_blocked() -> bool:

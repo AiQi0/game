@@ -34,6 +34,17 @@ func _init() -> void:
 			_assert_equal(game_data.art_asset_path("environment", "foreground_water"), "%s/environment/foreground_water.png" % V3_ROOT, "foreground water path is in v3 pack")
 			_assert_equal(game_data.art_asset_path("ui", "gold"), "%s/ui/gold.png" % V3_ROOT, "gold icon path is in v3 pack")
 			_assert_true(ResourceLoader.exists(game_data.art_asset_path("tools", "iron_sword")), "iron sword asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("crops", "wheat_ready")), "wheat ready crop asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("seeds", "carrot")), "carrot seed asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("fish", "moon_kingfish")), "legendary fish asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("fish", "silhouette")), "fish silhouette asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("interiors", "farm_background")), "farm interior background asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("interiors", "interior_tree")), "interior tree asset exists")
+			_assert_true(ResourceLoader.exists(game_data.art_asset_path("ui", "fish_codex")), "fish codex icon asset exists")
+			for category in ["crops", "seeds", "fish", "interiors"]:
+				_assert_asset_category_exists(game_data, category)
+			for asset_id in ["fish_codex", "crop_codex", "seed_notice"]:
+				_assert_true(ResourceLoader.exists(game_data.art_asset_path("ui", asset_id)), "new UI asset exists: %s" % asset_id)
 
 	_test_no_outline_pack_validation()
 	if building_factory_script != null:
@@ -86,6 +97,14 @@ func _test_no_outline_pack_validation() -> void:
 	_assert_true(regenerations.has("post_station"), "v3 no-outline pack records regenerated HD post station")
 	_assert_true(regenerations.has("quarry"), "v3 no-outline pack records regenerated quarry")
 	_assert_true(regenerations.has("wall"), "v3 no-outline pack records regenerated side-view wall")
+
+
+func _assert_asset_category_exists(game_data, category: String) -> void:
+	var category_assets: Dictionary = game_data.ART_ASSETS.get(category, {})
+	_assert_true(not category_assets.is_empty(), "asset category is registered: %s" % category)
+	for asset_id in category_assets.keys():
+		var path: String = game_data.art_asset_path(category, str(asset_id))
+		_assert_true(ResourceLoader.exists(path), "registered asset exists: %s/%s" % [category, str(asset_id)])
 
 
 func _test_building_factory_uses_v3_sprite(factory_script: Script) -> void:
@@ -171,6 +190,7 @@ func _test_river_scene_uses_v3_building_sprites() -> void:
 	if packed_scene == null:
 		return
 	var scene := packed_scene.instantiate()
+	_assert_sprite_texture_path(scene.get_node_or_null("Player"), "GeneratedSprite", "%s/npcs/player.png" % V3_ROOT, "river player uses v3 sprite")
 	_assert_sprite_texture_path(scene.get_node_or_null("CityHall"), "GeneratedSprite", "%s/buildings/cityhall.png" % V3_ROOT, "river city hall uses v3 sprite")
 	_assert_sprite_texture_path(scene.get_node_or_null("PostStation"), "GeneratedSprite", "%s/buildings/post_station.png" % V3_ROOT, "river post station uses v3 sprite")
 	_assert_sprite_texture_path(scene.get_node_or_null("Farms/Farm_01"), "GeneratedSprite", "%s/buildings/farm.png" % V3_ROOT, "river farm uses v3 sprite")

@@ -53,7 +53,7 @@ func _init() -> void:
 		)
 
 		if build_manager.has_method("_update_lumberyards"):
-			_test_lumberyard_grows_trees(build_manager, lumberyard.global_position)
+			_test_lumberyard_stops_external_tree_growth(build_manager)
 
 		var tree := Node2D.new()
 		tree.name = "ManualTree"
@@ -84,30 +84,14 @@ func _init() -> void:
 
 		if build_manager.has_method("_update_lumberyards"):
 			build_manager._update_lumberyards(0.0)
-			_assert_true(villager.get("is_traveling_to_tree_chop") == true, "lumberjack leaves lumberyard to chop nearby tree")
-			_assert_true(villager.visible, "lumberjack is visible while walking to tree")
-			_assert_equal(_window_color(lumberyard), WINDOW_DARK, "lumberyard window darkens while worker is outside")
-			_assert_equal(build_manager.get_work_sites()[0].worker_inside, false, "lumberyard records worker outside during chopping")
-
-			var task: Dictionary = build_manager.tree_chop_tasks[0]
-			villager.global_position = task.position
-			npc_manager._finish_arriving_tree_choppers()
-			_assert_true(villager.get("is_chopping_tree") == true, "lumberjack starts chopping after reaching tree")
-			build_manager.gold = 0
-			npc_manager._advance_tree_choppers(60.0)
-			_assert_equal(build_manager.gold, 1, "lumberjack completed chop grants one gold")
-			_assert_equal(villager.get("assigned_workplace_id"), "lumberyard_1", "lumberjack returns to lumberyard after chopping")
-			_assert_true(villager.get("is_traveling_to_workplace") == true, "lumberjack walks back to lumberyard")
-
-			villager.global_position = lumberyard.global_position
-			npc_manager._finish_arriving_workers()
-			_assert_false(villager.visible, "lumberjack hides again after returning to lumberyard")
-			_assert_true(build_manager.get_work_sites()[0].worker_inside, "lumberyard records returned worker inside")
-			_assert_equal(_window_color(lumberyard), WINDOW_LIT, "lumberyard window lights again after worker returns")
+			_assert_false(villager.get("is_traveling_to_tree_chop") == true, "lumberjack no longer leaves main world lumberyard for automatic tree work")
+			_assert_false(villager.visible, "lumberjack remains hidden while work moves to interior scene")
+			_assert_equal(_window_color(lumberyard), WINDOW_LIT, "occupied lumberyard window stays lit while interior work owns production")
+			_assert_true(build_manager.get_work_sites()[0].worker_inside, "lumberyard keeps worker inside for interior production")
 
 		root.free()
 
-		_test_lumberjack_dispatch_range_is_doubled(build_manager_script, npc_manager_script)
+		_test_lumberjack_dispatch_is_disabled_in_main_world(build_manager_script, npc_manager_script)
 
 	if failures == 0:
 		print("LumberyardTest: PASS")
@@ -117,21 +101,16 @@ func _init() -> void:
 	quit(failures)
 
 
-func _test_lumberyard_grows_trees(build_manager: Node2D, source_position: Vector2) -> void:
+func _test_lumberyard_stops_external_tree_growth(build_manager: Node2D) -> void:
 	var before := _tree_count(build_manager)
 	build_manager._update_lumberyards(119.0)
 	_assert_equal(_tree_count(build_manager), before, "lumberyard waits two minutes before growing trees")
 	build_manager._update_lumberyards(1.0)
-	_assert_equal(_tree_count(build_manager), before + 3, "lumberyard grows three trees every two minutes")
-
-	for entity in build_manager.placed_buildings:
-		if entity.get("entity_kind", "") != "tree":
-			continue
-		var node: Node2D = entity.node
-		_assert_true(node.global_position.distance_to(source_position) <= 420.0, "grown tree is near lumberyard")
+	_assert_equal(_tree_count(build_manager), before, "main world lumberyard no longer grows external trees")
+	_assert_equal(build_manager.tree_chop_tasks.size(), 0, "main world lumberyard no longer creates automatic chop tasks")
 
 
-func _test_lumberjack_dispatch_range_is_doubled(build_manager_script: Script, npc_manager_script: Script) -> void:
+func _test_lumberjack_dispatch_is_disabled_in_main_world(build_manager_script: Script, npc_manager_script: Script) -> void:
 	var root := Node2D.new()
 
 	var buildings := Node2D.new()
@@ -192,9 +171,7 @@ func _test_lumberjack_dispatch_range_is_doubled(build_manager_script: Script, np
 	npc_manager._finish_arriving_workers()
 
 	build_manager._update_lumberyards(0.0)
-	_assert_equal(build_manager.tree_chop_tasks.size(), 1, "lumberjack can target a tree inside doubled range")
-	if build_manager.tree_chop_tasks.size() > 0:
-		_assert_equal(build_manager.tree_chop_tasks[0].task_id, "FarRangeTree", "doubled range dispatch targets the farther tree")
+	_assert_equal(build_manager.tree_chop_tasks.size(), 0, "main world lumberyard does not dispatch external tree work")
 
 	root.free()
 

@@ -3,6 +3,10 @@ extends SceneTree
 const TERRAIN_ROOT := "res://assets/world_terrain_v1"
 
 var failures := 0
+const EXPECTED_GROUND_MIN_X := -4000.0
+const EXPECTED_GROUND_MAX_X := 13600.0
+const EXPECTED_GROUND_WIDTH := EXPECTED_GROUND_MAX_X - EXPECTED_GROUND_MIN_X
+const EXPECTED_AIR_WALL_WIDTH := 96.0
 
 
 func _init() -> void:
@@ -71,7 +75,7 @@ func _test_visual_manager_nodes(terrain_manager_script: Script) -> void:
 	world.add_child(manager)
 	manager._ready()
 
-	var expected_ground_tiles := int(ceil((9600.0 + 1920.0 * 2.0) / 256.0))
+	var expected_ground_tiles := int(ceil((EXPECTED_GROUND_WIDTH + 1920.0 * 2.0) / 256.0))
 	var ground_tiles := manager.get_node_or_null("GroundTiles")
 	var fill_tiles := manager.get_node_or_null("GroundFillTiles")
 	var backgrounds := manager.get_node_or_null("Backgrounds")
@@ -85,8 +89,8 @@ func _test_visual_manager_nodes(terrain_manager_script: Script) -> void:
 		_assert_equal(ground_tiles.get_child_count(), expected_ground_tiles, "ground visuals cover the full world plus one chunk on both sides")
 		var first_tile := ground_tiles.get_child(0) as Sprite2D
 		var last_tile := ground_tiles.get_child(ground_tiles.get_child_count() - 1) as Sprite2D
-		_assert_true(first_tile.position.x <= -1920.0, "first ground tile starts before the left air wall")
-		_assert_true(last_tile.position.x + 256.0 >= 9600.0 + 1920.0, "last ground tile reaches past the right air wall")
+		_assert_true(first_tile.position.x <= EXPECTED_GROUND_MIN_X - 1920.0, "first ground tile starts before the left air wall")
+		_assert_true(last_tile.position.x + 256.0 >= EXPECTED_GROUND_MAX_X + 1920.0, "last ground tile reaches past the right air wall")
 	if fill_tiles != null:
 		_assert_equal(fill_tiles.get_child_count(), expected_ground_tiles, "ground fill matches ground tile count")
 	if backgrounds != null:
@@ -125,8 +129,16 @@ func _test_main_scene_wiring() -> void:
 	var ground_collision := scene.get_node_or_null("Ground/GroundCollision") as CollisionShape2D
 	_assert_true(ground_collision != null, "main scene keeps GroundCollision")
 	if ground_collision != null and ground_collision.shape is RectangleShape2D:
-		_assert_equal((ground_collision.shape as RectangleShape2D).size, Vector2(9600, 48), "ground collision size is unchanged")
+		_assert_equal((ground_collision.shape as RectangleShape2D).size, Vector2(EXPECTED_GROUND_WIDTH, 48), "ground collision covers expanded main world")
 
+	var left_wall := scene.get_node_or_null("AirWalls/LeftAirWall") as StaticBody2D
+	var right_wall := scene.get_node_or_null("AirWalls/RightAirWall") as StaticBody2D
+	_assert_true(left_wall != null, "left air wall remains")
+	_assert_true(right_wall != null, "right air wall remains")
+	if left_wall != null:
+		_assert_equal(left_wall.position, Vector2(EXPECTED_GROUND_MIN_X - EXPECTED_AIR_WALL_WIDTH * 0.5, 0), "left air wall guards expanded left edge")
+	if right_wall != null:
+		_assert_equal(right_wall.position, Vector2(EXPECTED_GROUND_MAX_X + EXPECTED_AIR_WALL_WIDTH * 0.5, 0), "right air wall guards expanded right edge")
 	_assert_true(scene.get_node_or_null("AirWalls/LeftAirWall/LeftAirWallCollision") != null, "left air wall collision remains")
 	_assert_true(scene.get_node_or_null("AirWalls/RightAirWall/RightAirWallCollision") != null, "right air wall collision remains")
 	scene.free()

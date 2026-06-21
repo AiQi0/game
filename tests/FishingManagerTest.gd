@@ -41,11 +41,13 @@ func _run_tests() -> void:
 		_test_decay_failure(fishing_manager_script, build_manager_script)
 		_test_process_driven_bite_checks(fishing_manager_script, build_manager_script)
 		_test_cancel_when_dead_or_paused(fishing_manager_script, build_manager_script)
+		_test_movement_cancels_fishing(fishing_manager_script, build_manager_script)
 		_test_press_fishing_key_respects_blocked_context(fishing_manager_script, build_manager_script)
 		_test_f_key_input_only_handled_when_action_occurs(fishing_manager_script)
 		_test_runtime_ui_nodes_exist(fishing_manager_script, build_manager_script)
 		_test_build_manager_blocks_fishing_when_busy(fishing_manager_script, build_manager_script)
 		_test_build_manager_ignores_build_input_while_fishing(fishing_manager_script, build_manager_script)
+		_test_fishing_input_ignored_while_building_interior_active(fishing_manager_script, build_manager_script)
 
 	_test_main_scene_wiring()
 
@@ -159,6 +161,20 @@ func _test_cancel_when_dead_or_paused(fishing_manager_script: Script, build_mana
 	tree_root.free()
 
 
+func _test_movement_cancels_fishing(fishing_manager_script: Script, build_manager_script: Script) -> void:
+	var root := _create_root(fishing_manager_script, build_manager_script)
+	var player: Node2D = root.get_node("Player")
+	var fishing_manager: Node = root.get_node("FishingManager")
+
+	player.global_position = Vector2(1200, 472)
+	_assert_true(fishing_manager.try_start_fishing(), "fishing can start before movement")
+	player.global_position += Vector2(10, 0)
+	fishing_manager._process(0.1)
+	_assert_equal(fishing_manager.state_name(), "idle", "moving while fishing cancels fishing")
+
+	root.free()
+
+
 func _test_press_fishing_key_respects_blocked_context(fishing_manager_script: Script, build_manager_script: Script) -> void:
 	var idle_root := _create_root(fishing_manager_script, build_manager_script)
 	var idle_build_manager: Node2D = idle_root.get_node("BuildManager")
@@ -216,6 +232,7 @@ func _test_f_key_input_only_handled_when_action_occurs(fishing_manager_script: S
 
 func _test_runtime_ui_nodes_exist(fishing_manager_script: Script, build_manager_script: Script) -> void:
 	var root := _create_root(fishing_manager_script, build_manager_script)
+	var build_manager: Node2D = root.get_node("BuildManager")
 	var fishing_manager: Node = root.get_node("FishingManager")
 	var ui := fishing_manager.get_node_or_null("FishingUI")
 
@@ -224,6 +241,27 @@ func _test_runtime_ui_nodes_exist(fishing_manager_script: Script, build_manager_
 		_assert_true(ui.find_child("FishingStatus", true, false) is Label, "FishingStatus label exists")
 		_assert_true(ui.find_child("FishingDetail", true, false) is Label, "FishingDetail label exists")
 		_assert_true(ui.find_child("FishingProgress", true, false) is ProgressBar, "FishingProgress bar exists")
+		var codex_button := ui.find_child("FishCodexButton", true, false) as Button
+		_assert_true(codex_button != null and codex_button.text == "鱼图鉴", "fishing codex button is Chinese")
+		_assert_true(fishing_manager.try_start_fishing(), "fishing can start for Chinese UI labels")
+		var status := ui.find_child("FishingStatus", true, false) as Label
+		var detail := ui.find_child("FishingDetail", true, false) as Label
+		_assert_equal(status.text, "钓鱼中", "waiting fishing status is Chinese")
+		_assert_equal(detail.text, "等待咬钩...", "waiting fishing detail is Chinese")
+		fishing_manager._enter_bite_window()
+		_assert_equal(status.text, "咬钩了！", "bite status is Chinese")
+		_assert_equal(detail.text, "按 F 收杆", "bite detail is Chinese")
+		build_manager._show_fish_codex_panel()
+		var fish_codex_panel: Panel = build_manager.fish_codex_panel
+		_assert_true(fish_codex_panel != null, "fish codex panel opens for Chinese labels")
+		if fish_codex_panel != null:
+			var title := fish_codex_panel.get_node_or_null("Title") as Label
+			var close_button := fish_codex_panel.get_node_or_null("CloseButton") as Button
+			_assert_true(title != null and title.text == "鱼图鉴", "fish codex title is Chinese")
+			_assert_true(close_button != null and close_button.text == "关闭 (P/Esc)", "fish codex close button mentions Esc")
+			build_manager._unhandled_input(_key_event(KEY_ESCAPE))
+			_assert_true(build_manager.fish_codex_panel == null, "Esc closes fish codex panel")
+			_assert_true(build_manager.pause_panel == null, "Esc closing fish codex does not open pause menu")
 
 	root.free()
 
@@ -313,6 +351,41 @@ func _test_build_manager_blocks_fishing_when_busy(fishing_manager_script: Script
 	_assert_false(paused_build_manager.can_start_fishing(), "paused tree blocks fishing")
 	get_root().get_tree().paused = previous_pause_state
 	paused_root.free()
+
+
+func _test_fishing_input_ignored_while_building_interior_active(fishing_manager_script: Script, build_manager_script: Script) -> void:
+	var game_session := get_root().get_node_or_null("GameSession")
+	_assert_true(game_session != null, "GameSession autoload exists for interior fishing guard")
+	if game_session == null:
+		return
+
+	var root := _create_root(fishing_manager_script, build_manager_script)
+	root.name = "FishingInteriorMain"
+	get_root().add_child(root)
+	current_scene = root
+
+	var fishing_manager: Node = root.get_node("FishingManager")
+	_assert_true(game_session.set_active_interior_context({
+		"building_node_name": "farm_for_fishing_guard",
+		"building_id": "farm",
+	}), "interior context can be set for fishing guard")
+
+	var interior := Node2D.new()
+	interior.name = "BuildingInterior"
+	get_root().add_child(interior)
+	current_scene = interior
+
+	fishing_manager._unhandled_input(_f_key_event())
+	_assert_equal(fishing_manager.state_name(), "idle", "main-world fishing input is ignored while interior is active")
+
+	if game_session.has_method("clear_active_interior_context"):
+		game_session.clear_active_interior_context()
+	if interior.get_parent() != null:
+		interior.get_parent().remove_child(interior)
+	interior.queue_free()
+	if root.get_parent() != null:
+		root.get_parent().remove_child(root)
+	root.queue_free()
 
 
 func _test_main_scene_wiring() -> void:

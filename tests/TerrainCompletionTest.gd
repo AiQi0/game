@@ -268,6 +268,8 @@ func _test_special_panel_buttons(build_manager_script) -> void:
 	manager._clear_info_panel()
 	manager._show_building_info_panel(1)
 	_assert_true(_node_named(manager.info_panel, "TravelRiverButton") != null, "post station panel exposes travel button")
+	_assert_true(_node_named(manager.info_panel, "TravelNorthernButton") == null, "post station panel hides northern travel button")
+	_assert_true(_node_named(manager.info_panel, "TravelMountainButton") == null, "post station panel hides mountain travel button")
 	_assert_true(_node_named(manager.info_panel, "BuyHorseButton") != null, "post station panel exposes buy horse button")
 	manager._clear_info_panel()
 	manager._show_building_info_panel(2)
